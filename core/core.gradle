@@ -35,7 +35,7 @@ def genTestJavaDir = "$genOutputDir/java/test"
 
 def genInputDir = getProject().file('src/main/javaTemplate')
 def genTestInputDir = getProject().file('src/test/javaTemplate')
-def pythonASDL = getProject().file('build-tools/python/Parser/Python.asdl')
+def pythonASDL = getProject().getRootProject().file('build-tools/python/Parser/Python.asdl')
 
 // Source and destinations of Python source test material
 
@@ -93,9 +93,9 @@ task generateObjectDefinitions(type: PythonExec,
 // Generate Python AST node definitions
 
 task generateASTNodeDefinitions(type: PythonExec,
-        description: 'Generate object definitions from templates' ) {
+        description: 'Generate AST nodes' ) {
     args getProject().getRootProject().file(
-            'build-tools/python/tool/java_object_gen.py')
+            'build-tools/python/Parser/asdl_java.py')
     args pythonASDL
     args '--target'
     args genJavaDir
