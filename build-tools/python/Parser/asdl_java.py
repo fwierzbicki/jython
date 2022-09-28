@@ -489,10 +489,15 @@ class ChainOfVisitors:
 def main(input_filename, target_dir, dump_module=False):
     auto_gen_msg = AUTOGEN_MESSAGE.format("/".join(Path(__file__).parts[-2:]))
     mod = asdl.parse(input_filename)
-    full_target_dir = Path(target_dir, "org/python/parser/ast")
-    full_target_dir.mkdir(parents=True, exist_ok=True)
+    if dump_module:
+        print('Parsed Module:')
+        print(mod)
+
     if not asdl.check(mod):
         sys.exit(1)
+    full_target_dir = Path(target_dir, "org/python/parser/ast")
+    full_target_dir.mkdir(parents=True, exist_ok=True)
+
     c = ChainOfVisitors(AnalyzeVisitor(full_target_dir),
                         JavaVisitor(full_target_dir),
                         VisitorVisitor(full_target_dir))
