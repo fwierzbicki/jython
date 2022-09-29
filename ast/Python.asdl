@@ -1,6 +1,6 @@
 -- ASDL's five builtin types are identifier, int, string, object, bool
 
-module Python version "$Revision$"
+module Python
 {
 	mod = Module(stmt* body)
 	    | Interactive(stmt* body)
@@ -19,7 +19,7 @@ module Python version "$Revision$"
 	      | AugAssign(expr target, operator op, expr value)
 
 	      -- not sure if bool is allowed, can always use int
- 	      | Print(expr? dest, expr* values, bool nl)
+ 	      | Print(expr? dest, expr* values, int nl)
 
 	      -- use 'orelse' because else is a keyword in target languages
 	      | For(expr target, expr iter, stmt* body, stmt* orelse)
@@ -69,7 +69,7 @@ module Python version "$Revision$"
 	     | Call(expr func, expr* args, keyword* keywords,
 			 expr? starargs, expr? kwargs)
 	     | Repr(expr value)
-	     | Num(object n) -- a number as a PyObject.
+	     | Num(string n) -- a number as a PyObject.
 	     | Str(string s) -- need to specify raw, unicode, etc?
 	     -- other literals? bools?
 
