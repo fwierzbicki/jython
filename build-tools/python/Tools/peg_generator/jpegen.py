@@ -101,7 +101,7 @@ java_parser.set_defaults(func=generate_java_code)
 java_parser.add_argument("grammar_filename", help="Grammar description")
 java_parser.add_argument("tokens_filename", help="Tokens description")
 java_parser.add_argument(
-    "-o", "--output", metavar="OUT", default="Parser.java", help="Where to write the generated parser"
+    "-o", "--output", metavar="OUT", default="GeneratedParser.java", help="Where to write the generated parser"
 )
 java_parser.add_argument(
     "--compile-extension",
