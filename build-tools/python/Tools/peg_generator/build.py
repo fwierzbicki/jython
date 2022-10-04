@@ -1,10 +1,10 @@
+import itertools
+import os
 import pathlib
 import shutil
-import tokenize
-import sys
 import sysconfig
 import tempfile
-import itertools
+import tokenize
 
 from typing import Optional, Tuple, List, IO, Set, Dict
 
@@ -14,6 +14,7 @@ from pegen.grammar_parser import GeneratedParser as GrammarParser
 from pegen.parser import Parser
 from pegen.parser_generator import ParserGenerator
 from pegen.python_generator import PythonParserGenerator
+from pegen.java_generator import JavaParserGenerator
 from pegen.tokenizer import Tokenizer
 
 MOD_DIR = pathlib.Path(__file__).resolve().parent
@@ -34,7 +35,6 @@ def compile_c_extension(
     build_dir: Optional[str] = None,
     verbose: bool = False,
     keep_asserts: bool = True,
-    disable_optimization: bool = True,  # Significant test_peg_generator speedup.
 ) -> str:
     """Compile the generated source for a parser generator into an extension module.
 
@@ -61,30 +61,33 @@ def compile_c_extension(
     extra_link_args = get_extra_flags("LDFLAGS", "PY_LDFLAGS_NODIST")
     if keep_asserts:
         extra_compile_args.append("-UNDEBUG")
-    if disable_optimization:
-        if sys.platform == 'win32':
-            extra_compile_args.append("/Od")
-            extra_link_args.append("/LTCG:OFF")
-        else:
-            extra_compile_args.append("-O0")
-            if sysconfig.get_config_var("GNULD") == "yes":
-                extra_link_args.append("-fno-lto")
+    cpython_root_str = os.getenv("CPYTHON_ROOT")
+    if cpython_root_str:
+        cpython_root: pathlib.Path = pathlib.Path(cpython_root_str)
+    else:
+        cpython_root = MOD_DIR.parent.parent / "cpython"
+        if not (cpython_root / "Python").is_dir():
+            # This is Guido's convention. :-)
+            cpython_root = pathlib.Path.home() / "cpython"
+        if not (cpython_root / "Python").is_dir():
+            raise ValueError(
+                "No CPython repository found. Please use the CPYTHON_ROOT env variable."
+            )
     extension = [
         Extension(
             extension_name,
             sources=[
-                str(MOD_DIR.parent.parent.parent / "Python" / "Python-ast.c"),
-                str(MOD_DIR.parent.parent.parent / "Python" / "asdl.c"),
-                str(MOD_DIR.parent.parent.parent / "Parser" / "tokenizer.c"),
-                str(MOD_DIR.parent.parent.parent / "Parser" / "pegen" / "pegen.c"),
-                str(MOD_DIR.parent.parent.parent / "Parser" / "pegen" / "parse_string.c"),
+                str(cpython_root / "Python" / "Python-ast.c"),
+                str(cpython_root / "Python" / "asdl.c"),
+                str(cpython_root / "Parser" / "tokenizer.c"),
+                str(cpython_root / "Parser" / "pegen.c"),
+                str(cpython_root / "Parser" / "string_parser.c"),
                 str(MOD_DIR.parent / "peg_extension" / "peg_extension.c"),
                 generated_source_path,
             ],
             include_dirs=[
-                str(MOD_DIR.parent.parent.parent / "Include" / "internal"),
-                str(MOD_DIR.parent.parent.parent / "Parser"),
-                str(MOD_DIR.parent.parent.parent / "Parser" / "pegen"),
+                str(cpython_root / "Include" / "internal"),
+                str(cpython_root / "Parser"),
             ],
             extra_compile_args=extra_compile_args,
             extra_link_args=extra_link_args,
@@ -183,10 +186,25 @@ def build_c_generator(
 
 
 def build_python_generator(
-    grammar: Grammar, grammar_file: str, output_file: str, skip_actions: bool = False,
+    grammar: Grammar,
+    grammar_file: str,
+    output_file: str,
+    skip_actions: bool = False,
 ) -> ParserGenerator:
     with open(output_file, "w") as file:
-        gen: ParserGenerator = PythonParserGenerator(grammar, file)  # TODO: skip_actions
+        gen: ParserGenerator = PythonParserGenerator(grammar, file, skip_actions=skip_actions)
+        gen.generate(grammar_file)
+    return gen
+
+
+def build_java_generator(
+    grammar: Grammar,
+    grammar_file: str,
+    output_file: str,
+    skip_actions: bool = False,
+) -> ParserGenerator:
+    with open(output_file, "w") as file:
+        gen: ParserGenerator = JavaParserGenerator(grammar, file, skip_actions=skip_actions)
         gen.generate(grammar_file)
     return gen
 
@@ -254,5 +272,39 @@ def build_python_parser_and_generator(
         skip_actions (bool, optional): Whether to pretend no rule has any actions.
     """
     grammar, parser, tokenizer = build_parser(grammar_file, verbose_tokenizer, verbose_parser)
-    gen = build_python_generator(grammar, grammar_file, output_file, skip_actions=skip_actions,)
+    gen = build_python_generator(
+        grammar,
+        grammar_file,
+        output_file,
+        skip_actions=skip_actions,
+    )
     return grammar, parser, tokenizer, gen
+
+
+def build_java_parser_and_generator(
+    grammar_file: str,
+    output_file: str,
+    verbose_tokenizer: bool = False,
+    verbose_parser: bool = False,
+    skip_actions: bool = False,
+) -> Tuple[Grammar, Parser, Tokenizer, ParserGenerator]:
+    """Generate rules, python parser, tokenizer, parser generator for a given grammar
+
+    Args:
+        grammar_file (string): Path for the grammar file
+        output_file (string): Path for the output file
+        verbose_tokenizer (bool, optional): Whether to display additional output
+          when generating the tokenizer. Defaults to False.
+        verbose_parser (bool, optional): Whether to display additional output
+          when generating the parser. Defaults to False.
+        skip_actions (bool, optional): Whether to pretend no rule has any actions.
+    """
+    grammar, parser, tokenizer = build_parser(grammar_file, verbose_tokenizer, verbose_parser)
+    gen = build_java_generator(
+        grammar,
+        grammar_file,
+        output_file,
+        skip_actions=skip_actions,
+    )
+    return grammar, parser, tokenizer, gen
+
