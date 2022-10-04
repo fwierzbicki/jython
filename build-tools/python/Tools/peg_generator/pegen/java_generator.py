@@ -39,7 +39,7 @@ from pegen.grammar import (
 from pegen import grammar
 from pegen.parser_generator import ParserGenerator
 
-from pegen.action_translator import translate_action
+from action_translator import translate_action
 
 MODULE_PREFIX = """\
 /*
@@ -198,9 +198,11 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
     def __init__(
         self,
         grammar: grammar.Grammar,
+        tokens: Dict[int, str],# = token.tok_name,
+        exact_tokens: Dict[str, int],
+        non_exact_tokens: Set[str],
         file: Optional[IO[Text]],
-        *,
-        tokens: Dict[int, str] = token.tok_name,
+        debug: bool = False,
         skip_actions: bool = False,
     ):
         keywords = grammar.metas.get("keywords")
