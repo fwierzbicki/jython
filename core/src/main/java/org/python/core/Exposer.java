@@ -11,6 +11,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.python.base.InterpreterError;
 import org.python.base.MethodKind;
 import org.python.core.Exposed.Default;
 import org.python.core.Exposed.DocString;
+import org.python.core.Exposed.Getter;
 import org.python.core.Exposed.KeywordCollector;
 import org.python.core.Exposed.KeywordOnly;
 import org.python.core.Exposed.Name;
@@ -34,6 +36,7 @@ import org.python.core.Exposed.PositionalCollector;
 import org.python.core.Exposed.PositionalOnly;
 import org.python.core.Exposed.PythonMethod;
 import org.python.core.Exposed.PythonStaticMethod;
+import org.python.core.ModuleDef.MethodDef;
 
 /**
  * An object for tabulating the attributes of classes that define
@@ -49,7 +52,7 @@ abstract class Exposer {
 
     /**
      * The table of intermediate descriptions for methods (instance,
-     * static and class). They will become {@code MethodDef}s, and
+     * static and class). They will become {@link MethodDef}s, and
      * eventually either descriptors in a built-in object type or
      * methods bound to instances of a module type. Every entry here is
      * also a value in {@link #specs}.
@@ -64,6 +67,25 @@ abstract class Exposer {
 
     /** @return which {@link ScopeKind} of {@code Exposer} is this? */
     abstract ScopeKind kind();
+
+    /**
+     * On behalf of the given module defined in Java, build a
+     * description of the attributes discovered by introspection of the
+     * class provided.
+     * <p>
+     * Attributes are identified by annotations. (See {@link Exposed}.)
+     *
+     * @param definingClass to introspect for members
+     * @return exposure result
+     * @throws InterpreterError on errors of definition
+     */
+    static ModuleExposer exposeModule(Class<?> definingClass) throws InterpreterError {
+        // Create an instance of Exposer to hold specs, type, etc.
+        ModuleExposer exposer = new ModuleExposer();
+        // Let the exposer control the logic
+        exposer.expose(definingClass);
+        return exposer;
+    }
 
     /**
      * On behalf of the given type defined in Java, build a description
@@ -112,12 +134,31 @@ abstract class Exposer {
      * @throws InterpreterError on duplicates or unsupported types
      */
     void scanJavaMethods(Class<?> defsClass) throws InterpreterError {
-
         // Iterate over methods looking for the relevant annotations
-        for (Method m : defsClass.getDeclaredMethods()) {
-            PythonMethod a = m.getDeclaredAnnotation(PythonMethod.class);
-            if (a != null) { addMethodSpec(m, a); }
+        for (Class<?> c : superClasses(defsClass)) {
+            for (Method m : c.getDeclaredMethods()) {
+                PythonMethod a = m.getDeclaredAnnotation(PythonMethod.class);
+                if (a != null) { addMethodSpec(m, a); }
+            }
         }
+    }
+
+    /**
+     * Walk down to a given class through all super-classes that might
+     * contain items to expose. We do not need to include classes not
+     * created with a knowledge of Jython. (This is why it doesn't start
+     * with {@code java.lang.Object}).
+     *
+     * @param c given ending class
+     * @return super-classes descending to {@code c}
+     */
+    static Collection<Class<?>> superClasses(Class<?> c) {
+        LinkedList<Class<?>> classes = new LinkedList<>();
+        while (c != null && c != Object.class) {
+            classes.addFirst(c);
+            c = c.getSuperclass();
+        }
+        return classes;
     }
 
     /**
@@ -141,9 +182,8 @@ abstract class Exposer {
                 // Test and cast a found Spec to MethodSpec
                 spec -> spec instanceof MethodSpec ? (MethodSpec)spec : null;
         // Now use the generic create/update
-        addSpec(meth, anno.value(), cast, (String name) -> new MethodSpec(name, kind()), ms -> {
-            methodSpecs.add(ms);
-        }, addMethod);
+        addSpec(meth, anno.value(), cast, (String name) -> new MethodSpec(name, kind()),
+                ms -> methodSpecs.add(ms), addMethod);
     }
 
     /**
@@ -167,9 +207,7 @@ abstract class Exposer {
                 spec -> spec instanceof StaticMethodSpec ? (StaticMethodSpec)spec : null;
         // Now use the generic create/update
         addSpec(meth, anno.value(), cast, (String name) -> new StaticMethodSpec(name, kind()),
-                ms -> {
-                    methodSpecs.add(ms);
-                }, addMethod);
+                ms -> methodSpecs.add(ms), addMethod);
     }
 
     /**
@@ -347,9 +385,9 @@ abstract class Exposer {
             if (ac == Annotation.class) {
                 // Special methods recognised by name, so no annotation
                 return "special method";
-                // } else if (ac == Getter.class) {
-                // // Since could also be @Setter or @Deleter
-                // return "get-set attribute";
+            } else if (ac == Getter.class) {
+                // Since could also be @Setter or @Deleter
+                return "get-set attribute";
             } else {
                 return ac.getSimpleName();
             }
@@ -485,7 +523,7 @@ abstract class Exposer {
      * <p>
      * Objects described by this class are defined by a Java signature
      * in which parameters may be annotated to modify their treatment by
-     * Python. An argument parser and a {@code MethodDef} will be
+     * Python. An argument parser and a {@link MethodDef} will be
      * created to specify that treatment.
      */
     static abstract class CallableSpec extends BaseMethodSpec {
@@ -599,12 +637,33 @@ abstract class Exposer {
         ArgParser getParser() {
             if (parser == null && parameterNames != null
                     && parameterNames.length >= posonlyargcount) {
-                parser = new ArgParser(name, scopeKind, methodKind, varArgsIndex >= 0,
-                        varKeywordsIndex >= 0, posonlyargcount, kwonlyargcount, parameterNames,
-                        regargcount);
+                parser = new ArgParser(name, scopeKind, methodKind, parameterNames, regargcount,
+                        posonlyargcount, kwonlyargcount, varArgsIndex >= 0, varKeywordsIndex >= 0);
                 parser.defaults(defaults).kwdefaults(kwdefaults);
             }
             return parser;
+        }
+
+        /**
+         * Produce a method definition from this specification that
+         * references a method handle on the (single) defining method and
+         * the parser created from this specification. This is used in the
+         * construction of a module defined in Java (a {@link ModuleDef}).
+         *
+         * @param lookup authorisation to access methods
+         * @return corresponding method definition
+         * @throws InterpreterError on lookup prohibited
+         */
+        MethodDef getMethodDef(Lookup lookup) throws InterpreterError {
+            assert methods.size() == 1;
+            Method m = methods.get(0);
+            MethodHandle mh;
+            try {
+                mh = lookup.unreflect(m);
+            } catch (IllegalAccessException e) {
+                throw cannotGetHandle(m, e);
+            }
+            return new MethodDef(getParser(), mh);
         }
 
         /**
@@ -1108,9 +1167,9 @@ abstract class Exposer {
         @Override
         PyMethodDescr asAttribute(PyType objclass, Lookup lookup) throws InterpreterError {
 
-            ArgParser ap = new ArgParser(name, scopeKind, MethodKind.INSTANCE, varArgsIndex >= 0,
-                    varKeywordsIndex >= 0, posonlyargcount, kwonlyargcount, parameterNames,
-                    regargcount);
+            ArgParser ap = new ArgParser(name, scopeKind, MethodKind.INSTANCE, parameterNames,
+                    regargcount, posonlyargcount, kwonlyargcount, varArgsIndex >= 0,
+                    varKeywordsIndex >= 0);
             ap.defaults(defaults).kwdefaults(kwdefaults);
 
             // Methods have self + this many args:
@@ -1141,14 +1200,14 @@ abstract class Exposer {
     /**
      * Specification in which we assemble information about a Python
      * static method in advance of creating a method definition
-     * {@code MethodDef} or method descriptor {@link PyMethodDescr}.
+     * {@link MethodDef} or method descriptor {@link PyMethodDescr}.
      */
     static class StaticMethodSpec extends CallableSpec {
 
         StaticMethodSpec(String name, ScopeKind scopeKind) { super(name, scopeKind); }
 
         @Override
-        PyJavaMethod asAttribute(PyType objclass, Lookup lookup) {
+        PyJavaFunction asAttribute(PyType objclass, Lookup lookup) {
             // TODO Auto-generated method stub
             return null;
         }

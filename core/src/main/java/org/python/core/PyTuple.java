@@ -1,4 +1,4 @@
-// Copyright (c)2021 Jython Developers.
+// Copyright (c)2023 Jython Developers.
 // Copyright (c) Corporation for National Research Initiatives
 // Licensed to PSF under a contributor agreement.
 package org.python.core;
@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
+import java.util.stream.Stream;
 
 import org.python.base.InterpreterError;
 import org.python.core.PyObjectUtil.NoConversion;
@@ -123,6 +124,13 @@ public class PyTuple extends AbstractList<Object> implements CraftedPyObject {
     protected PyTuple(PyType type, Collection<?> c) {
         this(type, true, c.toArray(new Object[c.size()]));
     }
+
+    /**
+     * Construct a {@code PyTuple} from the elements of a stream.
+     *
+     * @param s source of element values for this {@code tuple}
+     */
+    PyTuple(Stream<?> s) { this(TYPE, true, s.toArray()); }
 
     /**
      * As {@link #PyTuple(Object[], int, int)} for Python sub-class
@@ -366,7 +374,7 @@ public class PyTuple extends AbstractList<Object> implements CraftedPyObject {
     @SuppressWarnings("unused")
     private int __hash__() throws Throwable {
         /*
-         * Ported from C in CPython 3.8, which in turn is based on the
+         * Ported from C in CPython 3.11, which in turn is based on the
          * xxHash specification. We do not attempt to maintain historic
          * hash of () or avoid returning -1. Seed the accumulator based
          * on the length.

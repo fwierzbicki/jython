@@ -1,4 +1,4 @@
-// Copyright (c)2021 Jython Developers.
+// Copyright (c)2023 Jython Developers.
 // Licensed to PSF under a contributor agreement.
 package org.python.core;
 
@@ -14,6 +14,7 @@ import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -34,9 +35,9 @@ import org.python.core.stringlib.FieldNameIterator;
 import org.python.core.stringlib.IntArrayBuilder;
 import org.python.core.stringlib.IntArrayReverseBuilder;
 import org.python.core.stringlib.InternalFormat;
+import org.python.core.stringlib.InternalFormat.AbstractFormatter;
 import org.python.core.stringlib.InternalFormat.FormatError;
 import org.python.core.stringlib.InternalFormat.FormatOverflow;
-import org.python.core.stringlib.InternalFormat.AbstractFormatter;
 import org.python.core.stringlib.InternalFormat.Spec;
 import org.python.core.stringlib.MarkupIterator;
 import org.python.core.stringlib.TextFormatter;
@@ -289,7 +290,7 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
     private static Object __repr__(Object self) {
         try {
             // XXX make encode_UnicodeEscape (if needed) take a delegate
-            return "u" + encode_UnicodeEscape(convertToString(self), true);
+            return encode_UnicodeEscape(convertToString(self), true);
         } catch (NoConversion nc) {
             throw Abstract.impossibleArgumentError("str", self);
         }
@@ -409,13 +410,16 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
 
     private static boolean contains(CodepointDelegate s, Object o) {
         try {
-            CodepointDelegate p = adapt(s);
+            CodepointDelegate p = adapt(o);
             PySlice.Indices slice = getSliceIndices(s, null, null);
             return find(s, p, slice) >= 0;
         } catch (NoConversion nc) {
-            throw Abstract.requiredTypeError("a string", o);
+            throw Abstract.typeError(IN_STRING_TYPE, o);
         }
     }
+
+    private static final String IN_STRING_TYPE =
+            "'in <string>' requires string as left operand, not %s";
 
     /*
     @ExposedMethod(type = MethodType.BINARY, doc = BuiltinDocs.unicode___add___doc)
@@ -2730,7 +2734,7 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
      * object to format and output. If {@code field_name} is not
      * {@code None}, it is looked up, formatted with {@code format_spec}
      * and {@code conversion} and then used.
-     * 
+     *
      * @param formatString to parse
      * @return an iterator of format {@code tuple}s
      */
@@ -2745,7 +2749,7 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
 
     /**
      * Implementation of {@code _string.formatter_field_name_split}.
-     * 
+     *
      * @param fieldName to split into components
      * @return a tuple of the first field name component and the rest
      */
@@ -3173,26 +3177,32 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
      * @throws TypeError if {@code v} is not a Python {@code str}
      */
     public static String asString(Object v) throws TypeError {
-        return asString(v, () -> Abstract.requiredTypeError("a str", v));
+        return asString(v, o -> Abstract.requiredTypeError("a str", o));
     }
 
     /**
-     * Present a Python {@code str} as a Java {@code String} value or
-     * throw the specified exception. This is for use when the argument
-     * is expected to be a Python {@code str} or a sub-class of it.
+     * Present a qualifying object {@code v} as a Java {@code String}
+     * value or throw {@code E}. This is for use when the argument is
+     * expected to be a Python {@code str} or a sub-class of it.
+     * <p>
+     * The detailed form of exception is communicated in a
+     * lambda-function {@code exc} that will be called (if necessary)
+     * with {@code v} as argument. We use a {@code Function} to avoid
+     * binding a variable {@code v} at the call site.
      *
      * @param <E> type of exception to throw
      * @param v claimed {@code str}
-     * @param exc supplier for the exception to throw
+     * @param exc to supply the exception to throw wrapping {@code v}
      * @return {@code String} value
      * @throws E if {@code v} is not a Python {@code str}
      */
-    public static <E extends PyException> String asString(Object v, Supplier<E> exc) throws E {
+    public static <E extends PyException> String asString(Object v,
+            Function<Object, E> exc) throws PyException {
         if (v instanceof String)
             return (String)v;
         else if (v instanceof PyUnicode)
             return ((PyUnicode)v).asString();
-        throw exc.get();
+        throw exc.apply(v);
     }
 
     // Plumbing ------------------------------------------------------
@@ -4476,7 +4486,7 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
      */
     @Deprecated // See _PyUnicode_TransformDecimalAndSpaceToASCII
     private String encodeDecimal() {
-        
+
         // XXX This all has a has a Jython 2 smell: bytes/str confusion.
         // XXX Also, String and PyUnicode implementations are needed.
         // XXX Follow CPython _PyUnicode_TransformDecimalAndSpaceToASCII
@@ -4910,7 +4920,7 @@ public class PyUnicode implements CraftedPyObject, PyDict.Key {
      * @param value the format string when {@code enclosingIterator} is not null
      * @return the formatted string based on the arguments
      * @throws TypeError if {@code __repr__} or {@code __str__} conversions returned a non-string.
-     * @throws Throwable from other errors in 
+     * @throws Throwable from other errors in {@code __repr__} or {@code __str__}
      */
     // XXX make this support format(String) too
     private String buildFormattedString(Object[] args, String[] keywords,

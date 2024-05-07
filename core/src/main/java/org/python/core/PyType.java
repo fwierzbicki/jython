@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.python.base.InterpreterError;
+import org.python.core.Exposed.Getter;
 import org.python.core.Slot.Signature;
 
 /**
@@ -443,7 +444,7 @@ public class PyType extends Operations implements DictPyObject {
     private void fillDictionary(Spec spec) throws Clash {
 
         // Fill slots from implClass or bases
-        addMethods(spec);
+        addDefinitions(spec);
         // XXX Possibly belong distinct from fillDictionary
         defineOperations(spec);
         deduceFlags();
@@ -492,7 +493,7 @@ public class PyType extends Operations implements DictPyObject {
      *
      * @param spec to apply
      */
-    private void addMethods(Spec spec) {
+    private void addDefinitions(Spec spec) {
         // Add definitions found in the defining class to the type
         TypeExposer exposer = Exposer.exposeType(this, spec.definingClass, spec.methodClass);
         exposer.populate(dict, spec.lookup);
@@ -624,6 +625,7 @@ public class PyType extends Operations implements DictPyObject {
      *
      * @return name of this type
      */
+    @Getter("__name__")
     public String getName() { return name; }
 
     /**
@@ -761,7 +763,7 @@ public class PyType extends Operations implements DictPyObject {
     /**
      * Return whether an instance of this type defines {@code __get__}
      * participates in the optimised call pattern supported by
-     * {@link Opcode#LOAD_METHOD}.
+     * {@link Opcode311#LOAD_METHOD}.
      *
      * @return whether a method descriptor
      */

@@ -1,3 +1,5 @@
+// Copyright (c)2023 Jython Developers.
+// Licensed to PSF under a contributor agreement.
 package org.python.modules;
 
 import java.io.DataInputStream;
@@ -18,10 +20,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.python.core.Abstract;
-import org.python.core.CPython38Code;
+import org.python.core.CPython311Code;
 import org.python.core.EOFError;
-import org.python.core.Exposed;
 import org.python.core.Exposed.Default;
+import org.python.core.Exposed.Member;
+import org.python.core.Exposed.PythonStaticMethod;
 import org.python.core.OSError;
 import org.python.core.Py;
 import org.python.core.PyBaseObject;
@@ -56,7 +59,7 @@ import org.python.core.stringlib.IntArrayBuilder;
 
 public class marshal /* extends JavaModule */ {
 
-    // @Exposed.Member("version")
+    @Member("version")
     final static int VERSION = 4;
 
     /*
@@ -268,7 +271,7 @@ public class marshal /* extends JavaModule */ {
      *     has) an unsupported type
      * @throws OSError from file operations
      */
-    @Exposed.PythonStaticMethod
+    @PythonStaticMethod
     public static void dump(Object value, Object file,
             @Default("4") int version) throws ValueError, OSError {
         try (OutputStream os = StreamWriter.adapt(file)) {
@@ -296,7 +299,7 @@ public class marshal /* extends JavaModule */ {
      * @throws EOFError when a partial object is read
      * @throws OSError from file operations generally
      */
-    @Exposed.PythonStaticMethod
+    @PythonStaticMethod
     public static Object load(Object file) {
         try (InputStream is = StreamReader.adapt(file)) {
             Reader reader = new StreamReader(is);
@@ -319,7 +322,7 @@ public class marshal /* extends JavaModule */ {
      * @throws ValueError if the value has (or contains an object that
      *     has) an unsupported type
      */
-    @Exposed.PythonStaticMethod
+    @PythonStaticMethod
     public static PyBytes dumps(Object value, @Default("4") int version)
             throws ValueError {
         ByteArrayBuilder bb = new ByteArrayBuilder();
@@ -340,7 +343,7 @@ public class marshal /* extends JavaModule */ {
      * @throws TypeError when a container contains a null element.
      * @throws EOFError when a partial object is read
      */
-    @Exposed.PythonStaticMethod
+    @PythonStaticMethod
     public static Object loads(Object bytes) {
         try {
             ByteBuffer bb = BytesReader.adapt(bytes);
@@ -1517,10 +1520,9 @@ public class marshal /* extends JavaModule */ {
              * We intend different concrete sub-classes of PyCode, that
              * create different frame types, but at the moment only one.
              */
-            CPython38Code code = (CPython38Code)v;
+            CPython311Code code = (CPython311Code)v;
             w.writeByte(TYPE_CODE);
-            // Write the fields (quite complicated)
-            // XXX
+            // XXX Write the fields (quite complicated)
         }
 
         @Override
@@ -1528,35 +1530,42 @@ public class marshal /* extends JavaModule */ {
             return Map.of(TYPE_CODE, CodeCodec::read);
         }
 
-        private static CPython38Code read(Reader r, boolean ref) {
+        private static CPython311Code read(Reader r, boolean ref) {
 
             // Get an index now to ensure encounter-order numbering
             int idx = ref ? r.reserveRef() : -1;
 
-            /* XXX ignore long->int overflows for now */
             int argcount = r.readInt();
             int posonlyargcount = r.readInt();
             int kwonlyargcount = r.readInt();
-            int nlocals = r.readInt();
             int stacksize = r.readInt();
+
             int flags = r.readInt();
             Object code = r.readObject();
+
             Object consts = r.readObject();
             Object names = r.readObject();
-            Object varnames = r.readObject();
-            Object freevars = r.readObject();
-            Object cellvars = r.readObject();
+            Object localsplusnames = r.readObject();
+            Object localspluskinds = r.readObject();
+
             Object filename = r.readObject();
             Object name = r.readObject();
+            Object qualname = r.readObject();
+
             int firstlineno = r.readInt();
-            Object lnotab = r.readObject();
+            Object linetable = r.readObject();
+            Object exceptiontable = r.readObject();
 
             // PySys_Audit("code.__new__", blah ...);
 
-            CPython38Code v = CPython38Code.create(argcount,
-                    posonlyargcount, kwonlyargcount, nlocals, stacksize,
-                    flags, code, consts, names, varnames, freevars,
-                    cellvars, filename, name, firstlineno, lnotab);
+            CPython311Code v = CPython311Code.create( //
+                    filename, name, qualname, flags, //
+                    code, firstlineno, linetable, //
+                    consts, names, //
+                    localsplusnames, localspluskinds, //
+                    argcount, posonlyargcount, kwonlyargcount,
+                    stacksize, //
+                    exceptiontable);
 
             return r.defineRef(v, idx);
         }

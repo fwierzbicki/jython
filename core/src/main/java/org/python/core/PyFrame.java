@@ -1,16 +1,15 @@
-// Copyright (c)2022 Jython Developers.
+// Copyright (c)2023 Jython Developers.
 // Licensed to PSF under a contributor agreement.
 package org.python.core;
 
 import java.lang.invoke.MethodHandles;
-import java.util.EnumSet;
 import java.util.Map;
 
 /**
  * A {@code PyFrame} is the context for the execution of code.
  * Different concrete sub-classes of {@code PyFrame} exist to
  * execute different compiled representations of Python code. For
- * example, there is one for CPython 3.8 byte code and (we expect)
+ * example, there is one for CPython 3.11 byte code and (we expect)
  * another for Java byte code. The type of code object supported is
  * the parameter {@code C} to the class.
  * <p>
@@ -86,91 +85,81 @@ public abstract class PyFrame<C extends PyCode> {
                     .flagNot(PyType.Flag.BASETYPE));
 
     /** Frames form a stack by chaining through the back pointer. */
-    PyFrame<?> back;
-    /** Code this frame is to execute. */
-    final C code;
-    /** Interpreter owning this frame. */
-    protected final Interpreter interpreter;
-    /** Built-in objects. */
-    protected PyDict builtins;
-    /** Global context (name space) of execution. */
-    final PyDict globals;
-    /** Local context (name space) of execution. (Assign if needed.) */
-    Map<Object, Object> locals = null;
+    PyFrame<? extends PyCode> back;
+
+    /** Function of which this is a frame. */
+    final PyFunction<? extends C> func;
 
     /**
-     * Foundation constructor on which subclass constructors rely.
-     *
-     *
-     * In particular, the {@link #back} pointer is {@code null} in the
+     * Code this frame is to execute, exposed as immutable
+     * {@code f_code}. We have our own final copy because it is possible
+     * to change the code object that defines {@link #func} but the
+     * frame should continue to reference the code that created it.
+     */
+    final C code;
+
+    /**
+     * Local context (name space) of execution. (Assign if needed.) This
+     * is allowed to be any type, but if it is ever actually used, the
+     * interpreter will expect it to support the mapping protocol.
+     */
+    Object locals;
+
+    /**
+     * Foundation constructor on which subclass constructors rely. This
+     * provides a "loose" frame that is not yet part of any stack until
+     * explicitly pushed (with {@link ThreadState#push(PyFrame)}). In
+     * particular, the {@link #back} pointer is {@code null} in the
      * newly-created frame.
+     * <p>
+     * A frame always belongs to an {@link Interpreter} via its
+     * function, but it does not necessarily belong to a particular
+     * {@code ThreadState}.
      *
-     * @param interpreter providing the module context
-     * @param code that this frame executes
-     * @param globals global name space
-     * @throws TypeError if {@code globals['__builtins__']} is invalid
+     * @param func defining the code and globals
      */
-    /*
-     * This provides a "loose" frame that is not yet part of any stack
-     * until explicitly pushed (with {@link #push()}. A frame always
-     * belongs to an {@link Interpreter}, but it does not necessarily
-     * belong to a particular {@link ThreadState}.
-     */
-    protected PyFrame(Interpreter interpreter, C code, PyDict globals) throws TypeError {
-        this.code = code;
-        this.interpreter = interpreter;
-        this.globals = globals;
+    protected PyFrame(PyFunction<? extends C> func) {
+        this.func = func;
+        this.code = func.code;
     }
 
     /**
-     * Foundation constructor on which subclass constructors rely.
+     * Get the interpreter that defines the import context when
+     * executing code.
      *
-     * <ul>
-     * <li>If the code has the trait {@link PyCode.Trait#NEWLOCALS} the
-     * {@code locals} argument is ignored.</li>
-     * <li>If the code has the trait {@link PyCode.Trait#NEWLOCALS} but
-     * not {@link PyCode.Trait#OPTIMIZED}, a new empty ``dict`` will be
-     * provided as locals.</li>
-     * <li>If the code has the traits {@link PyCode.Trait#NEWLOCALS} and
-     * {@link PyCode.Trait#OPTIMIZED}, {@code this.locals} will be
-     * {@code null} until set by the sub-class.</li>
-     * <li>Otherwise, if the argument {@link #locals} is not
-     * {@code null} it specifies {@code this.locals}, and</li>
-     * <li>if the argument {@link #locals} is {@code null}
-     * {@code this.locals} will be the same as {@code globals}.</li>
-     * </ul>
-     *
-     * @param code that this frame executes
-     * @param interpreter providing the module context
-     * @param globals global name space
-     * @param locals local name space (or it may be {@code globals})
+     * @return Interpreter that defines the import context.
      */
-    // Compare CPython _PyFrame_New_NoTrack in frameobject.c
-    protected PyFrame(Interpreter interpreter, C code, PyDict globals, Object locals) {
+    Interpreter getInterpreter() { return func.getInterpreter(); }
 
-        // Initialise the basics.
-        this(interpreter, code, globals);
+    // Java API ------------------------------------------------------
 
-        // The need for a dictionary of locals depends on the code
-        EnumSet<PyCode.Trait> traits = code.traits;
-        if (traits.contains(PyCode.Trait.NEWLOCALS)) {
-            // Ignore locals argument
-            if (traits.contains(PyCode.Trait.OPTIMIZED)) {
-                // We can create it later but probably won't need to
-                this.locals = null;
-            } else {
-                this.locals = new PyDict();
-            }
-        } else if (locals == null) {
-            // Default to same as globals.
-            this.locals = globals;
+    @Override
+    // Compare CPython frame_repr in frameobject.c
+    public String toString() {
+        int lineno = code.firstlineno;
+        if (lineno == 0) { lineno = -1; }
+        String file = code.filename, q = "'";
+        if (file == null) {
+            file = "";
+            q = "";
+        }
+        return String.format("<frame at %#x, file %s%s%s, line %d, code %s>", Py.id(this), q, file,
+                q, lineno, code.name);
+    }
+
+    /**
+     * Provide {@link #locals} as a Java Map. This does not re-compute
+     * {@code locals} as a dictionary in the way of
+     * {@link #fastToLocals()}, but only dresses an existing value as a
+     * Java {@code Map} (if it is not {@code null}).
+     *
+     * @return as a Java {@code Map}
+     */
+    protected Map<Object, Object> localsMapOrNull() {
+        if (locals == null) {
+            return null;
         } else {
-            /*
-             * Use supplied locals. As it may not implement j.u.Map, we wrap any
-             * Python object as a Map. Depending on the operations attempted,
-             * this may break later.
-             */
-            this.locals = PyMapping.map(locals);
+            return PyMapping.map(locals);
         }
     }
 

@@ -1,3 +1,5 @@
+// Copyright (c)2023 Jython Developers.
+// Licensed to PSF under a contributor agreement.
 package org.python.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,13 +35,14 @@ import org.python.modules.marshal;
  * .\gradlew --console=plain core:compileTestPythonExamples
  * </pre>
  */
-@DisplayName("Given programs compiled by CPython 3.8 ...")
-class CPython38CodeTest extends UnitTestSupport {
+@DisplayName("Given programs compiled by CPython 3.11 ...")
+class CPython311CodeTest extends UnitTestSupport {
 
     @SuppressWarnings("static-method")
     @DisplayName("marshal can read a code object")
     @ParameterizedTest(name = "from {0}")
-    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op"})
+    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op", "bool_left_arith",
+            "bool_right_arith", "simple_if", "multi_if"})
     void loadCodeObject(String name) {
         PyCode code = readCode(name);
         assertPythonType(PyCode.TYPE, code);
@@ -48,7 +51,8 @@ class CPython38CodeTest extends UnitTestSupport {
     @SuppressWarnings("static-method")
     @DisplayName("marshal can read a result object")
     @ParameterizedTest(name = "from {0}")
-    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op"})
+    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op", "bool_left_arith",
+            "bool_right_arith", "simple_if", "multi_if"})
     void loadResultDict(String name) {
         PyDict dict = readResultDict(name);
         assertPythonType(PyDict.TYPE, dict);
@@ -85,10 +89,32 @@ class CPython38CodeTest extends UnitTestSupport {
         @Test
         protected void co_name() { assertEquals("<module>", code.name); }
 
-        abstract void co_names();
+        void co_names() { checkNames(code.co_names(), EMPTY_STRINGS); }
 
         @Test
-        void co_varnames() { assertEquals(0, code.co_varnames().size()); }
+        void co_varnames() { checkNames(code.co_varnames(), EMPTY_STRINGS); }
+
+        /**
+         * Check {@code code} name enquiry against the expected list.
+         *
+         * @param names result from code object
+         * @param exp expected names in expected order
+         */
+        void checkNames(PyTuple names, String... exp) {
+            assertEquals(exp.length, names.size());
+            for (int i = 0; i < exp.length; i++) { assertPythonEquals(exp[i], names.get(i)); }
+        }
+
+        /**
+         * Check {@code code} values enquiry against the expected list.
+         *
+         * @param values result from code object
+         * @param exp expected values in expected order
+         */
+        void checkValues(PyTuple values, Object... exp) {
+            assertEquals(exp.length, values.size());
+            for (int i = 0; i < exp.length; i++) { assertPythonEquals(exp[i], values.get(i)); }
+        }
     }
 
     @Nested
@@ -114,14 +140,43 @@ class CPython38CodeTest extends UnitTestSupport {
         }
     }
 
+    /**
+     * Tests of individual operations up to calling a built-in method,
+     * without control structures in Python.
+     *
+     * @param name of the Python example
+     */
     @SuppressWarnings("static-method")
-    @DisplayName("We can execute ...")
+    @DisplayName("We can execute simple ...")
     @ParameterizedTest(name = "{0}.py")
-    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op", "call_method_builtin"})
+    @ValueSource(strings = {"load_store_name", "unary_op", "binary_op", "bool_left_arith",
+            "bool_right_arith", "comparison", "tuple_index", "list_index", "call_method_builtin",
+            "builtins_module"})
     void executeSimple(String name) {
-        CPython38Code code = readCode(name);
+        CPython311Code code = readCode(name);
         PyDict globals = new PyDict();
-        code.createFrame(null, globals, globals).eval();
+        Interpreter interp = new Interpreter();
+        Object r = interp.eval(code, globals);
+        assertEquals(Py.None, r);
+        assertExpectedVariables(readResultDict(name), globals);
+    }
+
+    /**
+     * Tests involving transfer of control.
+     *
+     * @param name of the Python example
+     */
+    @SuppressWarnings("static-method")
+    @DisplayName("We can execute branches and while loops ...")
+    @ParameterizedTest(name = "{0}.py")
+    @ValueSource(strings = {"simple_if", "multi_if", "simple_loop", "tuple_dot_product",
+            "list_dot_product"})
+    void executeBranchAndLoop(String name) {
+        CPython311Code code = readCode(name);
+        PyDict globals = new PyDict();
+        Interpreter interp = new Interpreter();
+        Object r = interp.eval(code, globals);
+        assertEquals(Py.None, r);
         assertExpectedVariables(readResultDict(name), globals);
     }
 
@@ -145,30 +200,31 @@ class CPython38CodeTest extends UnitTestSupport {
 
     /**
      * The name fragment used by the compiler in the supported version
-     * of CPython, e.g. {@code "cpython-38"}.
+     * of CPython, e.g. {@code "cpython-311"}.
      */
-    private static final String CPYTHON_VER = "cpython-38";
+    private static final String CPYTHON_VER = "cpython-311";
     /**
      * The magic number placed by the supported version of CPython, in
      * the header of compiled files.
      */
-    private static final int MAGIC_NUMBER = 3413;
+    private static final int MAGIC_NUMBER = 3495;
 
     private static final String PYC_SUFFIX = "pyc";
     private static final String VAR_SUFFIX = "var";
+    private static final String[] EMPTY_STRINGS = {};
 
     /**
      * Read a {@code code} object with {@code marshal}. The method looks
      * for compiled examples in the customary directory
      * ({@link #PYC_DIR}}, being provided only the base name of the
      * program. So for example, {@code "unary_op"} will retrieve a code
-     * object from {@code unary_op.cpython-38.pyc} in
+     * object from {@code unary_op.cpython-311.pyc} in
      * {@code generated/sources/pythonExample/test/__pycache__}.
      *
      * @param progName base name of program
      * @return {@code code} object read in
      */
-    static CPython38Code readCode(String progName) {
+    static CPython311Code readCode(String progName) {
         String name = progName + "." + CPYTHON_VER + "." + PYC_SUFFIX;
         File f = PYC_DIR.resolve(name).toFile();
         try (FileInputStream fs = new FileInputStream(f);
@@ -177,20 +233,22 @@ class CPython38CodeTest extends UnitTestSupport {
             // Wrap a marshal reader around the input stream
             marshal.Reader reader = new marshal.StreamReader(s);
 
-            // First 16 bytes is a header
+            // First 4 bytes is a magic header
             int magic = reader.readShort();
-            assert magic == MAGIC_NUMBER;
             int magic2 = reader.readShort();
-            assert magic2 == 0x0a0d;
+            boolean good = magic == MAGIC_NUMBER && magic2 == 0x0a0d;
+
+            // Undocumented
             for (int i = 0; i < 3; i++) { reader.readInt(); }
 
             // Next should be a code object
-            Object o = reader.readObject();
-            if (o instanceof PyCode) {
-                return (CPython38Code)o;
-            } else {
-                throw new InterpreterError("Not a CPython code object: %s", name);
+            if (good) {
+                Object o = reader.readObject();
+                if (o instanceof PyCode) { return (CPython311Code)o; }
             }
+
+            // Didn't return a code object
+            throw new InterpreterError("Not a CPython code object: %s", name);
 
         } catch (IOException ioe) {
             throw new InterpreterError(ioe);
@@ -202,7 +260,7 @@ class CPython38CodeTest extends UnitTestSupport {
      * for the saved results of compiled examples in the customary
      * directory ({@link #PYC_DIR}}, being provided only the base name
      * of the program. So for example, {@code "unary_op"} will retrieve
-     * a code object from {@code unary_op.cpython-38.var} in
+     * a code object from {@code unary_op.cpython-311.var} in
      * {@code generated/sources/pythonExample/test/vsj3/evo1/__pycache__}.
      *
      * @param progName base name of program
@@ -241,7 +299,7 @@ class CPython38CodeTest extends UnitTestSupport {
     private static void assertExpectedVariables(Map<Object, Object> ref, Map<Object, Object> test) {
         for (Map.Entry<Object, Object> e : ref.entrySet()) {
             Object k = e.getKey();
-            Object x = ref.get(k);
+            Object x = e.getValue();
             Object v = test.get(k);
             assertNotNull(v, () -> String.format("variable %s missing from result", k));
             assertPythonEquals(x, v, () -> String.format("%s = %s (not %s)", k, v, x));

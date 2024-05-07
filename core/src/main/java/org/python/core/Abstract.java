@@ -6,6 +6,7 @@ import java.lang.invoke.MethodHandle;
 import java.util.function.Supplier;
 
 import org.python.base.InterpreterError;
+import org.python.base.MissingFeature;
 import org.python.core.Slot.EmptyException;
 
 /**
@@ -89,7 +90,7 @@ public class Abstract {
     /**
      * Convert a given {@code Object} to an instance of a Java class.
      * Raise a {@code TypeError} if the conversion fails.
-     * 
+     *
      * @param <T> target type defined by {@code c}
      * @param o the {@code Object} to convert.
      * @param c the class to convert it to.
@@ -333,6 +334,88 @@ public class Abstract {
     }
 
     /**
+     * {@code o.name = value} with Python semantics.
+     *
+     * @param o object to operate on
+     * @param name of attribute
+     * @param value to set
+     * @throws AttributeError if non-existent etc.
+     * @throws Throwable on other errors
+     */
+    // Compare CPython PyObject_SetAttr in object.c
+    public static void setAttr(Object o, String name, Object value)
+            throws AttributeError, Throwable {
+        // Decisions are based on type of o (that of name is known)
+        try {
+            Operations.of(o).op_setattr.invokeExact(o, name, value);
+        } catch (EmptyException e) {
+            throw attributeAccessError(o, name, Slot.op_setattr);
+        }
+    }
+
+    /**
+     * {@code o.name = value} with Python semantics.
+     *
+     * @param o object to operate on
+     * @param name of attribute
+     * @param value to set
+     * @throws AttributeError if non-existent etc.
+     * @throws TypeError if the name is not a {@code str}
+     * @throws Throwable on other errors
+     */
+    // Compare CPython PyObject_SetAttr in object.c
+    public static void setAttr(Object o, Object name, Object value)
+            throws AttributeError, TypeError, Throwable {
+        if (name instanceof String) {
+            setAttr(o, name, value);
+        } else if (name instanceof PyUnicode) {
+            setAttr(o, name.toString(), value);
+        } else {
+            throw attributeNameTypeError(name);
+        }
+    }
+
+    /**
+     * {@code del o.name} with Python semantics.
+     *
+     * @param o object to operate on
+     * @param name of attribute
+     * @throws AttributeError if non-existent etc.
+     * @throws Throwable on other errors
+     *
+     */
+    // Compare CPython PyObject_DelAttr in abstract.h
+    // which is a macro for PyObject_SetAttr in object.c
+    public static void delAttr(Object o, String name) throws AttributeError, Throwable {
+        // Decisions are based on type of o (that of name is known)
+        try {
+            Operations.of(o).op_delattr.invokeExact(o, name);
+        } catch (EmptyException e) {
+            throw attributeAccessError(o, name, Slot.op_delattr);
+        }
+    }
+
+    /**
+     * {@code del o.name} with Python semantics.
+     *
+     * @param o object to operate on
+     * @param name of attribute
+     * @throws AttributeError if non-existent etc.
+     * @throws TypeError if the name is not a {@code str}
+     * @throws Throwable on other errors
+     */
+    // Compare CPython PyObject_SetAttr in object.c
+    public static void delAttr(Object o, Object name) throws AttributeError, TypeError, Throwable {
+        if (name instanceof String) {
+            delAttr(o, name);
+        } else if (name instanceof PyUnicode) {
+            delAttr(o, name.toString());
+        } else {
+            throw attributeNameTypeError(name);
+        }
+    }
+
+    /**
      * Get {@code cls.__bases__}, a Python {@code tuple}, by name from
      * the object invoking {@code __getattribute__}. If {@code cls} does
      * not define {@code __bases__}, or it is not a {@code tuple},
@@ -385,6 +468,142 @@ public class Abstract {
     }
 
     /**
+     * This is equivalent to the Python expression {@code iter(o)}. It
+     * returns a new Python iterator for the object argument, or the
+     * object itself if it is already an iterator.
+     * <p>
+     * {@code o} must either define {@code __iter__}, which will be
+     * called to obtain an iterator, or define {@code __getitem__}, on
+     * which an iterator will be created. It is guaranteed that the
+     * object returned defines {@code __next__}.
+     *
+     * @param o the claimed iterable object
+     * @return an iterator on {@code o}
+     * @throws TypeError if the object cannot be iterated
+     * @throws Throwable from errors in {@code o.__iter__}
+     */
+    // Compare CPython PyObject_GetIter in abstract.c
+    static Object getIterator(Object o) throws TypeError, Throwable { return getIterator(o, null); }
+
+    /**
+     * Equivalent to {@link #getIterator(Object)}, with the opportunity
+     * to specify the kind of Python exception to raise.
+     *
+     * @param <E> the type of exception to throw
+     * @param o the claimed iterable object
+     * @param exc a supplier (e.g. lambda expression) for the exception
+     * @return an iterator on {@code o}
+     * @throws E to throw if an iterator cannot be formed
+     * @throws Throwable from errors in {@code o.__iter__}
+     */
+    // Compare CPython PyObject_GetIter in abstract.c
+    static <E extends PyException> Object getIterator(Object o, Supplier<E> exc)
+            throws TypeError, Throwable {
+        Operations ops = Operations.of(o);
+        if (Slot.op_iter.isDefinedFor(ops)) {
+            // o defines __iter__, call it.
+            Object r = ops.op_iter.invokeExact(o);
+            // Did that return an iterator? Check r defines __next__.
+            if (Slot.op_next.isDefinedFor(Operations.of(r))) {
+                return r;
+            } else if (exc == null) { throw returnTypeError("iter", "iterator", r); }
+        } else if (Slot.op_getitem.isDefinedFor(ops)) {
+            // o defines __getitem__: make a (Python) iterator.
+            throw new MissingFeature("PyIterator");
+        }
+
+        // Out of possibilities: throw caller-defined exception
+        if (exc != null) {
+            throw exc.get();
+        } else {
+            throw typeError(NOT_ITERABLE, o);
+        }
+    }
+
+    /**
+     * Return {@code true} if the object {@code o} supports the iterator
+     * protocol (has {@code __iter__}).
+     *
+     * @param o to test
+     * @return true if {@code o} supports the iterator protocol
+     */
+    static boolean iterableCheck(Object o) {
+        return Slot.op_iter.isDefinedFor(Operations.of(o));
+    }
+
+    /**
+     * Return true if the object {@code o} is an iterator (has
+     * {@code __next__}).
+     *
+     * @param o to test
+     * @return true if {@code o} is an iterator
+     */
+    // Compare CPython PyIter_Check in abstract.c
+    static boolean iteratorCheck(Object o) { return Slot.op_next.isDefinedFor(Operations.of(o)); }
+
+    /**
+     * Return the next value from the Python iterator {@code iter}. If
+     * there are no remaining values, returns {@code null}. If an error
+     * occurs while retrieving the item, the exception propagates.
+     *
+     * @param iter the iterator
+     * @return the next item
+     * @throws Throwable from {@code iter.__next__}
+     */
+    // Compare CPython PyIter_Next in abstract.c
+    static Object next(Object iter) throws Throwable {
+        Operations o = Operations.of(iter);
+        try {
+            return o.op_next.invokeExact(iter);
+        } catch (StopIteration e) {
+            return null;
+        } catch (EmptyException e) {
+            throw typeError(NOT_ITERABLE, iter);
+        }
+    }
+
+    // Plumbing -------------------------------------------------------
+
+    /**
+     * Crafted error supporting {@link #getAttr(Object, PyUnicode)},
+     * {@link #setAttr(Object, PyUnicode, Object)}, and
+     * {@link #delAttr(Object, PyUnicode)}.
+     *
+     * @param o object accessed
+     * @param name of attribute
+     * @param slot operation
+     * @return an error to throw
+     */
+    private static TypeError attributeAccessError(Object o, String name, Slot slot) {
+        String mode, kind, fmt = "'%.100s' object has %s attributes (%s.%.50s)";
+        // What were we trying to do?
+        switch (slot) {
+            case op_delattr:
+                mode = "delete ";
+                break;
+            case op_setattr:
+                mode = "assign to ";
+                break;
+            default:
+                mode = "";
+                break;
+        }
+        // Can we even read this object's attributes?
+        Operations ops = Operations.of(o);
+        kind = Slot.op_getattribute.isDefinedFor(ops) ? "only read-only" : "no";
+        // Now we know what to say
+        return new TypeError(fmt, ops, kind, mode, name);
+    }
+
+    // Convenience functions constructing errors --------------------
+
+    private static final String IS_REQUIRED_NOT = "%.200s is required, not '%.100s'";
+    private static final String RETURNED_NON_TYPE = "%.200s returned non-%.200s (type %.200s)";
+    private static final String ARGUMENT_MUST_BE = "%s()%s%s argument must be %s, not '%.200s'";
+    protected static final String NOT_MAPPING = "%.200s is not a mapping";
+    protected static final String NOT_ITERABLE = "%.200s object is not iterable";
+
+    /**
      * Return {@code true} iff {@code derived} is a Python sub-class of
      * {@code cls} (including where it is the same class). The answer is
      * found by traversing the {@code __bases__} tuples recursively,
@@ -422,23 +641,18 @@ public class Abstract {
         return true;
     }
 
-    // Convenience functions constructing errors --------------------
-
-    private static final String IS_REQUIRED_NOT = "%.200s is required, not '%.100s'";
-    private static final String RETURNED_NON_TYPE = "%.200s returned non-%.200s (type %.200s)";
-    private static final String ARGUMENT_MUST_BE = "%s()%s%s argument must be %s, not '%.200s'";
-
     /**
      * Create a {@link TypeError} with a message involving the type of
-     * {@code o} and optionally other arguments.
+     * {@code args[0]} and optionally other arguments.
      *
-     * @param fmt format for message with at least one {@code %s}
-     * @param o object whose type name will fill the first {@code %s}
-     * @param args extra arguments to the formatted message
+     * @param fmt format for message with a {@code %s} first
+     * @param args arguments to the formatted message, where Python type
+     *     name of {@code args[0]} will replace it
      * @return exception to throw
      */
-    static TypeError typeError(String fmt, Object o, Object... args) {
-        return new TypeError(fmt, PyType.of(o).getName(), args);
+    public static TypeError typeError(String fmt, Object... args) {
+        args[0] = PyType.of(args[0]).getName();
+        return new TypeError(fmt, args);
     }
 
     /**
@@ -600,6 +814,35 @@ public class Abstract {
     static AttributeError noAttributeOnType(PyType type, Object name) {
         String fmt = "'%.50s' object has no attribute '%.50s'";
         return new AttributeError(fmt, type.getName(), name);
+    }
+
+    /**
+     * Create a {@link TypeError} with a message along the lines "N must
+     * be set to T, not a X object" involving the name N of the
+     * attribute, any descriptive phrase T and the type X of
+     * {@code value}, e.g. "<u>__dict__</u> must be set to <u>a
+     * dictionary</u>, not a '<u>list</u>' object".
+     *
+     * @param name of the attribute
+     * @param kind expected kind of thing
+     * @param value provided to set this attribute in some object
+     * @return exception to throw
+     */
+    static TypeError attrMustBe(String name, String kind, Object value) {
+        String msg = "%.50s must be set to %.50s, not a '%.50s' object";
+        return new TypeError(msg, name, kind, PyType.of(value).getName());
+    }
+
+    /**
+     * Create a {@link TypeError} with a message along the lines "N must
+     * be set to a string, not a X object".
+     *
+     * @param name of the attribute
+     * @param value provided to set this attribute in some object
+     * @return exception to throw
+     */
+    static TypeError attrMustBeString(String name, Object value) {
+        return attrMustBe(name, "a string", value);
     }
 
     /**
