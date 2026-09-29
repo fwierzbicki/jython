@@ -13,7 +13,7 @@
 # Needs: `ant compile` already run and a CPython checkout (default ../cpython;
 # override with CPYTHON=...). PYTHON must be Python >= 3.15; by default an
 # in-tree build in $CPYTHON is used if present, else python3.
-# Only meaningful for a parser generated with --skip-actions, until actions exist.
+# The recognizer checks assume the checked-in parser skips actions (the default).
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -80,5 +80,18 @@ pending actions-reject --all "$HERE/pending/actions/reject" -Xss16m $SMOKE --exp
 pending actions-single-reject --all "$HERE/pending/actions/single/reject" -Xss16m $SMOKE --mode single --expect reject
 pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
 pending stack-accept "" "$HERE/pending/stack/accept" -Xss1m $SMOKE --expect accept
+
+# The parser with actions translated must keep compiling against the runtime,
+# ActionHelpers and AstFactory (whose unported stubs return null).
+echo "== actions-compile"
+if PYTHONDONTWRITEBYTECODE=1 "$PYTHON" "$ROOT/src/pegen/tools/generate.py" \
+        --cpython "$CPYTHON" --actions --output-dir "$OUT/actions" >/dev/null &&
+    mkdir -p "$OUT/actions/classes" &&
+    javac -nowarn -cp "$ROOT/build/classes" -d "$OUT/actions/classes" \
+        "$OUT/actions/GeneratedParser.java"; then
+    echo "parser with actions compiles"
+else
+    status=1
+fi
 
 exit $status

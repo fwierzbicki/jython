@@ -17,7 +17,9 @@ action_overrides.py.  Rules, in brief:
 - x->v.Kind.field becomes ((Kind) x).field; x->kind == Kind_kind becomes
   (x instanceof Kind); other x->field casts x to the Java class of its C type.
 - C casts become Java casts through JavaTypeMap (dropped when the Java type
-  is Object).
+  is Object).  A void * variable passed as an argument, which C converts
+  implicitly, is wrapped in fromVoidPtr(), whose generic return type lets
+  Java infer the cast from the parameter.
 - The condition of ?: must be boolean in Java: a pointer (a grammar variable,
   possibly cast or parenthesized) becomes `x != null`; comparisons and the
   helpers in BOOLEAN_FUNCTIONS are used as they are.
@@ -189,6 +191,11 @@ class ActionTranslator:
             return self.cast()
         return self.postfix()
 
+    @staticmethod
+    def is_void_pointer(ctype: str | None) -> bool:
+        """Untyped rules return void * in C (ctype None)."""
+        return ctype is None or ctype.replace(" ", "") == "void*"
+
     def type_length(self, offset: int, closers: tuple[str, ...]) -> int:
         """Number of tokens in a C type name at offset (e.g. `asdl_seq *`)
         if one is there and is followed by one of closers, else 0."""
@@ -275,7 +282,13 @@ class ActionTranslator:
                 raw_types.append(self.take_type(length))
                 args.append(None)
             else:
-                args.append(self.expr().text)
+                arg = self.expr()
+                if arg.is_variable and self.is_void_pointer(arg.ctype):
+                    # C converts void * to the parameter's pointer type
+                    # implicitly; Java infers the cast from the parameter.
+                    args.append(f"fromVoidPtr({arg.text})")
+                else:
+                    args.append(arg.text)
                 raw_types.append(None)
             if self.peek() == ",":
                 self.take(",")
