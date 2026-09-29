@@ -89,6 +89,7 @@ def main():
     sys.path.insert(0, os.path.join(cpython, "Tools", "peg_generator"))
     sys.path.insert(0, HERE)
     from pegen.build import build_parser, generate_token_definitions
+    import asdl_java
     from action_overrides import OVERRIDES
     from java_generator import JavaParserGenerator
 
@@ -129,8 +130,15 @@ def main():
     with open(tokens_path, "w") as out:
         generate_token_types(all_tokens, exact_tokens, "org.python.pegen", out)
 
+    ast_files = asdl_java.generate(
+        cpython,
+        os.path.join(args.output_dir, "ast"),
+        os.path.join(args.output_dir, "AstFactory.java"),
+    )
+
     print(f"wrote {parser_path} ({len(gen.all_rules)} rules, {len(gen.keywords)} keywords)")
     print(f"wrote {tokens_path} ({len(all_tokens)} tokens)")
+    print(f"wrote {len(ast_files)} AST files from Parser/Python.asdl")
 
 
 if __name__ == "__main__":

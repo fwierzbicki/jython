@@ -17,9 +17,10 @@ action_overrides.py.  Rules, in brief:
 - x->v.Kind.field becomes ((Kind) x).field; x->kind == Kind_kind becomes
   (x instanceof Kind); other x->field casts x to the Java class of its C type.
 - C casts become Java casts through JavaTypeMap (dropped when the Java type
-  is Object).  A void * variable passed as an argument, which C converts
-  implicitly, is wrapped in fromVoidPtr(), whose generic return type lets
-  Java infer the cast from the parameter.
+  is Object).  A void * value passed as an argument -- a variable of an
+  untyped rule or optional item, or a ?: with such a branch -- which C
+  converts implicitly, is wrapped in fromVoidPtr(), whose generic return type
+  lets Java infer the cast from the parameter.
 - The condition of ?: must be boolean in Java: a pointer (a grammar variable,
   possibly cast or parenthesized) becomes `x != null`; comparisons and the
   helpers in BOOLEAN_FUNCTIONS are used as they are.
@@ -95,6 +96,7 @@ class Value:
     is_boolean: bool = False  # already a Java boolean
     is_variable: bool = False  # a grammar variable, possibly parenthesized or cast
     kind_of: str | None = None  # for x->kind: the Java text of x
+    is_void: bool = False  # C type void * (converted implicitly where used)
 
 
 def tokenize(action: str) -> list[str]:
@@ -154,7 +156,9 @@ class ActionTranslator:
         then = self.expr()
         self.take(":")
         other = self.expr()
-        return Value(f"{self.condition(cond)} ? {then.text} : {other.text}")
+        # C: if either operand is void *, so is the conditional expression.
+        void = then.is_void or other.is_void
+        return Value(f"{self.condition(cond)} ? {then.text} : {other.text}", is_void=void)
 
     def condition(self, value: Value) -> str:
         if value.is_boolean:
@@ -252,7 +256,8 @@ class ActionTranslator:
             inner = self.expr()
             self.take(")")
             return Value(f"({inner.text})", ctype=inner.ctype, is_boolean=inner.is_boolean,
-                         is_variable=inner.is_variable, kind_of=inner.kind_of)
+                         is_variable=inner.is_variable, kind_of=inner.kind_of,
+                         is_void=inner.is_void)
         if tok.startswith('"') or tok.isdigit():
             return Value(tok)
         if not re.fullmatch(r"[A-Za-z_]\w*", tok):
@@ -260,7 +265,9 @@ class ActionTranslator:
         if self.peek() == "(":
             return self.call(tok)
         if tok in self.locals:
-            return Value(java_ident(tok), ctype=self.locals[tok], is_variable=True)
+            ctype = self.locals[tok]
+            return Value(java_ident(tok), ctype=ctype, is_variable=True,
+                         is_void=self.is_void_pointer(ctype))
         if tok == "p":
             return Value("p", ctype="Parser*")
         if tok == "NULL":
@@ -283,7 +290,7 @@ class ActionTranslator:
                 args.append(None)
             else:
                 arg = self.expr()
-                if arg.is_variable and self.is_void_pointer(arg.ctype):
+                if arg.is_void:
                     # C converts void * to the parameter's pointer type
                     # implicitly; Java infers the cast from the parameter.
                     args.append(f"fromVoidPtr({arg.text})")

@@ -1,9 +1,14 @@
 package org.python.pegen;
 
+import java.math.BigInteger;
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.python.pegen.ast.Complex;
+import org.python.pegen.ast.base.expr;
 
 import static org.python.pegen.TokenTypes.*;
 
@@ -227,7 +232,7 @@ public class Parser {
     }
 
     /** _PyPegen_expect_soft_keyword; the keyword is given without quotes. */
-    public Object expectSoftKeyword(String keyword) {
+    public expr expectSoftKeyword(String keyword) {
         if (mark == fill && fillToken() < 0) {
             error_indicator = true;
             return null;
@@ -283,33 +288,152 @@ public class Parser {
         return !error_indicator;
     }
 
-    /** _PyPegen_name_token. TODO: return a Name node once the AST exists. */
-    public Object nameToken() {
-        return expectToken(NAME);
+    /**
+     * _PyPegen_new_identifier: the identifier for a NAME token's text,
+     * NFKC-normalized if it is not ASCII (as the language reference requires).
+     */
+    public String newIdentifier(String n) {
+        String id = n;
+        if (!isAscii(id)) {
+            id = Normalizer.normalize(id, Normalizer.Form.NFKC);
+        }
+        for (String forbidden : new String[] {"None", "True", "False"}) {
+            if (id.equals(forbidden)) {
+                raiseError("ValueError",
+                        "identifier field can't represent '" + forbidden + "' constant");
+                error_indicator = true;
+                return null;
+            }
+        }
+        return id.intern();
     }
 
-    /** _PyPegen_number_token. TODO: return a Constant node once the AST exists. */
-    public Object numberToken() {
-        return expectToken(NUMBER);
+    private static boolean isAscii(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) >= 0x80) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** _PyPegen_name_from_token */
+    private expr nameFromToken(Token t) {
+        if (t == null) {
+            return null;
+        }
+        String id = newIdentifier(t.string);
+        if (id == null) {
+            error_indicator = true;
+            return null;
+        }
+        return AstFactory._PyAST_Name(id, AstFactory.Load, t.lineno, t.col_offset, t.end_lineno,
+                t.end_col_offset, arena);
+    }
+
+    /** _PyPegen_name_token */
+    public expr nameToken() {
+        Token t = expectToken(NAME);
+        return nameFromToken(t);
+    }
+
+    /** _PyPegen_number_token */
+    public expr numberToken() {
+        Token t = expectToken(NUMBER);
+        if (t == null) {
+            return null;
+        }
+        String num_raw = t.string;
+        if (feature_version < 6 && num_raw.indexOf('_') >= 0) {
+            error_indicator = true;
+            return (expr) ActionHelpers.RAISE_SYNTAX_ERROR(this,
+                    "Underscores in numeric literals are only supported in Python 3.6 and greater");
+        }
+        Object c;
+        try {
+            c = parsenumber(num_raw);
+        } catch (IntDigitLimitError e) {
+            // Intentionally omitting columns to avoid a wall of 1000s of '^'s
+            // on the error message.
+            error_indicator = true;
+            ActionHelpers.RAISE_ERROR_KNOWN_LOCATION(this, ActionHelpers.PyExc_SyntaxError,
+                    t.lineno, -1, t.end_lineno, -1,
+                    "%S - Consider hexadecimal for huge integer literals "
+                            + "to avoid decimal conversion limits.",
+                    e.getMessage());
+            return null;
+        }
+        return AstFactory._PyAST_Constant(c, null, t.lineno, t.col_offset, t.end_lineno,
+                t.end_col_offset, arena);
+    }
+
+    /** CPython's default limit on decimal digits converted to an int (sys.get_int_max_str_digits). */
+    static final int MAX_STR_DIGITS = 4300;
+
+    /** The ValueError PyLong_FromString raises over MAX_STR_DIGITS. */
+    static final class IntDigitLimitError extends Exception {
+        IntDigitLimitError(int digits) {
+            super("Exceeds the limit (" + MAX_STR_DIGITS + " digits) for integer string "
+                    + "conversion: value has " + digits + " digits; use "
+                    + "sys.set_int_max_str_digits() to increase the limit");
+        }
+    }
+
+    /**
+     * parsenumber / parsenumber_raw: the value of a NUMBER token's text: an
+     * int (BigInteger), a float (Double) or, with a j suffix, a complex.
+     */
+    static Object parsenumber(String s) throws IntDigitLimitError {
+        s = s.replace("_", "");
+        char last = s.charAt(s.length() - 1);
+        if (last == 'j' || last == 'J') {
+            return new Complex(0.0, Double.parseDouble(s.substring(0, s.length() - 1)));
+        }
+        if (s.length() > 1 && s.charAt(0) == '0') {
+            char radix = Character.toLowerCase(s.charAt(1));
+            if (radix == 'x') {
+                return new BigInteger(s.substring(2), 16);
+            } else if (radix == 'o') {
+                return new BigInteger(s.substring(2), 8);
+            } else if (radix == 'b') {
+                return new BigInteger(s.substring(2), 2);
+            }
+        }
+        if (isDecimalDigits(s)) {
+            if (s.length() > MAX_STR_DIGITS) {
+                throw new IntDigitLimitError(s.length());
+            }
+            return new BigInteger(s);
+        }
+        return Double.parseDouble(s);
+    }
+
+    private static boolean isDecimalDigits(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c < '0' || c > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** _PyPegen_string_token */
-    public Object stringToken() {
+    public Token stringToken() {
         return expectToken(STRING);
     }
 
-    /** _PyPegen_soft_keyword_token */
-    public Object softKeywordToken() {
+    /** _PyPegen_soft_keyword_token (which, unlike other token functions, does not rewind on failure) */
+    public expr softKeywordToken() {
         Token t = expectToken(NAME);
         if (t == null) {
             return null;
         }
         for (String kw : soft_keywords) {
             if (kw.equals(t.string)) {
-                return t;
+                return nameFromToken(t);
             }
         }
-        mark -= 1;
         return null;
     }
 
@@ -359,6 +483,13 @@ public class Parser {
             errorType = "SyntaxError";
             error = t == null ? msg : msg + " at " + t.lineno + ":" + t.col_offset;
         }
+    }
+
+    /** Records an error with no location, e.g. a ValueError. */
+    public void raiseError(String errtype, String msg) {
+        error_indicator = true;
+        errorType = errtype;
+        error = msg;
     }
 
     /**

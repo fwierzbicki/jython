@@ -2,6 +2,9 @@ package org.python.pegen;
 
 import java.util.List;
 
+import org.python.pegen.ast.*;
+import org.python.pegen.ast.base.*;
+
 /**
  * The helpers grammar actions call, under their C names: the macros and
  * inline functions of CPython's Parser/pegen.h, and the _PyPegen_* functions
@@ -37,51 +40,49 @@ public final class ActionHelpers {
     public static final String PyExc_SyntaxError = "SyntaxError";
     public static final String PyExc_IndentationError = "IndentationError";
 
-    /** CPython singletons used as Constant values. Placeholders until the AST exists. */
-    public enum Singleton {
-        Py_None, Py_True, Py_False, Py_Ellipsis
-    }
-
-    public static final Singleton Py_None = Singleton.Py_None;
-    public static final Singleton Py_True = Singleton.Py_True;
-    public static final Singleton Py_False = Singleton.Py_False;
-    public static final Singleton Py_Ellipsis = Singleton.Py_Ellipsis;
+    /** CPython's singletons, as Constant values. */
+    public static final Singleton Py_None = Singleton.None;
+    public static final Singleton Py_True = Singleton.True;
+    public static final Singleton Py_False = Singleton.False;
+    public static final Singleton Py_Ellipsis = Singleton.Ellipsis;
 
     // ---- pegen.h structs (field types as JavaTypeMap maps them) ----
 
     public static final class CmpopExprPair {
-        public Object cmpop;
-        public Object expr;
+        public cmpopType cmpop;
+        public expr expr;
     }
 
     public static final class KeyValuePair {
-        public Object key;
-        public Object value;
+        public expr key;
+        public expr value;
     }
 
     public static final class KeyPatternPair {
-        public Object key;
-        public Object pattern;
+        public expr key;
+        public pattern pattern;
     }
 
     public static final class NameDefaultPair {
-        public Object arg;
-        public Object value;
+        public arg arg;
+        public expr value;
     }
 
     public static final class SlashWithDefault {
-        public List<Object> plain_names;
+        public List<arg> plain_names;
+        /** asdl_seq* of NameDefaultPair's */
         public List<Object> names_with_defaults;
     }
 
     public static final class StarEtc {
-        public Object vararg;
+        public arg vararg;
+        /** asdl_seq* of NameDefaultPair's */
         public List<Object> kwonlyargs;
-        public Object kwarg;
+        public arg kwarg;
     }
 
     public static final class AugOperator {
-        public Object kind;
+        public operatorType kind;
     }
 
     public static final class KeywordOrStarred {
@@ -128,11 +129,11 @@ public final class ActionHelpers {
         return node;
     }
 
-    public static Object NEW_TYPE_COMMENT(Parser p, Token tc) {
+    public static String NEW_TYPE_COMMENT(Parser p, Token tc) {
         if (tc == null) {
             return null;
         }
-        Object tco = _PyPegen_new_type_comment(p, tc.string);
+        String tco = _PyPegen_new_type_comment(p, tc.string);
         if (tco == null) {
             p.error_indicator = true; // Inline CHECK_CALL
             return null;
@@ -184,7 +185,7 @@ public final class ActionHelpers {
 
     /** RAISE_SYNTAX_ERROR_INVALID_TARGET(type, e), i.e. _RAISE_SYNTAX_ERROR_INVALID_TARGET */
     public static Object RAISE_SYNTAX_ERROR_INVALID_TARGET(Parser p, TARGETS_TYPE type, Object e) {
-        Object invalid_target = CHECK_NULL_ALLOWED(p, _PyPegen_get_invalid_target(e, type));
+        expr invalid_target = CHECK_NULL_ALLOWED(p, _PyPegen_get_invalid_target((expr) e, type));
         if (invalid_target != null) {
             String msg;
             if (type == STAR_TARGETS || type == FOR_TARGETS) {
@@ -199,12 +200,12 @@ public final class ActionHelpers {
     }
 
     /** PyPegen_first_item(seq, type), i.e. _PyPegen_seq_first_item */
-    public static Object PyPegen_first_item(List<Object> seq) {
+    public static Object PyPegen_first_item(List<?> seq) {
         return seq.get(0);
     }
 
     /** PyPegen_last_item(seq, type), i.e. _PyPegen_seq_last_item */
-    public static Object PyPegen_last_item(List<Object> seq) {
+    public static Object PyPegen_last_item(List<?> seq) {
         return seq.get(seq.size() - 1);
     }
 
@@ -214,7 +215,7 @@ public final class ActionHelpers {
     }
 
     /** pycore_asdl.h asdl_seq_GET */
-    public static Object asdl_seq_GET(List<Object> seq, int i) {
+    public static <T> T asdl_seq_GET(List<T> seq, int i) {
         return seq.get(i);
     }
 
@@ -230,15 +231,8 @@ public final class ActionHelpers {
 
     /** (a)->lineno, (a)->col_offset, (a)->end_lineno, (a)->end_col_offset for a token or node. */
     private static int[] location(Object node) {
-        if (node instanceof Token) {
-            Token t = (Token) node;
-            return new int[] {t.lineno, t.col_offset, t.end_lineno, t.end_col_offset};
-        }
-        if (node instanceof AstFactory.AST) {
-            AstFactory.AST n = (AstFactory.AST) node;
-            return new int[] {n.lineno, n.col_offset, n.end_lineno, n.end_col_offset};
-        }
-        throw new IllegalArgumentException("no location for " + node);
+        Located a = (Located) node;
+        return new int[] {a.lineno(), a.col_offset(), a.end_lineno(), a.end_col_offset()};
     }
 
     // ---- pegen_errors.c (minimal) ----
@@ -300,19 +294,19 @@ public final class ActionHelpers {
 
     // ---- Not yet ported: action_helpers.c and pegen.c ----
 
-    public static Object _PyPegen_add_type_comment_to_arg(Parser p, Object arg1, Token arg2) {
+    public static arg _PyPegen_add_type_comment_to_arg(Parser p, arg arg1, Token arg2) {
         return null;
     }
 
-    public static Object _PyPegen_alias_for_star(Parser p, int arg1, int arg2, int arg3, int arg4, Object arg5) {
+    public static alias _PyPegen_alias_for_star(Parser p, int arg1, int arg2, int arg3, int arg4, Object arg5) {
         return null;
     }
 
-    public static Object _PyPegen_arguments_parsing_error(Parser p, Object arg1) {
+    public static Object _PyPegen_arguments_parsing_error(Parser p, expr arg1) {
         return null;
     }
 
-    public static Object _PyPegen_augoperator(Parser p, Object type) {
+    public static AugOperator _PyPegen_augoperator(Parser p, operatorType type) {
         return null;
     }
 
@@ -320,203 +314,207 @@ public final class ActionHelpers {
         return false;
     }
 
-    public static Object _PyPegen_check_fstring_conversion(Parser p, Token arg1, Object t) {
+    public static ResultTokenWithMetadata _PyPegen_check_fstring_conversion(Parser p, Token arg1, expr t) {
         return null;
     }
 
-    public static boolean _PyPegen_check_legacy_stmt(Parser p, Object t) {
+    public static boolean _PyPegen_check_legacy_stmt(Parser p, expr t) {
         return false;
     }
 
-    public static Object _PyPegen_checked_from_import(Parser p, List<Object> dots, Object module_name, List<Object> names, Object lazy_token, int lineno, int col_offset, int end_lineno, int end_col_offset, Object arena) {
+    public static stmt _PyPegen_checked_from_import(Parser p, List<?> dots, expr module_name, List<alias> names, expr lazy_token, int lineno, int col_offset, int end_lineno, int end_col_offset, Object arena) {
         return null;
     }
 
-    public static Object _PyPegen_class_def_decorators(Parser p, List<Object> arg1, Object arg2) {
+    public static stmt _PyPegen_class_def_decorators(Parser p, List<expr> arg1, stmt arg2) {
         return null;
     }
 
-    public static Object _PyPegen_cmpop_expr_pair(Parser p, Object arg1, Object arg2) {
+    public static CmpopExprPair _PyPegen_cmpop_expr_pair(Parser p, cmpopType arg1, expr arg2) {
         return null;
     }
 
-    public static Object _PyPegen_collect_call_seqs(Parser p, List<Object> arg1, List<Object> arg2, int lineno, int col_offset, int end_lineno, int end_col_offset, Object arena) {
+    public static expr _PyPegen_collect_call_seqs(Parser p, List<expr> arg1, List<?> arg2, int lineno, int col_offset, int end_lineno, int end_col_offset, Object arena) {
         return null;
     }
 
-    public static Object _PyPegen_concatenate_strings(Parser p, List<Object> arg1, int arg2, int arg3, int arg4, int arg5, Object arg6) {
+    public static expr _PyPegen_concatenate_strings(Parser p, List<expr> arg1, int arg2, int arg3, int arg4, int arg5, Object arg6) {
         return null;
     }
 
-    public static Object _PyPegen_concatenate_tstrings(Parser p, List<Object> arg1, int arg2, int arg3, int arg4, int arg5, Object arg6) {
+    public static expr _PyPegen_concatenate_tstrings(Parser p, List<expr> arg1, int arg2, int arg3, int arg4, int arg5, Object arg6) {
         return null;
     }
 
-    public static Object _PyPegen_constant_from_string(Parser p, Token tok) {
+    public static expr _PyPegen_constant_from_string(Parser p, Token tok) {
         return null;
     }
 
-    public static Object _PyPegen_constant_from_token(Parser p, Token tok) {
+    public static expr _PyPegen_constant_from_token(Parser p, Token tok) {
         return null;
     }
 
-    public static Object _PyPegen_decoded_constant_from_token(Parser p, Token tok) {
+    public static expr _PyPegen_decoded_constant_from_token(Parser p, Token tok) {
         return null;
     }
 
-    public static Object _PyPegen_dummy_name(Parser p, Object... args) {
+    /** The parser's static dummy name (C: _PyRuntime.parser.dummy_name). */
+    private static final Name DUMMY_NAME = new Name("", AstFactory.Load, 1, 0, 1, 0);
+
+    /** Returns a dummy Name node, as a placeholder result (C: void *, but always this Name). */
+    public static expr _PyPegen_dummy_name(Parser p, Object... args) {
+        return DUMMY_NAME;
+    }
+
+    public static arguments _PyPegen_empty_arguments(Parser p) {
         return null;
     }
 
-    public static Object _PyPegen_empty_arguments(Parser p) {
+    public static expr _PyPegen_ensure_imaginary(Parser p, expr arg1) {
         return null;
     }
 
-    public static Object _PyPegen_ensure_imaginary(Parser p, Object arg1) {
+    public static expr _PyPegen_ensure_real(Parser p, expr arg1) {
         return null;
     }
 
-    public static Object _PyPegen_ensure_real(Parser p, Object arg1) {
+    public static expr _PyPegen_formatted_value(Parser p, expr arg1, Token arg2, ResultTokenWithMetadata arg3, ResultTokenWithMetadata arg4, Token arg5, int arg6, int arg7, int arg8, int arg9, Object arg10) {
         return null;
     }
 
-    public static Object _PyPegen_formatted_value(Parser p, Object arg1, Token arg2, Object arg3, Object arg4, Token arg5, int arg6, int arg7, int arg8, int arg9, Object arg10) {
+    public static stmt _PyPegen_function_def_decorators(Parser p, List<expr> arg1, stmt arg2) {
         return null;
     }
 
-    public static Object _PyPegen_function_def_decorators(Parser p, List<Object> arg1, Object arg2) {
+    public static List<cmpopType> _PyPegen_get_cmpops(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_cmpops(Parser p, List<Object> arg1) {
+    public static String _PyPegen_get_expr_name(expr arg0) {
         return null;
     }
 
-    public static String _PyPegen_get_expr_name(Object arg0) {
+    public static List<expr> _PyPegen_get_exprs(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_exprs(Parser p, List<Object> arg1) {
+    public static expr _PyPegen_get_invalid_target(expr e, TARGETS_TYPE targets_type) {
         return null;
     }
 
-    public static Object _PyPegen_get_invalid_target(Object e, TARGETS_TYPE targets_type) {
+    public static List<expr> _PyPegen_get_keys(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_keys(Parser p, List<Object> arg1) {
+    public static expr _PyPegen_get_last_comprehension_item(comprehension comprehension) {
         return null;
     }
 
-    public static Object _PyPegen_get_last_comprehension_item(Object comprehension) {
+    public static List<expr> _PyPegen_get_pattern_keys(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_pattern_keys(Parser p, List<Object> arg1) {
+    public static List<pattern> _PyPegen_get_patterns(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_patterns(Parser p, List<Object> arg1) {
+    public static List<expr> _PyPegen_get_values(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_get_values(Parser p, List<Object> arg1) {
+    public static List<stmt> _PyPegen_interactive_exit(Parser p) {
         return null;
     }
 
-    public static List<Object> _PyPegen_interactive_exit(Parser p) {
+    public static expr _PyPegen_interpolation(Parser p, expr arg1, Token arg2, ResultTokenWithMetadata arg3, ResultTokenWithMetadata arg4, Token arg5, int arg6, int arg7, int arg8, int arg9, Object arg10) {
         return null;
     }
 
-    public static Object _PyPegen_interpolation(Parser p, Object arg1, Token arg2, Object arg3, Object arg4, Token arg5, int arg6, int arg7, int arg8, int arg9, Object arg10) {
+    public static expr _PyPegen_join_names_with_dot(Parser p, expr arg1, expr arg2) {
         return null;
     }
 
-    public static Object _PyPegen_join_names_with_dot(Parser p, Object arg1, Object arg2) {
+    public static List<Object> _PyPegen_join_sequences(Parser p, List<?> arg1, List<?> arg2) {
         return null;
     }
 
-    public static List<Object> _PyPegen_join_sequences(Parser p, List<Object> arg1, List<Object> arg2) {
+    public static expr _PyPegen_joined_str(Parser p, Token a, List<expr> raw_expressions, Token b) {
         return null;
     }
 
-    public static Object _PyPegen_joined_str(Parser p, Token a, List<Object> raw_expressions, Token b) {
+    public static KeyPatternPair _PyPegen_key_pattern_pair(Parser p, expr arg1, pattern arg2) {
         return null;
     }
 
-    public static Object _PyPegen_key_pattern_pair(Parser p, Object arg1, Object arg2) {
+    public static KeyValuePair _PyPegen_key_value_pair(Parser p, expr arg1, expr arg2) {
         return null;
     }
 
-    public static Object _PyPegen_key_value_pair(Parser p, Object arg1, Object arg2) {
+    public static KeywordOrStarred _PyPegen_keyword_or_starred(Parser p, Object arg1, int arg2) {
         return null;
     }
 
-    public static Object _PyPegen_keyword_or_starred(Parser p, Object arg1, int arg2) {
+    public static arguments _PyPegen_make_arguments(Parser p, List<arg> arg1, SlashWithDefault arg2, List<arg> arg3, List<?> arg4, StarEtc arg5) {
         return null;
     }
 
-    public static Object _PyPegen_make_arguments(Parser p, List<Object> arg1, Object arg2, List<Object> arg3, List<Object> arg4, Object arg5) {
+    public static mod _PyPegen_make_module(Parser p, List<stmt> arg1) {
         return null;
     }
 
-    public static Object _PyPegen_make_module(Parser p, List<Object> arg1) {
+    public static List<String> _PyPegen_map_names_to_ids(Parser p, List<expr> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_map_names_to_ids(Parser p, List<Object> arg1) {
+    public static NameDefaultPair _PyPegen_name_default_pair(Parser p, arg arg1, expr arg2, Token arg3) {
         return null;
     }
 
-    public static Object _PyPegen_name_default_pair(Parser p, Object arg1, Object arg2, Token arg3) {
+    public static String _PyPegen_new_type_comment(Parser p, String arg1) {
         return null;
     }
 
-    public static Object _PyPegen_new_type_comment(Parser p, String arg1) {
+    public static Object _PyPegen_nonparen_genexp_in_call(Parser p, expr args, List<comprehension> comprehensions) {
         return null;
     }
 
-    public static Object _PyPegen_nonparen_genexp_in_call(Parser p, Object args, List<Object> comprehensions) {
+    public static Object _PyPegen_raise_error_for_missing_comma(Parser p, expr a, expr b) {
         return null;
     }
 
-    public static Object _PyPegen_raise_error_for_missing_comma(Parser p, Object a, Object b) {
+    public static List<stmt> _PyPegen_register_stmts(Parser p, List<stmt> stmts) {
         return null;
     }
 
-    public static List<Object> _PyPegen_register_stmts(Parser p, List<Object> stmts) {
+    public static List<Object> _PyPegen_seq_append_to_end(Parser p, List<?> arg1, Object arg2) {
         return null;
     }
 
-    public static List<Object> _PyPegen_seq_append_to_end(Parser p, List<Object> arg1, Object arg2) {
-        return null;
-    }
-
-    public static int _PyPegen_seq_count_dots(List<Object> arg0) {
+    public static int _PyPegen_seq_count_dots(List<?> arg0) {
         return 0;
     }
 
-    public static List<Object> _PyPegen_seq_delete_starred_exprs(Parser p, List<Object> arg1) {
+    public static List<keyword> _PyPegen_seq_delete_starred_exprs(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_seq_extract_starred_exprs(Parser p, List<Object> arg1) {
+    public static List<expr> _PyPegen_seq_extract_starred_exprs(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_seq_flatten(Parser p, List<Object> arg1) {
+    public static List<Object> _PyPegen_seq_flatten(Parser p, List<?> arg1) {
         return null;
     }
 
-    public static List<Object> _PyPegen_seq_insert_in_front(Parser p, Object arg1, List<Object> arg2) {
+    public static List<Object> _PyPegen_seq_insert_in_front(Parser p, Object arg1, List<?> arg2) {
         return null;
     }
 
-    public static Object _PyPegen_set_expr_context(Parser p, Object arg1, Object arg2) {
+    public static expr _PyPegen_set_expr_context(Parser p, expr arg1, expr_contextType arg2) {
         return null;
     }
 
-    public static Object _PyPegen_setup_full_format_spec(Parser p, Token arg1, List<Object> arg2, int arg3, int arg4, int arg5, int arg6, Object arg7) {
+    public static ResultTokenWithMetadata _PyPegen_setup_full_format_spec(Parser p, Token arg1, List<expr> arg2, int arg3, int arg4, int arg5, int arg6, Object arg7) {
         return null;
     }
 
@@ -524,15 +522,15 @@ public final class ActionHelpers {
         return null;
     }
 
-    public static Object _PyPegen_slash_with_default(Parser p, List<Object> arg1, List<Object> arg2) {
+    public static SlashWithDefault _PyPegen_slash_with_default(Parser p, List<arg> arg1, List<?> arg2) {
         return null;
     }
 
-    public static Object _PyPegen_star_etc(Parser p, Object arg1, List<Object> arg2, Object arg3) {
+    public static StarEtc _PyPegen_star_etc(Parser p, arg arg1, List<?> arg2, arg arg3) {
         return null;
     }
 
-    public static Object _PyPegen_template_str(Parser p, Token a, List<Object> raw_expressions, Token b) {
+    public static expr _PyPegen_template_str(Parser p, Token a, List<expr> raw_expressions, Token b) {
         return null;
     }
 }
