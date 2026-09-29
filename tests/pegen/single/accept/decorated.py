@@ -1,0 +1,2 @@
+@d
+def f(): pass
