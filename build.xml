@@ -740,6 +740,26 @@ The text for an official release would continue like ...
         -->
     </target>
 
+    <!-- Regenerates the PEG parser (src/org/python/pegen/GeneratedParser.java and
+         TokenTypes.java) from CPython's grammar. The output is checked in, so this
+         is not part of compile; run it after changing the generator or the grammar.
+         Needs Python >= 3.10 and a CPython checkout:
+             ant pegen-gen [-Dpegen.python=python3] [-Dpegen.cpython=../cpython]
+         pegen.args passes further options to generate.py (see its help), such as
+         the one that translates grammar actions instead of skipping them. -->
+    <target name="pegen-gen">
+        <property name="pegen.python" value="python3" />
+        <property name="pegen.cpython" value="${basedir}/../cpython" />
+        <property name="pegen.args" value="" />
+        <exec executable="${pegen.python}" dir="${basedir}" failonerror="true">
+            <env key="PYTHONDONTWRITEBYTECODE" value="1" />
+            <arg file="${basedir}/src/pegen/tools/generate.py" />
+            <arg value="--cpython" />
+            <arg file="${pegen.cpython}" />
+            <arg line="${pegen.args}" />
+        </exec>
+    </target>
+
     <target name="jarless" depends="compile, pycompile"/>
 
     <target name="compile" depends="init, antlr-gen, brand-version">

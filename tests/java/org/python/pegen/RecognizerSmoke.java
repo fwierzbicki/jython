@@ -57,7 +57,7 @@ public class RecognizerSmoke {
                     throw new IllegalArgumentException(
                             file + ": unknown token type " + f[0] + " '" + f[5] + "'");
                 }
-                toks.add(new Token(type, f[5], Integer.parseInt(f[1]), Integer.parseInt(f[2]),
+                toks.add(new Token(type, unescape(f[5]), Integer.parseInt(f[1]), Integer.parseInt(f[2]),
                         Integer.parseInt(f[3]), Integer.parseInt(f[4])));
             }
             final Iterator<Token> it = toks.iterator();
@@ -80,5 +80,23 @@ public class RecognizerSmoke {
         System.out.printf("%d files, %d not %s as expected, %.1fs%n", files, unexpected,
                 expectAccept ? "accepted" : "rejected", (System.nanoTime() - t0) / 1e9);
         System.exit(unexpected == 0 && files > 0 ? 0 : 1);
+    }
+
+    /** Reverses dump_tokens.py's escaping of backslash, newline and carriage return. */
+    private static String unescape(String s) {
+        if (s.indexOf('\\') < 0) {
+            return s;
+        }
+        StringBuilder out = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\\' && i + 1 < s.length()) {
+                char d = s.charAt(++i);
+                out.append(d == 'n' ? '\n' : d == 'r' ? '\r' : d);
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
     }
 }

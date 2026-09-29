@@ -545,7 +545,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                Object a = null;
                 Token endmarker_var = null;
                 if (
                     p.opt((a = statements_rule()))  // statements?
@@ -660,7 +660,7 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 List<Object> _loop0_1_var = null;
-                List<Object> a = null;
+                Object a = null;
                 Object b = null;
                 Token endmarker_var = null;
                 if (
@@ -713,7 +713,7 @@ public class GeneratedParser {
                     (a = _loop1_2_rule()) != null  // statement+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -747,7 +747,7 @@ public class GeneratedParser {
                     (a = compound_stmt_rule()) != null  // compound_stmt
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -759,10 +759,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) simple_stmts_rule()) != null  // simple_stmts
+                    (a = (List<Object>) (List<?>) simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -796,7 +796,7 @@ public class GeneratedParser {
                     (a = compound_stmt_rule()) != null  // compound_stmt
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -840,7 +840,7 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -855,7 +855,7 @@ public class GeneratedParser {
                     (simple_stmts_var = simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -877,7 +877,7 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -892,7 +892,7 @@ public class GeneratedParser {
                     (endmarker_var = p.expectToken(ENDMARKER)) != null  // token='ENDMARKER'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -931,7 +931,7 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -941,18 +941,18 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 Token newline_var = null;
                 if (
-                    (a = (List<Object>) _gather_4_rule()) != null  // ';'.simple_stmt+
+                    (a = (List<Object>) (List<?>) _gather_4_rule()) != null  // ';'.simple_stmt+
                     &&
                     p.opt((_opt_var = p.expectToken(13)))  // ';'?
                     &&
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -1506,9 +1506,9 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 Object b = null;
-                Token tc = null;
+                Object tc = null;
                 if (
-                    (a = (List<Object>) _loop1_12_rule()) != null  // ((star_targets '='))+
+                    (a = (List<Object>) (List<?>) _loop1_12_rule()) != null  // ((star_targets '='))+
                     &&
                     (b = annotated_rhs_rule()) != null  // annotated_rhs
                     &&
@@ -2209,7 +2209,7 @@ public class GeneratedParser {
                 if (
                     (_keyword = p.expectToken(530)) != null  // token='global'
                     &&
-                    (a = (List<Object>) _gather_14_rule()) != null  // ','.NAME+
+                    (a = (List<Object>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -2260,7 +2260,7 @@ public class GeneratedParser {
                 if (
                     (_keyword = p.expectToken(531)) != null  // token='nonlocal'
                     &&
-                    (a = (List<Object>) _gather_14_rule()) != null  // ','.NAME+
+                    (a = (List<Object>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -2737,7 +2737,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
@@ -2749,7 +2749,7 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -2766,7 +2766,7 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(12) != null)  // !','
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -2788,7 +2788,7 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -2803,7 +2803,7 @@ public class GeneratedParser {
                     (invalid_import_from_targets_var = invalid_import_from_targets_rule()) != null  // invalid_import_from_targets
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -2834,10 +2834,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_20_rule()) != null  // ','.import_from_as_name+
+                    (a = (List<Object>) (List<?>) _gather_20_rule()) != null  // ','.import_from_as_name+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -2934,10 +2934,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_23_rule()) != null  // ','.dotted_as_name+
+                    (a = (List<Object>) (List<?>) _gather_23_rule()) != null  // ','.dotted_as_name+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3116,7 +3116,7 @@ public class GeneratedParser {
         List<Object> _res = null;
         Parser.Memo _memo = p.isMemoized(block_type);
         if (_memo != null) {
-            _res = (List<Object>) _memo.node;
+            _res = (List<Object>) (List<?>) _memo.node;
             p.level--;
             return _res;
         }
@@ -3141,7 +3141,7 @@ public class GeneratedParser {
                     (dedent_var = p.expectToken(DEDENT)) != null  // token='DEDENT'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3156,7 +3156,7 @@ public class GeneratedParser {
                     (simple_stmts_var = simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3171,7 +3171,7 @@ public class GeneratedParser {
                     (invalid_block_var = invalid_block_rule()) != null  // invalid_block
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3203,10 +3203,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_24_rule()) != null  // (('@' named_expression NEWLINE))+
+                    (a = (List<Object>) (List<?>) _loop1_24_rule()) != null  // (('@' named_expression NEWLINE))+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3316,7 +3316,7 @@ public class GeneratedParser {
                 Object a = null;
                 Object b = null;
                 List<Object> c = null;
-                List<Object> t = null;
+                Object t = null;
                 if (
                     (_keyword = p.expectToken(719)) != null  // token='class'
                     &&
@@ -3452,8 +3452,8 @@ public class GeneratedParser {
                 List<Object> b = null;
                 Object n = null;
                 Object params = null;
-                List<Object> t = null;
-                Token tc = null;
+                Object t = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(717)) != null  // token='def'
                     &&
@@ -3502,8 +3502,8 @@ public class GeneratedParser {
                 List<Object> b = null;
                 Object n = null;
                 Object params = null;
-                List<Object> t = null;
-                Token tc = null;
+                Object t = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
@@ -3625,7 +3625,7 @@ public class GeneratedParser {
                 if (
                     (a = slash_no_default_rule()) != null  // slash_no_default
                     &&
-                    (b = (List<Object>) _loop0_27_rule()) != null  // param_no_default*
+                    (b = (List<Object>) (List<?>) _loop0_27_rule()) != null  // param_no_default*
                     &&
                     (c = _loop0_28_rule()) != null  // param_with_default*
                     &&
@@ -3667,7 +3667,7 @@ public class GeneratedParser {
                 List<Object> b = null;
                 Object c = null;
                 if (
-                    (a = (List<Object>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (b = _loop0_28_rule()) != null  // param_with_default*
                     &&
@@ -3740,14 +3740,14 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -3760,14 +3760,14 @@ public class GeneratedParser {
                 Token _literal = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -4044,7 +4044,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object a = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4064,7 +4064,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object a = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4106,7 +4106,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object a = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_star_annotation_rule()) != null  // param_star_annotation
                     &&
@@ -4126,7 +4126,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object a = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_star_annotation_rule()) != null  // param_star_annotation
                     &&
@@ -4167,7 +4167,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 Object c = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4190,7 +4190,7 @@ public class GeneratedParser {
                 }
                 Object a = null;
                 Object c = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4235,7 +4235,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 Object c = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4258,7 +4258,7 @@ public class GeneratedParser {
                 }
                 Object a = null;
                 Object c = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
                     &&
@@ -4589,7 +4589,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 List<Object> b = null;
-                List<Object> c = null;
+                Object c = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
                     &&
@@ -4701,7 +4701,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 List<Object> b = null;
-                List<Object> c = null;
+                Object c = null;
                 if (
                     (_keyword = p.expectToken(705)) != null  // token='elif'
                     &&
@@ -4755,7 +4755,7 @@ public class GeneratedParser {
                     (invalid_else_stmt_var = invalid_else_stmt_rule()) != null  // invalid_else_stmt
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -4776,7 +4776,7 @@ public class GeneratedParser {
                     (b = block_rule()) != null  // block
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -4831,7 +4831,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 List<Object> b = null;
-                List<Object> c = null;
+                Object c = null;
                 if (
                     (_keyword = p.expectToken(707)) != null  // token='while'
                     &&
@@ -4911,10 +4911,10 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Token _literal = null;
                 List<Object> b = null;
-                List<Object> el = null;
+                Object el = null;
                 Object ex = null;
                 Object t = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(712)) != null  // token='for'
                     &&
@@ -4962,10 +4962,10 @@ public class GeneratedParser {
                 Token _keyword_2 = null;
                 Token _literal = null;
                 List<Object> b = null;
-                List<Object> el = null;
+                Object el = null;
                 Object ex = null;
                 Object t = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
@@ -5075,16 +5075,16 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 List<Object> b = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(665)) != null  // token='with'
                     &&
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
-                    (a = (List<Object>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                     &&
@@ -5118,11 +5118,11 @@ public class GeneratedParser {
                 Token _literal = null;
                 List<Object> a = null;
                 List<Object> b = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(665)) != null  // token='with'
                     &&
-                    (a = (List<Object>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
@@ -5153,7 +5153,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 List<Object> b = null;
                 if (
@@ -5163,7 +5163,7 @@ public class GeneratedParser {
                     &&
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
-                    (a = (List<Object>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                     &&
@@ -5196,13 +5196,13 @@ public class GeneratedParser {
                 Token _literal = null;
                 List<Object> a = null;
                 List<Object> b = null;
-                Token tc = null;
+                Object tc = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
                     (_keyword_1 = p.expectToken(665)) != null  // token='with'
                     &&
-                    (a = (List<Object>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
@@ -5397,9 +5397,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 List<Object> b = null;
-                List<Object> el = null;
+                Object el = null;
                 List<Object> ex = null;
-                List<Object> f = null;
+                Object f = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
                     &&
@@ -5407,7 +5407,7 @@ public class GeneratedParser {
                     &&
                     (b = block_rule()) != null  // block
                     &&
-                    (ex = (List<Object>) _loop1_36_rule()) != null  // except_block+
+                    (ex = (List<Object>) (List<?>) _loop1_36_rule()) != null  // except_block+
                     &&
                     p.opt((el = else_block_rule()))  // else_block?
                     &&
@@ -5434,9 +5434,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 List<Object> b = null;
-                List<Object> el = null;
+                Object el = null;
                 List<Object> ex = null;
-                List<Object> f = null;
+                Object f = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
                     &&
@@ -5444,7 +5444,7 @@ public class GeneratedParser {
                     &&
                     (b = block_rule()) != null  // block
                     &&
-                    (ex = (List<Object>) _loop1_37_rule()) != null  // except_star_block+
+                    (ex = (List<Object>) (List<?>) _loop1_37_rule()) != null  // except_star_block+
                     &&
                     p.opt((el = else_block_rule()))  // else_block?
                     &&
@@ -5850,7 +5850,7 @@ public class GeneratedParser {
                     (invalid_finally_stmt_var = invalid_finally_stmt_rule()) != null  // invalid_finally_stmt
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -5871,7 +5871,7 @@ public class GeneratedParser {
                     (a = block_rule()) != null  // block
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -5927,7 +5927,7 @@ public class GeneratedParser {
                     &&
                     (indent_var = p.expectToken(INDENT)) != null  // token='INDENT'
                     &&
-                    (cases = (List<Object>) _loop1_38_rule()) != null  // case_block+
+                    (cases = (List<Object>) (List<?>) _loop1_38_rule()) != null  // case_block+
                     &&
                     (dedent_var = p.expectToken(DEDENT)) != null  // token='DEDENT'
                 )
@@ -5992,7 +5992,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object value = null;
-                List<Object> values = null;
+                Object values = null;
                 if (
                     (value = star_named_expression_rule()) != null  // star_named_expression
                     &&
@@ -6159,7 +6159,7 @@ public class GeneratedParser {
                 }
                 List<Object> patterns = null;
                 if (
-                    (patterns = (List<Object>) open_sequence_pattern_rule()) != null  // open_sequence_pattern
+                    (patterns = (List<Object>) (List<?>) open_sequence_pattern_rule()) != null  // open_sequence_pattern
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -6340,7 +6340,7 @@ public class GeneratedParser {
                 }
                 List<Object> patterns = null;
                 if (
-                    (patterns = (List<Object>) _gather_40_rule()) != null  // '|'.closed_pattern+
+                    (patterns = (List<Object>) (List<?>) _gather_40_rule()) != null  // '|'.closed_pattern+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -7537,7 +7537,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> patterns = null;
+                Object patterns = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -7565,7 +7565,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> patterns = null;
+                Object patterns = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -7612,7 +7612,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object pattern = null;
-                List<Object> patterns = null;
+                Object patterns = null;
                 if (
                     (pattern = maybe_star_pattern_rule()) != null  // maybe_star_pattern
                     &&
@@ -7621,7 +7621,7 @@ public class GeneratedParser {
                     p.opt((patterns = maybe_sequence_pattern_rule()))  // maybe_sequence_pattern?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -7650,7 +7650,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> patterns = null;
                 if (
                     (patterns = _gather_45_rule()) != null  // ','.maybe_star_pattern+
@@ -7658,7 +7658,7 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -7858,7 +7858,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object rest = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
@@ -7890,7 +7890,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> items = null;
                 Object rest = null;
                 if (
@@ -7926,7 +7926,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> items = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
@@ -7994,7 +7994,7 @@ public class GeneratedParser {
                     (_gather_47_var = _gather_47_rule()) != null  // ','.key_value_pattern+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8142,7 +8142,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object cls = null;
                 List<Object> patterns = null;
                 if (
@@ -8176,7 +8176,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object cls = null;
                 List<Object> keywords = null;
                 if (
@@ -8211,7 +8211,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object cls = null;
                 List<Object> keywords = null;
                 List<Object> patterns = null;
@@ -8284,10 +8284,10 @@ public class GeneratedParser {
                 }
                 List<Object> args = null;
                 if (
-                    (args = (List<Object>) _gather_50_rule()) != null  // ','.pattern+
+                    (args = (List<Object>) (List<?>) _gather_50_rule()) != null  // ','.pattern+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8321,7 +8321,7 @@ public class GeneratedParser {
                     (_gather_52_var = _gather_52_rule()) != null  // ','.keyword_pattern+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8401,7 +8401,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object b = null;
                 Object n = null;
-                List<Object> t = null;
+                Object t = null;
                 if (
                     (_keyword = p.expectSoftKeyword("type")) != null  // soft_keyword='"type"'
                     &&
@@ -8455,7 +8455,7 @@ public class GeneratedParser {
                     (invalid_type_params_var = invalid_type_params_rule()) != null  // invalid_type_params
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8476,7 +8476,7 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(10)) != null  // token=']'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8505,15 +8505,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_54_rule()) != null  // ','.type_param+
+                    (a = (List<Object>) (List<?>) _gather_54_rule()) != null  // ','.type_param+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -8796,7 +8796,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 List<Object> b = null;
                 if (
@@ -9154,7 +9154,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 List<Object> b = null;
                 if (
@@ -9314,15 +9314,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_58_rule()) != null  // ','.star_named_expression+
+                    (a = (List<Object>) (List<?>) _gather_58_rule()) != null  // ','.star_named_expression+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -9351,15 +9351,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_60_rule()) != null  // ','.star_named_expression_sequence+
+                    (a = (List<Object>) (List<?>) _gather_60_rule()) != null  // ','.star_named_expression_sequence+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -11779,10 +11779,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_66_rule()) != null  // ','.(slice | starred_expression)+
+                    (a = (List<Object>) (List<?>) _gather_66_rule()) != null  // ','.(slice | starred_expression)+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
@@ -12290,7 +12290,7 @@ public class GeneratedParser {
                 if (
                     (a = lambda_slash_no_default_rule()) != null  // lambda_slash_no_default
                     &&
-                    (b = (List<Object>) _loop0_72_rule()) != null  // lambda_param_no_default*
+                    (b = (List<Object>) (List<?>) _loop0_72_rule()) != null  // lambda_param_no_default*
                     &&
                     (c = _loop0_73_rule()) != null  // lambda_param_with_default*
                     &&
@@ -12332,7 +12332,7 @@ public class GeneratedParser {
                 List<Object> b = null;
                 Object c = null;
                 if (
-                    (a = (List<Object>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (b = _loop0_73_rule()) != null  // lambda_param_with_default*
                     &&
@@ -12407,14 +12407,14 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -12427,14 +12427,14 @@ public class GeneratedParser {
                 Token _literal = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -12967,7 +12967,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 Object conversion = null;
-                Token debug_expr = null;
+                Object debug_expr = null;
                 Object format = null;
                 Token rbrace = null;
                 if (
@@ -13224,7 +13224,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 Object conversion = null;
-                Token debug_expr = null;
+                Object debug_expr = null;
                 Object format = null;
                 Token rbrace = null;
                 if (
@@ -13404,7 +13404,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object a = null;
                 Object conversion = null;
-                Token debug_expr = null;
+                Object debug_expr = null;
                 Object format = null;
                 Token rbrace = null;
                 if (
@@ -13632,7 +13632,7 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_82_rule()) != null  // ((fstring | string))+
+                    (a = (List<Object>) (List<?>) _loop1_82_rule()) != null  // ((fstring | string))+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -13654,7 +13654,7 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_83_rule()) != null  // tstring+
+                    (a = (List<Object>) (List<?>) _loop1_83_rule()) != null  // tstring+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -13703,7 +13703,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -13865,7 +13865,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -13931,7 +13931,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
                     (a = _gather_86_rule()) != null  // ','.double_starred_kvpair+
@@ -13939,7 +13939,7 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -14062,10 +14062,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _loop1_87_rule()) != null  // for_if_clause+
+                    (a = (List<Object>) (List<?>) _loop1_87_rule()) != null  // for_if_clause+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -14118,7 +14118,7 @@ public class GeneratedParser {
                     &&
                     (b = disjunction_rule()) != null  // disjunction
                     &&
-                    (c = (List<Object>) _loop0_88_rule()) != null  // (('if' disjunction))*
+                    (c = (List<Object>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
                 )
                 {
                     _res = p.dummyName();
@@ -14152,7 +14152,7 @@ public class GeneratedParser {
                     &&
                     (b = disjunction_rule()) != null  // disjunction
                     &&
-                    (c = (List<Object>) _loop0_88_rule()) != null  // (('if' disjunction))*
+                    (c = (List<Object>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
                 )
                 {
                     _res = p.dummyName();
@@ -14533,7 +14533,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 if (
                     (a = args_rule()) != null  // args
@@ -14600,7 +14600,7 @@ public class GeneratedParser {
                 List<Object> a = null;
                 Object b = null;
                 if (
-                    (a = (List<Object>) _gather_91_rule()) != null  // ','.(starred_expression | (assignment_expression | expression !':=') !'=')+
+                    (a = (List<Object>) (List<?>) _gather_91_rule()) != null  // ','.(starred_expression | (assignment_expression | expression !':=') !'=')+
                     &&
                     p.opt((b = _tmp_92_rule()))  // [',' kwargs]
                 )
@@ -14677,7 +14677,7 @@ public class GeneratedParser {
                     (b = _gather_96_rule()) != null  // ','.kwarg_or_double_starred+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -14692,7 +14692,7 @@ public class GeneratedParser {
                     (_gather_94_var = _gather_94_rule()) != null  // ','.kwarg_or_starred+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -14707,7 +14707,7 @@ public class GeneratedParser {
                     (_gather_96_var = _gather_96_rule()) != null  // ','.kwarg_or_double_starred+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -15022,7 +15022,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 List<Object> b = null;
                 if (
@@ -15069,15 +15069,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_99_rule()) != null  // ','.star_target+
+                    (a = (List<Object>) (List<?>) _gather_99_rule()) != null  // ','.star_target+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -15106,7 +15106,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 List<Object> b = null;
                 if (
@@ -15117,7 +15117,7 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -15135,7 +15135,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -15400,7 +15400,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -15428,7 +15428,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -15903,15 +15903,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_103_rule()) != null  // ','.del_target+
+                    (a = (List<Object>) (List<?>) _gather_103_rule()) != null  // ','.del_target+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16099,7 +16099,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -16127,7 +16127,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                Object a = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -16202,7 +16202,7 @@ public class GeneratedParser {
                     (c = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16226,7 +16226,7 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16250,7 +16250,7 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16277,7 +16277,7 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16295,7 +16295,7 @@ public class GeneratedParser {
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16313,7 +16313,7 @@ public class GeneratedParser {
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16325,10 +16325,10 @@ public class GeneratedParser {
                 }
                 List<Object> a = null;
                 if (
-                    (a = (List<Object>) _gather_105_rule()) != null  // ','.expression+
+                    (a = (List<Object>) (List<?>) _gather_105_rule()) != null  // ','.expression+
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -16935,8 +16935,8 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> a = null;
-                Object string_var = null;
-                Object string_var_1 = null;
+                Token string_var = null;
+                Token string_var_1 = null;
                 if (
                     (string_var = p.stringToken()) != null  // STRING
                     &&
@@ -17946,7 +17946,7 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> _loop0_27_var = null;
-                List<Object> _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 Object invalid_parameters_helper_var = null;
                 if (
@@ -17971,7 +17971,7 @@ public class GeneratedParser {
                 }
                 List<Object> _loop0_27_var = null;
                 List<Object> _loop1_29_var = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token a = null;
                 Token b = null;
                 if (
@@ -18395,7 +18395,7 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> _loop0_72_var = null;
-                List<Object> _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 Object invalid_lambda_parameters_helper_var = null;
                 if (
@@ -18420,7 +18420,7 @@ public class GeneratedParser {
                 }
                 List<Object> _gather_132_var = null;
                 List<Object> _loop0_72_var = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token a = null;
                 Token b = null;
                 if (
@@ -18834,7 +18834,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _tmp_136_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -18876,7 +18876,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object a = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -19235,7 +19235,7 @@ public class GeneratedParser {
                 List<Object> _gather_141_var = null;
                 Token _keyword = null;
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token trailing = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -19261,7 +19261,7 @@ public class GeneratedParser {
                 }
                 List<Object> _gather_141_var = null;
                 Token _keyword = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token newline_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -19287,8 +19287,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                Token _opt_var = null;
-                Token _opt_var_1 = null;
+                Object _opt_var = null;
+                Object _opt_var_1 = null;
                 Token newline_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -19339,7 +19339,7 @@ public class GeneratedParser {
                 }
                 List<Object> _gather_141_var = null;
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token a = null;
                 Token newline_var = null;
                 if (
@@ -19370,8 +19370,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
-                Token _opt_var_1 = null;
+                Object _opt_var = null;
+                Object _opt_var_1 = null;
                 Token a = null;
                 Token newline_var = null;
                 if (
@@ -20275,7 +20275,7 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object _opt_var = null;
-                Token _opt_var_1 = null;
+                Object _opt_var_1 = null;
                 List<Object> items_pattern_var = null;
                 Object rest = null;
                 if (
@@ -20338,7 +20338,7 @@ public class GeneratedParser {
                     (a = positional_patterns_rule()) != null  // positional_patterns
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -20641,7 +20641,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token newline_var = null;
                 Object star_expressions_var = null;
                 Object star_targets_var = null;
@@ -20671,7 +20671,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Token a = null;
                 Token newline_var = null;
                 Object star_expressions_var = null;
@@ -20728,8 +20728,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
-                List<Object> _opt_var_1 = null;
+                Object _opt_var = null;
+                Object _opt_var_1 = null;
                 Object _opt_var_2 = null;
                 Object _opt_var_3 = null;
                 Token a = null;
@@ -20773,11 +20773,11 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Token _opt_var = null;
-                List<Object> _opt_var_1 = null;
+                Object _opt_var = null;
+                Object _opt_var_1 = null;
                 Object _opt_var_2 = null;
                 Object _opt_var_3 = null;
-                Token _opt_var_4 = null;
+                Object _opt_var_4 = null;
                 List<Object> block_var = null;
                 Object name_var = null;
                 if (
@@ -20836,7 +20836,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                List<Object> _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object name_var = null;
                 Token newline_var = null;
@@ -20863,7 +20863,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Token a = null;
                 Object name_var = null;
@@ -20916,7 +20916,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object invalid_kvpair_unpacking_var = null;
                 if (
                     (invalid_kvpair_unpacking_var = invalid_kvpair_unpacking_rule()) != null  // invalid_kvpair_unpacking
@@ -21533,7 +21533,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object annotated_rhs_var = null;
                 Object invalid_fstring_conversion_character_var = null;
                 if (
@@ -21557,7 +21557,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -21585,7 +21585,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 List<Object> _loop0_78_var = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -21615,7 +21615,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -21856,7 +21856,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object annotated_rhs_var = null;
                 Object invalid_tstring_conversion_character_var = null;
                 if (
@@ -21880,7 +21880,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -21908,7 +21908,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 List<Object> _loop0_78_var = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -21938,7 +21938,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Object annotated_rhs_var = null;
                 if (
@@ -22329,7 +22329,7 @@ public class GeneratedParser {
                     (seq = _loop0_3_rule()) != null  // _loop0_3
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -22808,7 +22808,7 @@ public class GeneratedParser {
                     (seq = _loop0_13_rule()) != null  // _loop0_13
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -23040,7 +23040,7 @@ public class GeneratedParser {
                     (seq = _loop0_19_rule()) != null  // _loop0_19
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -23151,7 +23151,7 @@ public class GeneratedParser {
                     (seq = _loop0_22_rule()) != null  // _loop0_22
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -23556,7 +23556,7 @@ public class GeneratedParser {
                     (seq = _loop0_33_rule()) != null  // _loop0_33
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -23808,7 +23808,7 @@ public class GeneratedParser {
                     (seq = _loop0_39_rule()) != null  // _loop0_39
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -23886,7 +23886,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object string_var = null;
+                Token string_var = null;
                 if (
                     (string_var = p.stringToken()) != null  // STRING
                 )
@@ -24059,7 +24059,7 @@ public class GeneratedParser {
                     (seq = _loop0_44_rule()) != null  // _loop0_44
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24133,7 +24133,7 @@ public class GeneratedParser {
                     (seq = _loop0_46_rule()) != null  // _loop0_46
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24256,7 +24256,7 @@ public class GeneratedParser {
                     (seq = _loop0_49_rule()) != null  // _loop0_49
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24330,7 +24330,7 @@ public class GeneratedParser {
                     (seq = _loop0_51_rule()) != null  // _loop0_51
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24404,7 +24404,7 @@ public class GeneratedParser {
                     (seq = _loop0_53_rule()) != null  // _loop0_53
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24554,7 +24554,7 @@ public class GeneratedParser {
                     (seq = _loop0_57_rule()) != null  // _loop0_57
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24628,7 +24628,7 @@ public class GeneratedParser {
                     (seq = _loop0_59_rule()) != null  // _loop0_59
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -24850,7 +24850,7 @@ public class GeneratedParser {
                     (seq = _loop0_65_rule()) != null  // _loop0_65
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -25587,7 +25587,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object y = null;
-                List<Object> z = null;
+                Object z = null;
                 if (
                     (y = star_named_expression_sequence_rule()) != null  // star_named_expression_sequence
                     &&
@@ -25670,7 +25670,7 @@ public class GeneratedParser {
                     (seq = _loop0_85_rule()) != null  // _loop0_85
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -25883,7 +25883,7 @@ public class GeneratedParser {
                     (seq = _loop0_90_rule()) != null  // _loop0_90
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -25994,7 +25994,7 @@ public class GeneratedParser {
                     (seq = _loop0_93_rule()) != null  // _loop0_93
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26068,7 +26068,7 @@ public class GeneratedParser {
                     (seq = _loop0_95_rule()) != null  // _loop0_95
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26176,7 +26176,7 @@ public class GeneratedParser {
                     (seq = _loop0_98_rule()) != null  // _loop0_98
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26324,7 +26324,7 @@ public class GeneratedParser {
                     (seq = _loop0_102_rule()) != null  // _loop0_102
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26398,7 +26398,7 @@ public class GeneratedParser {
                     (seq = _loop0_104_rule()) != null  // _loop0_104
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26560,7 +26560,7 @@ public class GeneratedParser {
                     (seq = _loop0_108_rule()) != null  // _loop0_108
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -26867,7 +26867,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object name_var = null;
-                Object string_var = null;
+                Token string_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                     &&
@@ -27712,7 +27712,7 @@ public class GeneratedParser {
                     (seq = _loop0_131_rule()) != null  // _loop0_131
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -27892,7 +27892,7 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> _loop0_174_var = null;
-                Token _opt_var = null;
+                Object _opt_var = null;
                 Object bitwise_or_var = null;
                 if (
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
@@ -27976,7 +27976,7 @@ public class GeneratedParser {
                     (seq = _loop0_137_rule()) != null  // _loop0_137
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -28087,7 +28087,7 @@ public class GeneratedParser {
                     (seq = _loop0_140_rule()) != null  // _loop0_140
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;
@@ -28161,7 +28161,7 @@ public class GeneratedParser {
                     (seq = _loop0_142_rule()) != null  // _loop0_142
                 )
                 {
-                    _res = (List<Object>) p.dummyName();
+                    _res = (List<Object>) (List<?>) p.dummyName();
                     break done;
                 }
                 p.mark = _mark;

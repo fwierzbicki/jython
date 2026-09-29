@@ -152,7 +152,8 @@ class JavaCallMakerVisitor(GrammarVisitor):
                     assigned_variable=f"{name.lower()}_var",
                     function=BASE_TOKEN_METHODS[name],
                     nodetype=BASE_NODETYPES[name],
-                    return_type="expr_ty",
+                    # C says expr_ty, but _PyPegen_string_token returns the Token.
+                    return_type="Token *" if name == "STRING" else "expr_ty",
                     comment=name,
                 )
             return JavaFunctionCall(
@@ -245,12 +246,11 @@ class JavaCallMakerVisitor(GrammarVisitor):
 
     def visit_Opt(self, node: Opt) -> JavaFunctionCall:
         call = self.generate_call(node.node)
-        # Unlike c_generator (where void * absorbs anything) keep the inner
-        # return type, so the Java variable gets a useful static type.
+        # As in c_generator, an optional item is void *: C converts it
+        # implicitly where it is used; the translator's fromVoidPtr does in Java.
         return JavaFunctionCall(
             assigned_variable="_opt_var",
             function=call.function,
-            return_type=call.return_type,
             force_true=True,
             comment=f"{node}",
         )
@@ -364,7 +364,7 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
         self.class_name = class_name
         # The grammar's own @header/@trailer metas are C; the Java versions are supplied here.
         self.trailer = DEFAULT_TRAILER if trailer is None else trailer
-        self.type_map = type_map or JavaTypeMap()
+        self.type_map = type_map or JavaTypeMap(ast_types=not skip_actions)
         self.translator = ActionTranslator(self.type_map)
         # Hand-written Java for actions the translator can't handle, keyed by
         # (rule name, C action); see action_overrides.py.
@@ -407,6 +407,10 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
         if not self.skip_actions:
             # Translated actions call the ports of action_helpers.c/pegen.c and
             # the _PyAST_* constructors under their C names.
+            self.print("import org.python.pegen.ActionHelpers.*;")
+            self.print("import org.python.pegen.ast.*;")
+            self.print("import org.python.pegen.ast.base.*;")
+            self.print()
             self.print("import static org.python.pegen.ActionHelpers.*;")
             self.print("import static org.python.pegen.AstFactory.*;")
         self.print("import static org.python.pegen.Parser.MAXSTACK;")
@@ -695,8 +699,8 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
                     f"{self.local_variable_names[0]}, {self.local_variable_names[1]});"
                 )
             else:
-                args = ", ".join(self.local_variable_names)
-                self.print(f"_res = {cast(self._result_type, f'p.dummyName({args})')};")
+                args = ", ".join(["p"] + self.local_variable_names)
+                self.print(f"_res = {cast(self._result_type, f'_PyPegen_dummy_name({args})')};")
         else:
             self.print(f"_res = {cast(self._result_type, self.local_variable_names[0])};")
 

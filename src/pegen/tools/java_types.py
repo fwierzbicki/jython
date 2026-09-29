@@ -57,33 +57,58 @@ def java_comment(text: str) -> str:
     return text.replace("\\", "\\\\").replace("\n", " ").replace("\r", " ")
 
 
+# Python.asdl's simple sums: Java enums named with a Type suffix (see asdl_java.py).
+SIMPLE_SUMS = frozenset({"expr_context", "boolop", "operator", "unaryop", "cmpop"})
+
+
 class JavaTypeMap:
     """Maps the C types used in python.gram to Java types.
 
-    The Python 3 AST does not exist yet, so AST node types (expr_ty, ...) and
-    the action_helpers structs (CmpopExprPair*, ...) map to Object for now.
-    Change the table here once real classes exist; nothing else in the
-    generator depends on these names.
+    With ast_types (a parser with actions), AST types map to the generated
+    classes of org.python.pegen.ast: expr_ty -> expr, operator_ty ->
+    operatorType, asdl_expr_seq* -> List<expr>, and pegen.h structs such as
+    KeyValuePair* to the classes of the same name in ActionHelpers.
+
+    Without (a parser that skips actions), every AST type is Object and every
+    sequence List<Object>: rules then return a single dummy value, which could
+    not be both a List and an expr.
     """
 
-    TABLE = {
-        "void*": "Object",
-        "Token*": "Token",
-        "asdl_seq*": "List<Object>",
-    }
+    def __init__(self, ast_types: bool = False):
+        self.ast_types = ast_types
+
+    # ASDL builtin types, as asdl_java.py maps them.
+    BUILTINS = {"identifier": "String", "string": "String", "constant": "Object"}
+
+    @classmethod
+    def ast_name(cls, asdl_type: str) -> str:
+        if asdl_type in cls.BUILTINS:
+            return cls.BUILTINS[asdl_type]
+        return asdl_type + "Type" if asdl_type in SIMPLE_SUMS else asdl_type
 
     def java_type(self, c_type: str | None) -> str:
         if c_type is None:
             return "Object"
         t = c_type.replace(" ", "")
-        if t in self.TABLE:
-            return self.TABLE[t]
-        if re.fullmatch(r"asdl_\w+_seq\*", t):
+        if t == "void*":
+            return "Object"
+        if t == "Token*":
+            return "Token"
+        if t == "asdl_seq*":
             return "List<Object>"
-        if re.fullmatch(r"\w+_ty", t):
-            return "Object"
-        if re.fullmatch(r"[A-Z]\w*\*", t):
-            return "Object"
+        m = re.fullmatch(r"asdl_(\w+)_seq\*", t)
+        if m:
+            if not self.ast_types:
+                return "List<Object>"
+            # asdl_int_seq holds cmpop values (_PyPegen_get_cmpops).
+            element = "cmpop" if m.group(1) == "int" else m.group(1)
+            return f"List<{self.ast_name(element)}>"
+        m = re.fullmatch(r"(\w+)_ty", t)
+        if m:
+            return self.ast_name(m.group(1)) if self.ast_types else "Object"
+        m = re.fullmatch(r"([A-Z]\w*)\*", t)
+        if m:
+            return m.group(1) if self.ast_types else "Object"
         raise ValueError(f"No Java type for C type {c_type!r}")
 
     def java_class(self, c_type: str) -> str:
@@ -108,4 +133,7 @@ class JavaTypeMap:
 def cast(java_type: str, expr: str) -> str:
     if java_type == "Object":
         return expr
+    if java_type.startswith("List<"):
+        # Java rejects a direct cast between List<Object> and List<expr>.
+        return f"({java_type}) (List<?>) {expr}"
     return f"({java_type}) {expr}"

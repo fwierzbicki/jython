@@ -11,12 +11,14 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src", "pegen", "tools"))
 
 from action_translator import ActionTranslationError, ActionTranslator  # noqa: E402
+from java_types import JavaTypeMap  # noqa: E402
 
 EXTRA = "_start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena"
 
 
 def tr(action, **local_types):
-    return ActionTranslator().translate(action, local_types)
+    # As in a parser generated with --actions: real AST types.
+    return ActionTranslator(JavaTypeMap(ast_types=True)).translate(action, local_types)
 
 
 class TranslateTest(unittest.TestCase):
@@ -29,40 +31,46 @@ class TranslateTest(unittest.TestCase):
         self.assertEqual(tr("_PyAST_Expression ( a , p -> arena )", a="expr_ty"), "_PyAST_Expression(a, p.arena)")
 
     def test_casts(self):
-        # AST types are Object for now, so their casts disappear; sequences become List casts.
+        # Sequence casts go through List<?>: Java rejects List<Object> -> List<stmt>.
         self.assertEqual(
             tr("( asdl_stmt_seq* ) _PyPegen_singleton_seq ( p , a )", a="stmt_ty"),
-            "(List<Object>) _PyPegen_singleton_seq(p, a)",
+            "(List<stmt>) (List<?>) _PyPegen_singleton_seq(p, a)",
         )
-        self.assertEqual(tr("( ( expr_ty ) b )", b="void*"), "(b)")
+        self.assertEqual(tr("( ( expr_ty ) b )", b="void*"), "((expr) b)")
+        self.assertEqual(tr("( expr_context_ty ) a", a=None), "(expr_contextType) a")
 
     def test_macros_take_p_and_drop_type_argument(self):
         self.assertEqual(
             tr("CHECK ( asdl_expr_seq* , _PyPegen_get_exprs ( p , a ) )", a="asdl_seq*"),
-            "(List<Object>) CHECK(p, _PyPegen_get_exprs(p, a))",
+            "(List<expr>) (List<?>) CHECK(p, _PyPegen_get_exprs(p, a))",
         )
-        self.assertEqual(tr("CHECK ( stmt_ty , _PyAST_Pass ( EXTRA ) )"), f"CHECK(p, _PyAST_Pass({EXTRA}))")
+        self.assertEqual(tr("CHECK ( stmt_ty , _PyAST_Pass ( EXTRA ) )"),
+                         f"(stmt) CHECK(p, _PyAST_Pass({EXTRA}))")
         self.assertEqual(
             tr('CHECK_VERSION ( void* , 10 , "msg" , RAISE_SYNTAX_ERROR ( "m" ) )'),
             'CHECK_VERSION(p, 10, "msg", RAISE_SYNTAX_ERROR(p, "m"))',
         )
         self.assertEqual(
             tr("PyPegen_last_item ( b , expr_ty )", b="asdl_expr_seq*"),
-            "PyPegen_last_item(b)",
+            "(expr) PyPegen_last_item(b)",
         )
 
     def test_union_member_access(self):
         self.assertEqual(tr("a -> v . Name . id", a="expr_ty"), "((Name) a).id")
         self.assertEqual(
             tr("( b ) ? ( ( expr_ty ) b ) -> v . Call . args : NULL", b="void*"),
-            "(b) != null ? ((Call) (b)).args : null",
+            "(b) != null ? ((Call) ((expr) b)).args : null",
         )
 
-    def test_field_access_casts_to_class_of_c_type(self):
-        self.assertEqual(tr("a -> lineno", a="expr_ty"), "((expr) a).lineno")
+    def test_field_access(self):
+        # Variables already have their C type's class; no cast needed.
+        self.assertEqual(tr("a -> lineno", a="expr_ty"), "a.lineno")
         self.assertEqual(tr("a -> lineno", a="Token*"), "a.lineno")
-        self.assertEqual(tr("b -> kind", b="AugOperator*"), "((AugOperator) b).kind")
-        self.assertEqual(tr("a -> key", a="KeyValuePair*"), "((KeyValuePair) a).key")
+        self.assertEqual(tr("b -> kind", b="AugOperator*"), "b.kind")
+        self.assertEqual(tr("a -> key", a="KeyValuePair*"), "a.key")
+        # Without AST types (a parser skipping actions) everything is Object.
+        untyped = ActionTranslator(JavaTypeMap()).translate("a -> lineno", {"a": "expr_ty"})
+        self.assertEqual(untyped, "((expr) a).lineno")
 
     def test_kind_comparison_becomes_instanceof(self):
         self.assertEqual(
@@ -89,7 +97,7 @@ class TranslateTest(unittest.TestCase):
         self.assertEqual(
             tr("RAISE_ERROR_KNOWN_LOCATION ( p , PyExc_SyntaxError , a -> lineno , a -> end_col_offset - 1 , - 1 )",
                a="expr_ty"),
-            "RAISE_ERROR_KNOWN_LOCATION(p, PyExc_SyntaxError, ((expr) a).lineno, ((expr) a).end_col_offset - 1, -1)",
+            "RAISE_ERROR_KNOWN_LOCATION(p, PyExc_SyntaxError, a.lineno, a.end_col_offset - 1, -1)",
         )
         self.assertEqual(tr("_PyAST_BinOp ( a , Add , b , EXTRA )", a="expr_ty", b="expr_ty"),
                          f"_PyAST_BinOp(a, Add, b, {EXTRA})")
@@ -100,8 +108,16 @@ class TranslateTest(unittest.TestCase):
             tr("_PyPegen_collect_call_seqs ( p , a , b , EXTRA )", a="asdl_seq *", b=None),
             f"_PyPegen_collect_call_seqs(p, a, fromVoidPtr(b), {EXTRA})",
         )
+        # A ?: with a void * operand is void * too.
+        self.assertEqual(
+            tr("_PyAST_Lambda ( ( a ) ? a : CHECK ( arguments_ty , _PyPegen_empty_arguments ( p ) ) , b , EXTRA )",
+               a=None, b="expr_ty"),
+            "_PyAST_Lambda(fromVoidPtr((a) != null ? a : (arguments) CHECK(p, _PyPegen_empty_arguments(p))), "
+            f"b, {EXTRA})",
+        )
         # Not where C would not convert: conditions and explicit casts.
         self.assertEqual(tr("( b ) ? 1 : 0", b="void*"), "(b) != null ? 1 : 0")
+        self.assertEqual(tr("_PyPegen_f ( p , ( expr_ty ) b )", b="void*"), "_PyPegen_f(p, (expr) b)")
 
     def test_java_keyword_variables_are_renamed(self):
         self.assertEqual(tr("_PyPegen_f ( p , default )", default="expr_ty"), "_PyPegen_f(p, default_)")
