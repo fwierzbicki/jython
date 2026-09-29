@@ -9,6 +9,7 @@ supplies pegen.
 """
 
 import argparse
+import io
 import os
 import sys
 
@@ -80,6 +81,7 @@ def main():
     sys.path.insert(0, os.path.join(cpython, "Tools", "peg_generator"))
     sys.path.insert(0, HERE)
     from pegen.build import build_parser, generate_token_definitions
+    from action_overrides import OVERRIDES
     from java_generator import JavaParserGenerator
 
     grammar_file = args.grammar or os.path.join(cpython, "Grammar", "python.gram")
@@ -89,18 +91,31 @@ def main():
     with open(tokens_file) as f:
         all_tokens, exact_tokens, non_exact_tokens = generate_token_definitions(f)
 
+    parser_java = io.StringIO()
+    gen = JavaParserGenerator(
+        grammar,
+        all_tokens,
+        exact_tokens,
+        non_exact_tokens,
+        parser_java,
+        skip_actions=args.skip_actions,
+        trailer=PYTHON_GRAM_TRAILER if "file" in grammar.rules else None,
+        overrides=None if args.skip_actions else OVERRIDES,
+    )
+    gen.generate(grammar_file)
+    problems = gen.action_problems()
+    if problems:
+        # Untranslated actions: extend action_translator.py or add an entry
+        # to action_overrides.py.  Nothing is written.
+        for problem in problems:
+            print(problem, file=sys.stderr)
+        print(f"{len(problems)} action problem(s); no files written", file=sys.stderr)
+        sys.exit(1)
+
+    os.makedirs(args.output_dir, exist_ok=True)
     parser_path = os.path.join(args.output_dir, "GeneratedParser.java")
     with open(parser_path, "w") as out:
-        gen = JavaParserGenerator(
-            grammar,
-            all_tokens,
-            exact_tokens,
-            non_exact_tokens,
-            out,
-            skip_actions=args.skip_actions,
-            trailer=PYTHON_GRAM_TRAILER if "file" in grammar.rules else None,
-        )
-        gen.generate(grammar_file)
+        out.write(parser_java.getvalue())
 
     tokens_path = os.path.join(args.output_dir, "TokenTypes.java")
     with open(tokens_path, "w") as out:
