@@ -94,6 +94,15 @@ class TranslateTest(unittest.TestCase):
         self.assertEqual(tr("_PyAST_BinOp ( a , Add , b , EXTRA )", a="expr_ty", b="expr_ty"),
                          f"_PyAST_BinOp(a, Add, b, {EXTRA})")
 
+    def test_void_pointer_arguments_convert_implicitly(self):
+        # Untyped rules return void *; C converts it to the parameter type.
+        self.assertEqual(
+            tr("_PyPegen_collect_call_seqs ( p , a , b , EXTRA )", a="asdl_seq *", b=None),
+            f"_PyPegen_collect_call_seqs(p, a, fromVoidPtr(b), {EXTRA})",
+        )
+        # Not where C would not convert: conditions and explicit casts.
+        self.assertEqual(tr("( b ) ? 1 : 0", b="void*"), "(b) != null ? 1 : 0")
+
     def test_java_keyword_variables_are_renamed(self):
         self.assertEqual(tr("_PyPegen_f ( p , default )", default="expr_ty"), "_PyPegen_f(p, default_)")
 

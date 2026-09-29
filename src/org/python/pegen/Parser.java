@@ -71,6 +71,11 @@ public class Parser {
     public int start_rule;
     public Map<String, Integer> keywords = Collections.emptyMap();
     public String[] soft_keywords = new String[0];
+    /**
+     * C: p->feature_version, the minor version of Python 3 whose syntax is
+     * accepted; CHECK_VERSION rejects newer constructs below it.
+     */
+    public int feature_version = 15;
     /** CPython's PyArena; unused on the JVM, kept so helper signatures match. */
     public final Object arena = null;
 
@@ -354,5 +359,18 @@ public class Parser {
             errorType = "SyntaxError";
             error = t == null ? msg : msg + " at " + t.lineno + ":" + t.col_offset;
         }
+    }
+
+    /**
+     * Records an error of the given type (e.g. "IndentationError") at a
+     * location; the counterpart of _PyPegen_raise_error_known_location.
+     * Columns are 1-based as in C; CURRENT_POS and -1 mean "unknown".
+     * TODO: build a real exception, with the source line, when errors are ported.
+     */
+    public void raiseError(String errtype, String msg, int lineno, int col_offset,
+            int end_lineno, int end_col_offset) {
+        error_indicator = true;
+        errorType = errtype;
+        error = msg + " at " + lineno + ":" + col_offset;
     }
 }

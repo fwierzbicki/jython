@@ -651,11 +651,14 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
         if key in self.overrides:
             self.used_overrides.add(key)
             return self.overrides[key]
-        local_types = {
-            item.name: item.type or self.callmakervisitor.generate_call(item.item).return_type
-            for item in node.items
-            if item.name
-        }
+        # When a name is bound twice, dedupe() renames the later variable
+        # (a -> a_1), so the action's `a` is the first binding.
+        local_types: dict[str, str | None] = {}
+        for item in node.items:
+            if item.name and item.name not in local_types:
+                local_types[item.name] = (
+                    item.type or self.callmakervisitor.generate_call(item.item).return_type
+                )
         try:
             return self.translator.translate(node.action, local_types)
         except (ActionTranslationError, ValueError) as e:
