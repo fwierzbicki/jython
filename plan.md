@@ -14,18 +14,15 @@ show. The finished generator design is kept at the end for reference.
   all 538 grammar actions, and that version compiles.
 - **In progress: porting the `_PyPegen_*` helpers** (plan below).
   - **Phase 1 (Python 3 AST) is done.**
-  - **Phase 2 is partly done:** the value classes, the token dump's text and
-    byte columns, and the NAME/NUMBER token functions.
-  - **Next:** Phase 2's `StringParser.java` port of `string_parser.c`, then the
-    JUnit tests for number and string decoding.
+  - **Phase 2 is done:** the value classes, the token dump's text and byte
+    columns, the NAME/NUMBER token functions, `StringParser.java` and its
+    JUnit tests. `StringParser` and its tests are not committed yet.
+  - **Next:** Phase 3, group 1 (sequences and structs).
 - **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, with all
-  2,020 Lib files accepted) and `tests/pegen/test_action_translator.py`
-  (15 tests).
-- **Not committed:** at the time of writing, the Phase 1 work is uncommitted in
-  the working tree. It includes `build.xml` (the `pegen-gen` target),
-  `src/pegen/tools/asdl_java.py`, `src/org/python/pegen/ast/`, the edits to
-  Parser, Token and ActionHelpers, the tests, and the move of
-  `int_over_digit_limit.py` into `tests/pegen/reject/`. Check `git status`.
+  2,020 Lib files accepted), `tests/pegen/test_action_translator.py`
+  (15 tests) and the pegen JUnit tests (16 tests; see Commands).
+- **Committed:** Phase 1 and the Phase 2 work so far are in commit f59b322e1
+  ("Generate a real AST"). Check `git status` for anything newer.
 
 ## Current work: port the _PyPegen_* helpers
 
@@ -92,18 +89,26 @@ accept/reject smoke test.
     C, `softKeywordToken()` doesn't rewind on failure.
   - `numberToken()` returns a `Constant` via `parsenumber`, and applies the
     4,300-digit limit with CPython's message.
-- [ ] **Port `string_parser.c` into `src/org/python/pegen/StringParser.java`**,
+- [x] **Port `string_parser.c` into `src/org/python/pegen/StringParser.java`**,
       keeping the C function names (`_PyPegen_decode_string`,
       `_PyPegen_parse_string`, `decode_unicode_with_escapes`, …).
-  - Handles prefixes, raw strings, and str and bytes escapes.
-  - `\N{...}` lookup goes through `org.python.modules.ucnhash.lookup`, since
-    Java 8 has no name lookup. Its Unicode data may be older than 3.15's; track
-    any mismatches in `pending/`.
-  - An invalid escape produces a SyntaxWarning through the Phase 4 warnings
-    channel.
-- [ ] JUnit tests in `tests/java/org/python/pegen/` for number and string
-      decoding, with cases from CPython's `test_grammar` and
-      `test_string_literals`.
+  - It also ports the two decoders C calls,
+    `_PyUnicode_DecodeUnicodeEscapeInternal2` and `_PyBytes_DecodeEscape2`,
+    and `_Pypegen_raise_decode_error` (in `ActionHelpers`).
+  - It works on UTF-8 bytes, as C does (see Working notes).
+  - `\N{...}` goes through `UnicodeNames.getcode`, a port of unicodedata.c's
+    `_getcode`. It computes the derived names (Hangul syllables, CJK/Tangut/…
+    ideographs, with the Unicode 17 ranges) and looks up the rest in Jython's
+    `ucnhash`. **Known gaps:** `ucnhash` has no name aliases
+    (`\N{LINE FEED}`, `\N{BYTE ORDER MARK}`) and older Unicode data. Add
+    samples to `pending/` once the Phase 5 oracle can see them; the
+    recognizer never decodes strings.
+  - Invalid escapes warn through a minimal warnings channel in `Parser`
+    (`warnings`, `warnings_as_errors`, `warnExplicit`). Phase 4 finishes it.
+- [x] JUnit tests `StringParserTest` and `ParsenumberTest` in
+      `tests/java/org/python/pegen/`. Their expected values, messages and
+      positions were checked against CPython 3.15, and include cases from
+      `test_grammar` and `test_string_literals`.
 
 ### Phase 3: port action_helpers.c in place
 Replace each stub in `ActionHelpers.java` with a straight port. Keep the C
@@ -153,7 +158,15 @@ this order, each compiling before the next:
       ValueError, with no second pass, as C does.
 - [ ] **Warnings channel in `Parser`:** category, message and location. This
       covers the SyntaxWarnings for string escapes and for
-      `_warn_relative_import_of_lazy`.
+      `_warn_relative_import_of_lazy`. A minimal version exists
+      (`Parser.warnExplicit`, used by `StringParser`). Still to do: the
+      filename and module, and a real warnings filter in place of
+      `warnings_as_errors`.
+- [ ] **Byte-to-character offsets in error locations:** C computes an escape
+      error's column over the rewritten buffer, where `é` is 10 bytes, and
+      `_PyPegen_raise_error_known_location` converts and clamps it against the
+      source line. For example, `'é\q'` as an error is at 1:12 before
+      conversion and 1:7 in CPython. Covered by the pegen_errors.c item above.
 
 ### Phase 5: check in the parser with actions; ast.dump oracle
 - [ ] `generate.py` translates actions by default, and the checked-in
@@ -188,6 +201,11 @@ this order, each compiling before the next:
   and uses `../cpython/python.exe` (an in-tree 3.15.0rc2 build) by default.
   Override with `PYTHON=`.
 - **Translator tests:** `python3 tests/pegen/test_action_translator.py`.
+- **pegen JUnit tests** (after `ant compile`):
+  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java`,
+  then
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest`.
+  `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compiling the full-actions parser** by hand into a scratch directory:
   generate with `--actions --output-dir $D`, then
   `javac --release 8 -d $OUT $D/*.java $D/ast/*.java $D/ast/base/*.java src/org/python/pegen/{Parser,Token,TokenSource,ActionHelpers}.java src/org/python/pegen/ast/*.java`.
@@ -223,6 +241,16 @@ this order, each compiling before the next:
 - **Doubly-bound names:** when an alternative binds the same name twice, the
   action's name refers to the *first* binding, because `dedupe` renames the
   later one. See `translate_action` in `java_generator.py`.
+- **Byte positions in string decoding:** CPython's escape-error positions
+  ("position 10-12") and warning columns are offsets into the buffer that
+  `decode_unicode_with_escapes` builds, where each non-ASCII character becomes
+  a 10-byte `\U` escape. `StringParser` therefore indexes `byte[]` buffers,
+  not Java chars. Don't "fix" this to character offsets.
+- **Pending exceptions vs `error_indicator`:** C's decoders set an exception
+  without setting `p->error_indicator`, and callers then convert it with
+  `_Pypegen_raise_decode_error`. `Parser.setError` / `errorMatches` /
+  `clearError` model `PyErr_SetString` / `PyErr_ExceptionMatches` /
+  `PyErr_Clear`. `raiseError` also sets `error_indicator`.
 - **Stack depth:** a TODO on `Parser.MAXSTACK`. On a 1 MB JVM stack, deep but
   valid input can overflow before reaching CPython's limit. Tracked in
   `tests/pegen/pending/stack/`.

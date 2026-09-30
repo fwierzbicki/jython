@@ -39,6 +39,9 @@ checkboxes at each checkpoint.
   Constant value classes (str=String, int=BigInteger, float=Double).
 - src/org/python/pegen/Parser.java, Token.java, TokenSource.java: hand-written
   runtime (port of Parser/pegen.c).
+- src/org/python/pegen/StringParser.java: port of Parser/string_parser.c (str
+  and bytes literal decoding, on UTF-8 bytes as in C); UnicodeNames.java: the
+  \N{...} name lookup (unicodedata.c _getcode over Jython's ucnhash).
 - src/org/python/pegen/ActionHelpers.java: helpers actions call, C names kept;
   pegen.h macros ported, most _PyPegen_* functions still stubs (port in place).
 - tests/pegen/smoke.sh: recognizer smoke test (dump_tokens.py + sample dirs;

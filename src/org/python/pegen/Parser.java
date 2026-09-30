@@ -2,8 +2,10 @@ package org.python.pegen;
 
 import java.math.BigInteger;
 import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,9 +96,46 @@ public class Parser {
      */
     private Token pendingEndmarker;
 
-    /** Pending error (C: the exception set with PyErr_*): its type and message. */
+    /**
+     * C: p->known_err_token, the token an error is reported at when set.
+     * TODO: used by _PyPegen_raise_error once pegen_errors.c is ported.
+     */
+    public Token known_err_token;
+
+    /**
+     * Pending error (C: the exception set with PyErr_*): its type, message and,
+     * for errors raised with a location, that location as " at line:col".
+     */
     private String errorType;
     private String error;
+    private String errorLocation = "";
+
+    /** A warning issued while parsing: the arguments of C's PyErr_WarnExplicitObject. */
+    public static final class ParserWarning {
+        public final String category;
+        public final String message;
+        public final int lineno;
+
+        ParserWarning(String category, String message, int lineno) {
+            this.category = category;
+            this.message = message;
+            this.lineno = lineno;
+        }
+
+        @Override
+        public String toString() {
+            return category + ": " + message + " (line " + lineno + ")";
+        }
+    }
+
+    /** Warnings issued so far, in order. TODO: the full warnings channel (plan.md, Phase 4). */
+    public final List<ParserWarning> warnings = new ArrayList<>();
+
+    /**
+     * Stands in for an "error" warnings filter: warnExplicit raises the warning
+     * as the pending exception instead of recording it.
+     */
+    public boolean warnings_as_errors;
 
     public Parser(TokenSource tok, int start_rule) {
         this.tok = tok;
@@ -466,14 +505,72 @@ public class Parser {
 
     /** The pending error as "Type: message", or null. */
     public String getError() {
-        return error == null ? null : errorType + ": " + error;
+        return error == null ? null : errorType + ": " + error + errorLocation;
+    }
+
+    /** PyErr_SetString: sets the pending exception; unlike raiseError, leaves error_indicator alone. */
+    public void setError(String errtype, String msg) {
+        errorType = errtype;
+        error = msg;
+        errorLocation = "";
+    }
+
+    /** The superclass of each exception type used here, standing in for Python's class hierarchy. */
+    private static final Map<String, String> EXCEPTION_BASES = new HashMap<>();
+    static {
+        EXCEPTION_BASES.put("UnicodeDecodeError", "UnicodeError");
+        EXCEPTION_BASES.put("UnicodeError", "ValueError");
+        EXCEPTION_BASES.put("ValueError", "Exception");
+        EXCEPTION_BASES.put("IndentationError", "SyntaxError");
+        EXCEPTION_BASES.put("SyntaxError", "Exception");
+        EXCEPTION_BASES.put("SystemError", "Exception");
+        EXCEPTION_BASES.put("OverflowError", "Exception");
+        EXCEPTION_BASES.put("MemoryError", "Exception");
+        EXCEPTION_BASES.put("SyntaxWarning", "Warning");
+        EXCEPTION_BASES.put("DeprecationWarning", "Warning");
+        EXCEPTION_BASES.put("Warning", "Exception");
+    }
+
+    /** PyErr_ExceptionMatches: whether the pending exception is errtype or a subclass of it. */
+    public boolean errorMatches(String errtype) {
+        for (String t = errorType; error != null && t != null; t = EXCEPTION_BASES.get(t)) {
+            if (t.equals(errtype)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** str() of the pending exception, or null. */
+    public String errorMessage() {
+        return error;
+    }
+
+    /** PyErr_Clear */
+    public void clearError() {
+        errorType = null;
+        error = null;
+        errorLocation = "";
+    }
+
+    /**
+     * PyErr_WarnExplicitObject(category, message, filename, lineno, module,
+     * NULL): records the warning, or with warnings_as_errors sets it as the
+     * pending exception and returns -1.
+     */
+    public int warnExplicit(String category, String message, int lineno) {
+        if (warnings_as_errors) {
+            setError(category, message);
+            return -1;
+        }
+        warnings.add(new ParserWarning(category, message, lineno));
+        return 0;
     }
 
     /** _Pypegen_stack_overflow */
     public void stackOverflow() {
         error_indicator = true;
-        errorType = "MemoryError";
-        error = "Parser stack overflowed - Python source too complex to parse";
+        setError("MemoryError", "Parser stack overflowed - Python source too complex to parse");
     }
 
     /** RAISE_SYNTAX_ERROR_KNOWN_LOCATION; t may be null for "no location". */
@@ -481,15 +578,15 @@ public class Parser {
         error_indicator = true;
         if (error == null) {
             errorType = "SyntaxError";
-            error = t == null ? msg : msg + " at " + t.lineno + ":" + t.col_offset;
+            error = msg;
+            errorLocation = t == null ? "" : " at " + t.lineno + ":" + t.col_offset;
         }
     }
 
     /** Records an error with no location, e.g. a ValueError. */
     public void raiseError(String errtype, String msg) {
         error_indicator = true;
-        errorType = errtype;
-        error = msg;
+        setError(errtype, msg);
     }
 
     /**
@@ -501,7 +598,7 @@ public class Parser {
     public void raiseError(String errtype, String msg, int lineno, int col_offset,
             int end_lineno, int end_col_offset) {
         error_indicator = true;
-        errorType = errtype;
-        error = msg + " at " + lineno + ":" + col_offset;
+        setError(errtype, msg);
+        errorLocation = " at " + lineno + ":" + col_offset;
     }
 }
