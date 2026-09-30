@@ -1,12 +1,12 @@
 """Generate the Java PEG parser from CPython's grammar.
 
 Usage (from the Jython checkout):
-    python3 src/pegen/tools/generate.py [--cpython ../cpython] [--actions]
+    python3 src/pegen/tools/generate.py [--cpython ../cpython] [--skip-actions]
 
-Writes GeneratedParser.java and TokenTypes.java into src/org/python/pegen/.
-By default grammar actions are skipped (a recognizer, which is what is
-checked in until ActionHelpers and AstFactory are ported); --actions
-translates them.
+Writes GeneratedParser.java and TokenTypes.java into src/org/python/pegen/,
+and the AST classes and AstFactory generated from Parser/Python.asdl.
+Grammar actions are translated by default, so the parser builds the AST;
+--skip-actions emits a recognizer instead (dummy results, no AST).
 Requires Python >= 3.10 and a CPython checkout, whose Tools/peg_generator
 supplies pegen.
 """
@@ -79,10 +79,10 @@ def main():
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--skip-actions", dest="skip_actions", action="store_true",
                       help="emit dummy results instead of grammar actions "
-                           "(recognizer only; the default)")
+                           "(a recognizer)")
     mode.add_argument("--actions", dest="skip_actions", action="store_false",
-                      help="translate the grammar actions")
-    ap.set_defaults(skip_actions=True)
+                      help="translate the grammar actions (the default)")
+    ap.set_defaults(skip_actions=False)
     args = ap.parse_args()
 
     cpython = os.path.abspath(args.cpython)

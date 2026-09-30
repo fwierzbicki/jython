@@ -8,6 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.python.pegen.ActionHelpers.*;
+import org.python.pegen.ast.*;
+import org.python.pegen.ast.base.*;
+
+import static org.python.pegen.ActionHelpers.*;
+import static org.python.pegen.AstFactory.*;
 import static org.python.pegen.Parser.MAXSTACK;
 import static org.python.pegen.TokenTypes.*;
 
@@ -528,7 +534,7 @@ public class GeneratedParser {
     }
 
     // file: statements? $
-    private Object file_rule()
+    private mod file_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -537,7 +543,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        mod _res = null;
         int _mark = p.mark;
         done: {
             { // statements? $
@@ -553,7 +559,12 @@ public class GeneratedParser {
                     (endmarker_var = p.expectToken(ENDMARKER)) != null  // token='ENDMARKER'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (mod) (_PyPegen_make_module(p, fromVoidPtr(a)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -565,7 +576,7 @@ public class GeneratedParser {
     }
 
     // interactive: statement_newline
-    private Object interactive_rule()
+    private mod interactive_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -574,7 +585,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        mod _res = null;
         int _mark = p.mark;
         done: {
             { // statement_newline
@@ -582,12 +593,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<stmt> a = null;
                 if (
                     (a = statement_newline_rule()) != null  // statement_newline
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (mod) (_PyAST_Interactive(a, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -599,7 +615,7 @@ public class GeneratedParser {
     }
 
     // eval: expressions NEWLINE* $
-    private Object eval_rule()
+    private mod eval_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -608,7 +624,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        mod _res = null;
         int _mark = p.mark;
         done: {
             { // expressions NEWLINE* $
@@ -617,7 +633,7 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> _loop0_1_var = null;
-                Object a = null;
+                expr a = null;
                 Token endmarker_var = null;
                 if (
                     (a = expressions_rule()) != null  // expressions
@@ -627,7 +643,12 @@ public class GeneratedParser {
                     (endmarker_var = p.expectToken(ENDMARKER)) != null  // token='ENDMARKER'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (mod) (_PyAST_Expression(a, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -639,7 +660,7 @@ public class GeneratedParser {
     }
 
     // func_type: '(' type_expressions? ')' '->' expression NEWLINE* $
-    private Object func_type_rule()
+    private mod func_type_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -648,7 +669,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        mod _res = null;
         int _mark = p.mark;
         done: {
             { // '(' type_expressions? ')' '->' expression NEWLINE* $
@@ -661,7 +682,7 @@ public class GeneratedParser {
                 Token _literal_2 = null;
                 List<Object> _loop0_1_var = null;
                 Object a = null;
-                Object b = null;
+                expr b = null;
                 Token endmarker_var = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
@@ -679,7 +700,12 @@ public class GeneratedParser {
                     (endmarker_var = p.expectToken(ENDMARKER)) != null  // token='ENDMARKER'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (mod) (_PyAST_FunctionType(fromVoidPtr(a), b, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -691,7 +717,7 @@ public class GeneratedParser {
     }
 
     // statements: statement+
-    private List<Object> statements_rule()
+    private List<stmt> statements_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -700,7 +726,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             { // statement+
@@ -713,7 +739,12 @@ public class GeneratedParser {
                     (a = _loop1_2_rule()) != null  // statement+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) ((List<stmt>) (List<?>) _PyPegen_seq_flatten(p, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -725,7 +756,7 @@ public class GeneratedParser {
     }
 
     // statement: compound_stmt | simple_stmts
-    private List<Object> statement_rule()
+    private List<stmt> statement_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -734,7 +765,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             { // compound_stmt
@@ -742,12 +773,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                stmt a = null;
                 if (
                     (a = compound_stmt_rule()) != null  // compound_stmt
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (_PyPegen_register_stmts(p, (List<stmt>) (List<?>) _PyPegen_singleton_seq(p, a)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -757,12 +793,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<stmt> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) simple_stmts_rule()) != null  // simple_stmts
+                    (a = (List<stmt>) (List<?>) simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -774,7 +815,7 @@ public class GeneratedParser {
     }
 
     // single_compound_stmt: compound_stmt
-    private List<Object> single_compound_stmt_rule()
+    private List<stmt> single_compound_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -783,7 +824,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             { // compound_stmt
@@ -791,12 +832,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                stmt a = null;
                 if (
                     (a = compound_stmt_rule()) != null  // compound_stmt
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (_PyPegen_register_stmts(p, (List<stmt>) (List<?>) _PyPegen_singleton_seq(p, a)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -808,7 +854,7 @@ public class GeneratedParser {
     }
 
     // statement_newline: single_compound_stmt NEWLINE | simple_stmts | NEWLINE | $
-    private List<Object> statement_newline_rule()
+    private List<stmt> statement_newline_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -817,7 +863,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -832,7 +878,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<stmt> a = null;
                 Token newline_var = null;
                 if (
                     (a = single_compound_stmt_rule()) != null  // single_compound_stmt
@@ -840,7 +886,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -850,12 +901,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> simple_stmts_var = null;
+                List<stmt> simple_stmts_var = null;
                 if (
                     (simple_stmts_var = simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) simple_stmts_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -877,7 +928,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) ((List<stmt>) (List<?>) _PyPegen_singleton_seq(p, (stmt) CHECK(p, _PyAST_Pass(_start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -892,7 +948,12 @@ public class GeneratedParser {
                     (endmarker_var = p.expectToken(ENDMARKER)) != null  // token='ENDMARKER'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (_PyPegen_interactive_exit(p));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -904,7 +965,7 @@ public class GeneratedParser {
     }
 
     // simple_stmts: simple_stmt !';' NEWLINE | ';'.simple_stmt+ ';'? NEWLINE
-    private List<Object> simple_stmts_rule()
+    private List<stmt> simple_stmts_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -913,7 +974,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             { // simple_stmt !';' NEWLINE
@@ -921,7 +982,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                stmt a = null;
                 Token newline_var = null;
                 if (
                     (a = simple_stmt_rule()) != null  // simple_stmt
@@ -931,7 +992,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) ((List<stmt>) (List<?>) _PyPegen_singleton_seq(p, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -942,17 +1008,22 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<stmt> a = null;
                 Token newline_var = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_4_rule()) != null  // ';'.simple_stmt+
+                    (a = (List<stmt>) (List<?>) _gather_4_rule()) != null  // ';'.simple_stmt+
                     &&
                     p.opt((_opt_var = p.expectToken(13)))  // ';'?
                     &&
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -978,7 +1049,7 @@ public class GeneratedParser {
     //     | &'continue' continue_stmt
     //     | &'global' global_stmt
     //     | &'nonlocal' nonlocal_stmt
-    private Object simple_stmt_rule()
+    private stmt simple_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -987,10 +1058,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         Parser.Memo _memo = p.isMemoized(simple_stmt_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (stmt) _memo.node;
             p.level--;
             return _res;
         }
@@ -1008,12 +1079,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object assignment_var = null;
+                stmt assignment_var = null;
                 if (
                     (assignment_var = assignment_rule()) != null  // assignment
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) assignment_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1023,14 +1094,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object type_alias_var = null;
+                stmt type_alias_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectSoftKeyword("type") != null)  // &"type"
                     &&
                     (type_alias_var = type_alias_rule()) != null  // type_alias
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) type_alias_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1040,14 +1111,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object import_stmt_var = null;
+                stmt import_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_5_rule() != null)  // &('import' | 'from' | "lazy")
                     &&
                     (import_stmt_var = import_stmt_rule()) != null  // import_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) import_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1057,7 +1128,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object e = null;
+                expr e = null;
                 if (
                     (e = star_expressions_rule()) != null  // star_expressions
                 )
@@ -1069,7 +1140,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Expr(e, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1079,14 +1155,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object return_stmt_var = null;
+                stmt return_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(522) != null)  // &'return'
                     &&
                     (return_stmt_var = return_stmt_rule()) != null  // return_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) return_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1096,14 +1172,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object raise_stmt_var = null;
+                stmt raise_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(632) != null)  // &'raise'
                     &&
                     (raise_stmt_var = raise_stmt_rule()) != null  // raise_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) raise_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1113,14 +1189,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object pass_stmt_var = null;
+                stmt pass_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(527) != null)  // &'pass'
                     &&
                     (pass_stmt_var = pass_stmt_rule()) != null  // pass_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) pass_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1130,14 +1206,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object del_stmt_var = null;
+                stmt del_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(634) != null)  // &'del'
                     &&
                     (del_stmt_var = del_stmt_rule()) != null  // del_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) del_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1147,14 +1223,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object yield_stmt_var = null;
+                stmt yield_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(588) != null)  // &'yield'
                     &&
                     (yield_stmt_var = yield_stmt_rule()) != null  // yield_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) yield_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1164,14 +1240,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object assert_stmt_var = null;
+                stmt assert_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(638) != null)  // &'assert'
                     &&
                     (assert_stmt_var = assert_stmt_rule()) != null  // assert_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) assert_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1181,14 +1257,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object break_stmt_var = null;
+                stmt break_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(528) != null)  // &'break'
                     &&
                     (break_stmt_var = break_stmt_rule()) != null  // break_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) break_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1198,14 +1274,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object continue_stmt_var = null;
+                stmt continue_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(529) != null)  // &'continue'
                     &&
                     (continue_stmt_var = continue_stmt_rule()) != null  // continue_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) continue_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1215,14 +1291,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object global_stmt_var = null;
+                stmt global_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(530) != null)  // &'global'
                     &&
                     (global_stmt_var = global_stmt_rule()) != null  // global_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) global_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1232,14 +1308,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object nonlocal_stmt_var = null;
+                stmt nonlocal_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(531) != null)  // &'nonlocal'
                     &&
                     (nonlocal_stmt_var = nonlocal_stmt_rule()) != null  // nonlocal_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) nonlocal_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1260,7 +1336,7 @@ public class GeneratedParser {
     //     | &'try' try_stmt
     //     | &'while' while_stmt
     //     | match_stmt
-    private Object compound_stmt_rule()
+    private stmt compound_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1269,7 +1345,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         done: {
             { // &('def' | '@' | 'async') function_def
@@ -1277,14 +1353,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object function_def_var = null;
+                stmt function_def_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_6_rule() != null)  // &('def' | '@' | 'async')
                     &&
                     (function_def_var = function_def_rule()) != null  // function_def
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) function_def_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1294,14 +1370,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object if_stmt_var = null;
+                stmt if_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(700) != null)  // &'if'
                     &&
                     (if_stmt_var = if_stmt_rule()) != null  // if_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) if_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1311,14 +1387,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object class_def_var = null;
+                stmt class_def_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_7_rule() != null)  // &('class' | '@')
                     &&
                     (class_def_var = class_def_rule()) != null  // class_def
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) class_def_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1328,14 +1404,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object with_stmt_var = null;
+                stmt with_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_8_rule() != null)  // &('with' | 'async')
                     &&
                     (with_stmt_var = with_stmt_rule()) != null  // with_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) with_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1345,14 +1421,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object for_stmt_var = null;
+                stmt for_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_9_rule() != null)  // &('for' | 'async')
                     &&
                     (for_stmt_var = for_stmt_rule()) != null  // for_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) for_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1362,14 +1438,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object try_stmt_var = null;
+                stmt try_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(674) != null)  // &'try'
                     &&
                     (try_stmt_var = try_stmt_rule()) != null  // try_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) try_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1379,14 +1455,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object while_stmt_var = null;
+                stmt while_stmt_var = null;
                 if (
                     p.lookahead(true, p.mark, p.expectToken(707) != null)  // &'while'
                     &&
                     (while_stmt_var = while_stmt_rule()) != null  // while_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) while_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1396,12 +1472,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object match_stmt_var = null;
+                stmt match_stmt_var = null;
                 if (
                     (match_stmt_var = match_stmt_rule()) != null  // match_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) match_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1418,7 +1494,7 @@ public class GeneratedParser {
     //     | ((star_targets '='))+ annotated_rhs !'=' TYPE_COMMENT?
     //     | single_target augassign ~ annotated_rhs
     //     | invalid_assignment
-    private Object assignment_rule()
+    private stmt assignment_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1427,7 +1503,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -1443,8 +1519,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 Object c = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
@@ -1463,7 +1539,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 6, "Variable annotation syntax is", _PyAST_AnnAssign((expr) CHECK(p, _PyPegen_set_expr_context(p, a, Store)), b, fromVoidPtr(c), 1, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1475,7 +1556,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object a = null;
-                Object b = null;
+                expr b = null;
                 Object c = null;
                 if (
                     (a = _tmp_11_rule()) != null  // '(' single_target ')' | single_subscript_attribute_target
@@ -1494,7 +1575,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 6, "Variable annotations syntax is", _PyAST_AnnAssign(fromVoidPtr(a), b, fromVoidPtr(c), 0, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1504,11 +1590,11 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
-                Object b = null;
+                List<expr> a = null;
+                expr b = null;
                 Object tc = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_12_rule()) != null  // ((star_targets '='))+
+                    (a = (List<expr>) (List<?>) _loop1_12_rule()) != null  // ((star_targets '='))+
                     &&
                     (b = annotated_rhs_rule()) != null  // annotated_rhs
                     &&
@@ -1524,7 +1610,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Assign(a, b, NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1535,9 +1626,9 @@ public class GeneratedParser {
                     return null;
                 }
                 boolean _cut_var = false;
-                Object a = null;
-                Object b = null;
-                Object c = null;
+                expr a = null;
+                AugOperator b = null;
+                expr c = null;
                 if (
                     (a = single_target_rule()) != null  // single_target
                     &&
@@ -1555,7 +1646,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_AugAssign(a, b.kind, c, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1574,7 +1670,7 @@ public class GeneratedParser {
                     (invalid_assignment_var = invalid_assignment_rule()) != null  // invalid_assignment
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_assignment_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -1586,7 +1682,7 @@ public class GeneratedParser {
     }
 
     // annotated_rhs: yield_expr | star_expressions
-    private Object annotated_rhs_rule()
+    private expr annotated_rhs_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1595,7 +1691,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // yield_expr
@@ -1603,12 +1699,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object yield_expr_var = null;
+                expr yield_expr_var = null;
                 if (
                     (yield_expr_var = yield_expr_rule()) != null  // yield_expr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) yield_expr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1618,12 +1714,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_expressions_var = null;
+                expr star_expressions_var = null;
                 if (
                     (star_expressions_var = star_expressions_rule()) != null  // star_expressions
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) star_expressions_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -1648,7 +1744,7 @@ public class GeneratedParser {
     //     | '>>='
     //     | '**='
     //     | '//='
-    private Object augassign_rule()
+    private AugOperator augassign_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1657,7 +1753,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        AugOperator _res = null;
         int _mark = p.mark;
         done: {
             { // '+='
@@ -1670,7 +1766,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(36)) != null  // token='+='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Add));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1685,7 +1786,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(37)) != null  // token='-='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Sub));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1700,7 +1806,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(38)) != null  // token='*='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Mult));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1715,7 +1826,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(50)) != null  // token='@='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) ((AugOperator) CHECK_VERSION(p, 5, "The '@' operator is", _PyPegen_augoperator(p, MatMult)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1730,7 +1846,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(39)) != null  // token='/='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Div));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1745,7 +1866,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(40)) != null  // token='%='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Mod));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1760,7 +1886,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(41)) != null  // token='&='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, BitAnd));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1775,7 +1906,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(42)) != null  // token='|='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, BitOr));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1790,7 +1926,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(43)) != null  // token='^='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, BitXor));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1805,7 +1946,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(44)) != null  // token='<<='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, LShift));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1820,7 +1966,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(45)) != null  // token='>>='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, RShift));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1835,7 +1986,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(46)) != null  // token='**='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, Pow));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1850,7 +2006,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(48)) != null  // token='//='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (AugOperator) (_PyPegen_augoperator(p, FloorDiv));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1862,7 +2023,7 @@ public class GeneratedParser {
     }
 
     // return_stmt: 'return' star_expressions?
-    private Object return_stmt_rule()
+    private stmt return_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1871,7 +2032,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -1901,7 +2062,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Return(fromVoidPtr(a), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1917,7 +2083,7 @@ public class GeneratedParser {
     //     | invalid_raise_stmt
     //     | 'raise' expression
     //     | 'raise'
-    private Object raise_stmt_rule()
+    private stmt raise_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -1926,7 +2092,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -1943,8 +2109,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (_keyword = p.expectToken(632)) != null  // token='raise'
                     &&
@@ -1962,7 +2128,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Raise(a, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -1977,7 +2148,7 @@ public class GeneratedParser {
                     (invalid_raise_stmt_var = invalid_raise_stmt_rule()) != null  // invalid_raise_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_raise_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -1988,7 +2159,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(632)) != null  // token='raise'
                     &&
@@ -2002,7 +2173,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Raise(a, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2024,7 +2200,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Raise(null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2036,7 +2217,7 @@ public class GeneratedParser {
     }
 
     // pass_stmt: 'pass'
-    private Object pass_stmt_rule()
+    private stmt pass_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2045,7 +2226,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2072,7 +2253,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Pass(_start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2084,7 +2270,7 @@ public class GeneratedParser {
     }
 
     // break_stmt: 'break'
-    private Object break_stmt_rule()
+    private stmt break_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2093,7 +2279,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2120,7 +2306,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Break(_start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2132,7 +2323,7 @@ public class GeneratedParser {
     }
 
     // continue_stmt: 'continue'
-    private Object continue_stmt_rule()
+    private stmt continue_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2141,7 +2332,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2168,7 +2359,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Continue(_start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2180,7 +2376,7 @@ public class GeneratedParser {
     }
 
     // global_stmt: 'global' ','.NAME+
-    private Object global_stmt_rule()
+    private stmt global_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2189,7 +2385,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2205,11 +2401,11 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
                     (_keyword = p.expectToken(530)) != null  // token='global'
                     &&
-                    (a = (List<Object>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
+                    (a = (List<expr>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -2219,7 +2415,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Global((List<String>) (List<?>) CHECK(p, _PyPegen_map_names_to_ids(p, a)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2231,7 +2432,7 @@ public class GeneratedParser {
     }
 
     // nonlocal_stmt: 'nonlocal' ','.NAME+
-    private Object nonlocal_stmt_rule()
+    private stmt nonlocal_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2240,7 +2441,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2256,11 +2457,11 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
                     (_keyword = p.expectToken(531)) != null  // token='nonlocal'
                     &&
-                    (a = (List<Object>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
+                    (a = (List<expr>) (List<?>) _gather_14_rule()) != null  // ','.NAME+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -2270,7 +2471,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Nonlocal((List<String>) (List<?>) CHECK(p, _PyPegen_map_names_to_ids(p, a)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2282,7 +2488,7 @@ public class GeneratedParser {
     }
 
     // del_stmt: 'del' del_targets &(';' | NEWLINE) | invalid_del_stmt
-    private Object del_stmt_rule()
+    private stmt del_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2291,7 +2497,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2307,7 +2513,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
                     (_keyword = p.expectToken(634)) != null  // token='del'
                     &&
@@ -2323,7 +2529,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Delete(a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2338,7 +2549,7 @@ public class GeneratedParser {
                     (invalid_del_stmt_var = invalid_del_stmt_rule()) != null  // invalid_del_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_del_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2350,7 +2561,7 @@ public class GeneratedParser {
     }
 
     // yield_stmt: yield_expr
-    private Object yield_stmt_rule()
+    private stmt yield_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2359,7 +2570,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2374,7 +2585,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object y = null;
+                expr y = null;
                 if (
                     (y = yield_expr_rule()) != null  // yield_expr
                 )
@@ -2386,7 +2597,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Expr(y, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2398,7 +2614,7 @@ public class GeneratedParser {
     }
 
     // assert_stmt: invalid_assert_stmt | 'assert' expression [',' expression]
-    private Object assert_stmt_rule()
+    private stmt assert_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2407,7 +2623,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2427,7 +2643,7 @@ public class GeneratedParser {
                     (invalid_assert_stmt_var = invalid_assert_stmt_rule()) != null  // invalid_assert_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_assert_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2438,7 +2654,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (_keyword = p.expectToken(638)) != null  // token='assert'
@@ -2455,7 +2671,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Assert(a, fromVoidPtr(b), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2467,7 +2688,7 @@ public class GeneratedParser {
     }
 
     // import_stmt: invalid_import | import_name | import_from
-    private Object import_stmt_rule()
+    private stmt import_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2476,10 +2697,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         Parser.Memo _memo = p.isMemoized(import_stmt_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (stmt) _memo.node;
             p.level--;
             return _res;
         }
@@ -2495,7 +2716,7 @@ public class GeneratedParser {
                     (invalid_import_var = invalid_import_rule()) != null  // invalid_import
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_import_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2505,12 +2726,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object import_name_var = null;
+                stmt import_name_var = null;
                 if (
                     (import_name_var = import_name_rule()) != null  // import_name
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) import_name_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -2520,12 +2741,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object import_from_var = null;
+                stmt import_from_var = null;
                 if (
                     (import_from_var = import_from_rule()) != null  // import_from
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) import_from_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -2538,7 +2759,7 @@ public class GeneratedParser {
     }
 
     // import_name: "lazy"? 'import' dotted_as_names
-    private Object import_name_rule()
+    private stmt import_name_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2547,7 +2768,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2563,7 +2784,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                List<Object> a = null;
+                List<alias> a = null;
                 Object lazy = null;
                 if (
                     p.opt((lazy = p.expectSoftKeyword("lazy")))  // "lazy"?
@@ -2580,7 +2801,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Import(a, lazy != null ? 1 : 0, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2595,7 +2821,7 @@ public class GeneratedParser {
     //     | invalid_import_from
     //     | "lazy"? 'from' (('.' | '...'))* dotted_name 'import' import_from_targets
     //     | "lazy"? 'from' (('.' | '...'))+ 'import' import_from_targets
-    private Object import_from_rule()
+    private stmt import_from_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2604,7 +2830,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2624,7 +2850,7 @@ public class GeneratedParser {
                     (invalid_import_from_var = invalid_import_from_rule()) != null  // invalid_import_from
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_import_from_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2637,8 +2863,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 List<Object> a = null;
-                Object b = null;
-                List<Object> c = null;
+                expr b = null;
+                List<alias> c = null;
                 Object lazy = null;
                 if (
                     p.opt((lazy = p.expectSoftKeyword("lazy")))  // "lazy"?
@@ -2661,7 +2887,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyPegen_checked_from_import(p, a, b, c, fromVoidPtr(lazy), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2674,7 +2905,7 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 List<Object> a = null;
-                List<Object> b = null;
+                List<alias> b = null;
                 Object lazy = null;
                 if (
                     p.opt((lazy = p.expectSoftKeyword("lazy")))  // "lazy"?
@@ -2695,7 +2926,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_ImportFrom(null, b, _PyPegen_seq_count_dots(a), lazy != null ? 1 : 0, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2711,7 +2947,7 @@ public class GeneratedParser {
     //     | import_from_as_names !','
     //     | '*'
     //     | invalid_import_from_targets
-    private List<Object> import_from_targets_rule()
+    private List<alias> import_from_targets_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2720,7 +2956,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<alias> _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2738,7 +2974,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<alias> a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -2749,7 +2985,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2759,14 +3000,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> import_from_as_names_var = null;
+                List<alias> import_from_as_names_var = null;
                 if (
                     (import_from_as_names_var = import_from_as_names_rule()) != null  // import_from_as_names
                     &&
                     p.lookahead(false, p.mark, p.expectToken(12) != null)  // !','
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) import_from_as_names_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -2788,7 +3029,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) ((List<alias>) (List<?>) _PyPegen_singleton_seq(p, (alias) CHECK(p, _PyPegen_alias_for_star(p, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2803,7 +3049,7 @@ public class GeneratedParser {
                     (invalid_import_from_targets_var = invalid_import_from_targets_rule()) != null  // invalid_import_from_targets
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) voidAsList(invalid_import_from_targets_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2815,7 +3061,7 @@ public class GeneratedParser {
     }
 
     // import_from_as_names: ','.import_from_as_name+
-    private List<Object> import_from_as_names_rule()
+    private List<alias> import_from_as_names_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2824,7 +3070,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<alias> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.import_from_as_name+
@@ -2832,12 +3078,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<alias> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_20_rule()) != null  // ','.import_from_as_name+
+                    (a = (List<alias>) (List<?>) _gather_20_rule()) != null  // ','.import_from_as_name+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2849,7 +3100,7 @@ public class GeneratedParser {
     }
 
     // import_from_as_name: invalid_import_from_as_name | NAME ['as' NAME]
-    private Object import_from_as_name_rule()
+    private alias import_from_as_name_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2858,7 +3109,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        alias _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2878,7 +3129,7 @@ public class GeneratedParser {
                     (invalid_import_from_as_name_var = invalid_import_from_as_name_rule()) != null  // invalid_import_from_as_name
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(alias.class, invalid_import_from_as_name_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2888,7 +3139,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
@@ -2903,7 +3154,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (alias) (_PyAST_alias(((Name) a).id, (b) != null ? ((Name) ((expr) b)).id : null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2915,7 +3171,7 @@ public class GeneratedParser {
     }
 
     // dotted_as_names: ','.dotted_as_name+
-    private List<Object> dotted_as_names_rule()
+    private List<alias> dotted_as_names_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2924,7 +3180,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<alias> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.dotted_as_name+
@@ -2932,12 +3188,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<alias> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_23_rule()) != null  // ','.dotted_as_name+
+                    (a = (List<alias>) (List<?>) _gather_23_rule()) != null  // ','.dotted_as_name+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<alias>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -2949,7 +3210,7 @@ public class GeneratedParser {
     }
 
     // dotted_as_name: invalid_dotted_as_name | dotted_name ['as' NAME]
-    private Object dotted_as_name_rule()
+    private alias dotted_as_name_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -2958,7 +3219,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        alias _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -2978,7 +3239,7 @@ public class GeneratedParser {
                     (invalid_dotted_as_name_var = invalid_dotted_as_name_rule()) != null  // invalid_dotted_as_name
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(alias.class, invalid_dotted_as_name_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -2988,7 +3249,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (a = dotted_name_rule()) != null  // dotted_name
@@ -3003,7 +3264,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (alias) (_PyAST_alias(((Name) a).id, (b) != null ? ((Name) ((expr) b)).id : null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3016,15 +3282,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // dotted_name: dotted_name '.' NAME | NAME
-    private Object dotted_name_rule()
+    private expr dotted_name_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(dotted_name_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -3033,7 +3299,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, dotted_name_type, _res);
             p.mark = _mark;
-            Object _raw = dotted_name_raw();
+            expr _raw = dotted_name_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -3049,7 +3315,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object dotted_name_raw()
+    private expr dotted_name_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3058,7 +3324,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // dotted_name '.' NAME
@@ -3067,8 +3333,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = dotted_name_rule()) != null  // dotted_name
                     &&
@@ -3077,7 +3343,12 @@ public class GeneratedParser {
                     (b = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_join_names_with_dot(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3087,12 +3358,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) name_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -3104,7 +3375,7 @@ public class GeneratedParser {
     }
 
     // block: NEWLINE INDENT statements DEDENT | simple_stmts | invalid_block
-    private List<Object> block_rule()
+    private List<stmt> block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3113,10 +3384,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         Parser.Memo _memo = p.isMemoized(block_type);
         if (_memo != null) {
-            _res = (List<Object>) (List<?>) _memo.node;
+            _res = (List<stmt>) (List<?>) _memo.node;
             p.level--;
             return _res;
         }
@@ -3127,7 +3398,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<stmt> a = null;
                 Token dedent_var = null;
                 Token indent_var = null;
                 Token newline_var = null;
@@ -3141,7 +3412,12 @@ public class GeneratedParser {
                     (dedent_var = p.expectToken(DEDENT)) != null  // token='DEDENT'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3151,12 +3427,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> simple_stmts_var = null;
+                List<stmt> simple_stmts_var = null;
                 if (
                     (simple_stmts_var = simple_stmts_rule()) != null  // simple_stmts
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) simple_stmts_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -3171,7 +3447,7 @@ public class GeneratedParser {
                     (invalid_block_var = invalid_block_rule()) != null  // invalid_block
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) voidAsList(invalid_block_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -3184,7 +3460,7 @@ public class GeneratedParser {
     }
 
     // decorators: (('@' named_expression NEWLINE))+
-    private List<Object> decorators_rule()
+    private List<expr> decorators_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3193,7 +3469,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // (('@' named_expression NEWLINE))+
@@ -3201,12 +3477,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_24_rule()) != null  // (('@' named_expression NEWLINE))+
+                    (a = (List<expr>) (List<?>) _loop1_24_rule()) != null  // (('@' named_expression NEWLINE))+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3218,7 +3499,7 @@ public class GeneratedParser {
     }
 
     // class_def: decorators class_def_raw | class_def_raw
-    private Object class_def_rule()
+    private stmt class_def_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3227,7 +3508,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         done: {
             { // decorators class_def_raw
@@ -3235,15 +3516,20 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
-                Object b = null;
+                List<expr> a = null;
+                stmt b = null;
                 if (
                     (a = decorators_rule()) != null  // decorators
                     &&
                     (b = class_def_raw_rule()) != null  // class_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyPegen_class_def_decorators(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3253,12 +3539,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object class_def_raw_var = null;
+                stmt class_def_raw_var = null;
                 if (
                     (class_def_raw_var = class_def_raw_rule()) != null  // class_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) class_def_raw_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -3272,7 +3558,7 @@ public class GeneratedParser {
     // class_def_raw:
     //     | invalid_class_def_raw
     //     | 'class' NAME type_params? ['(' arguments? ')'] ':' block
-    private Object class_def_raw_rule()
+    private stmt class_def_raw_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3281,7 +3567,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -3301,7 +3587,7 @@ public class GeneratedParser {
                     (invalid_class_def_raw_var = invalid_class_def_raw_rule()) != null  // invalid_class_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_class_def_raw_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -3313,9 +3599,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
-                List<Object> c = null;
+                List<stmt> c = null;
                 Object t = null;
                 if (
                     (_keyword = p.expectToken(719)) != null  // token='class'
@@ -3338,7 +3624,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_ClassDef(((Name) a).id, (b) != null ? ((Call) ((expr) b)).args : null, (b) != null ? ((Call) ((expr) b)).keywords : null, c, null, fromVoidPtr(t), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3350,7 +3641,7 @@ public class GeneratedParser {
     }
 
     // function_def: decorators function_def_raw | function_def_raw
-    private Object function_def_rule()
+    private stmt function_def_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3359,7 +3650,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         done: {
             { // decorators function_def_raw
@@ -3367,15 +3658,20 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> d = null;
-                Object f = null;
+                List<expr> d = null;
+                stmt f = null;
                 if (
                     (d = decorators_rule()) != null  // decorators
                     &&
                     (f = function_def_raw_rule()) != null  // function_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyPegen_function_def_decorators(p, d, f));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3385,12 +3681,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object function_def_raw_var = null;
+                stmt function_def_raw_var = null;
                 if (
                     (function_def_raw_var = function_def_raw_rule()) != null  // function_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (stmt) function_def_raw_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -3405,7 +3701,7 @@ public class GeneratedParser {
     //     | invalid_def_raw
     //     | 'def' NAME type_params? '(' params? ')' ['->' expression] ':' func_type_comment? block
     //     | 'async' 'def' NAME type_params? '(' params? ')' ['->' expression] ':' func_type_comment? block
-    private Object function_def_raw_rule()
+    private stmt function_def_raw_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3414,7 +3710,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -3434,7 +3730,7 @@ public class GeneratedParser {
                     (invalid_def_raw_var = invalid_def_raw_rule()) != null  // invalid_def_raw
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_def_raw_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -3449,8 +3745,8 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object a = null;
-                List<Object> b = null;
-                Object n = null;
+                List<stmt> b = null;
+                expr n = null;
                 Object params = null;
                 Object t = null;
                 Object tc = null;
@@ -3483,7 +3779,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_FunctionDef(((Name) n).id, fromVoidPtr((params) != null ? params : (arguments) CHECK(p, _PyPegen_empty_arguments(p))), b, null, fromVoidPtr(a), NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), fromVoidPtr(t), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3499,8 +3800,8 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object a = null;
-                List<Object> b = null;
-                Object n = null;
+                List<stmt> b = null;
+                expr n = null;
                 Object params = null;
                 Object t = null;
                 Object tc = null;
@@ -3535,7 +3836,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 5, "Async functions are", _PyAST_AsyncFunctionDef(((Name) n).id, fromVoidPtr((params) != null ? params : (arguments) CHECK(p, _PyPegen_empty_arguments(p))), b, null, fromVoidPtr(a), NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), fromVoidPtr(t), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3547,7 +3853,7 @@ public class GeneratedParser {
     }
 
     // params: invalid_parameters | parameters
-    private Object params_rule()
+    private arguments params_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3556,7 +3862,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arguments _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_parameters
@@ -3569,7 +3875,7 @@ public class GeneratedParser {
                     (invalid_parameters_var = invalid_parameters_rule()) != null  // invalid_parameters
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(arguments.class, invalid_parameters_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -3579,12 +3885,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object parameters_var = null;
+                arguments parameters_var = null;
                 if (
                     (parameters_var = parameters_rule()) != null  // parameters
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) parameters_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -3601,7 +3907,7 @@ public class GeneratedParser {
     //     | param_no_default+ param_with_default* star_etc?
     //     | param_with_default+ star_etc?
     //     | star_etc
-    private Object parameters_rule()
+    private arguments parameters_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3610,7 +3916,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arguments _res = null;
         int _mark = p.mark;
         done: {
             { // slash_no_default param_no_default* param_with_default* star_etc?
@@ -3618,21 +3924,26 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
-                List<Object> b = null;
+                List<arg> a = null;
+                List<arg> b = null;
                 List<Object> c = null;
                 Object d = null;
                 if (
                     (a = slash_no_default_rule()) != null  // slash_no_default
                     &&
-                    (b = (List<Object>) (List<?>) _loop0_27_rule()) != null  // param_no_default*
+                    (b = (List<arg>) (List<?>) _loop0_27_rule()) != null  // param_no_default*
                     &&
                     (c = _loop0_28_rule()) != null  // param_with_default*
                     &&
                     p.opt((d = star_etc_rule()))  // star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) ((arguments) CHECK_VERSION(p, 8, "Positional-only parameters are", _PyPegen_make_arguments(p, a, null, b, c, fromVoidPtr(d))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3642,7 +3953,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                SlashWithDefault a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
@@ -3653,7 +3964,12 @@ public class GeneratedParser {
                     p.opt((c = star_etc_rule()))  // star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) ((arguments) CHECK_VERSION(p, 8, "Positional-only parameters are", _PyPegen_make_arguments(p, null, a, null, b, fromVoidPtr(c))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3663,18 +3979,23 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<arg> a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (b = _loop0_28_rule()) != null  // param_with_default*
                     &&
                     p.opt((c = star_etc_rule()))  // star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, a, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3692,7 +4013,12 @@ public class GeneratedParser {
                     p.opt((b = star_etc_rule()))  // star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, null, a, fromVoidPtr(b)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3702,12 +4028,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                StarEtc a = null;
                 if (
                     (a = star_etc_rule()) != null  // star_etc
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, null, null, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3719,7 +4050,7 @@ public class GeneratedParser {
     }
 
     // slash_no_default: param_no_default+ '/' ',' | param_no_default+ '/' &')'
-    private List<Object> slash_no_default_rule()
+    private List<arg> slash_no_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3728,7 +4059,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<arg> _res = null;
         int _mark = p.mark;
         done: {
             { // param_no_default+ '/' ','
@@ -3738,16 +4069,21 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                List<arg> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<arg>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3758,16 +4094,21 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> a = null;
+                List<arg> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_29_rule()) != null  // param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<arg>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3781,7 +4122,7 @@ public class GeneratedParser {
     // slash_with_default:
     //     | param_no_default* param_with_default+ '/' ','
     //     | param_no_default* param_with_default+ '/' &')'
-    private Object slash_with_default_rule()
+    private SlashWithDefault slash_with_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3790,7 +4131,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        SlashWithDefault _res = null;
         int _mark = p.mark;
         done: {
             { // param_no_default* param_with_default+ '/' ','
@@ -3812,7 +4153,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (SlashWithDefault) (_PyPegen_slash_with_default(p, (List<arg>) (List<?>) a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3835,7 +4181,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (SlashWithDefault) (_PyPegen_slash_with_default(p, (List<arg>) (List<?>) a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3852,7 +4203,7 @@ public class GeneratedParser {
     //     | '*' param_no_default_star_annotation param_maybe_default* kwds?
     //     | '*' ',' param_maybe_default+ kwds?
     //     | kwds
-    private Object star_etc_rule()
+    private StarEtc star_etc_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3861,7 +4212,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        StarEtc _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_star_etc
@@ -3874,7 +4225,7 @@ public class GeneratedParser {
                     (invalid_star_etc_var = invalid_star_etc_rule()) != null  // invalid_star_etc
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(StarEtc.class, invalid_star_etc_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -3885,7 +4236,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
@@ -3898,7 +4249,12 @@ public class GeneratedParser {
                     p.opt((c = kwds_rule()))  // kwds?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, a, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3909,7 +4265,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
@@ -3922,7 +4278,12 @@ public class GeneratedParser {
                     p.opt((c = kwds_rule()))  // kwds?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, a, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3946,7 +4307,12 @@ public class GeneratedParser {
                     p.opt((c = kwds_rule()))  // kwds?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, null, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3956,12 +4322,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 if (
                     (a = kwds_rule()) != null  // kwds
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, null, null, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -3973,7 +4344,7 @@ public class GeneratedParser {
     }
 
     // kwds: invalid_kwds | '**' param_no_default
-    private Object kwds_rule()
+    private arg kwds_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -3982,7 +4353,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_kwds
@@ -3995,7 +4366,7 @@ public class GeneratedParser {
                     (invalid_kwds_var = invalid_kwds_rule()) != null  // invalid_kwds
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(arg.class, invalid_kwds_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4006,14 +4377,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
                     (a = param_no_default_rule()) != null  // param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4025,7 +4401,7 @@ public class GeneratedParser {
     }
 
     // param_no_default: param ',' TYPE_COMMENT? | param TYPE_COMMENT? &')'
-    private Object param_no_default_rule()
+    private arg param_no_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4034,7 +4410,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         done: {
             { // param ',' TYPE_COMMENT?
@@ -4043,7 +4419,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
@@ -4053,7 +4429,12 @@ public class GeneratedParser {
                     p.opt((tc = p.expectToken(TYPE_COMMENT)))  // TYPE_COMMENT?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (_PyPegen_add_type_comment_to_arg(p, a, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4063,7 +4444,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
@@ -4073,7 +4454,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (_PyPegen_add_type_comment_to_arg(p, a, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4087,7 +4473,7 @@ public class GeneratedParser {
     // param_no_default_star_annotation:
     //     | param_star_annotation ',' TYPE_COMMENT?
     //     | param_star_annotation TYPE_COMMENT? &')'
-    private Object param_no_default_star_annotation_rule()
+    private arg param_no_default_star_annotation_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4096,7 +4482,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         done: {
             { // param_star_annotation ',' TYPE_COMMENT?
@@ -4105,7 +4491,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 Object tc = null;
                 if (
                     (a = param_star_annotation_rule()) != null  // param_star_annotation
@@ -4115,7 +4501,12 @@ public class GeneratedParser {
                     p.opt((tc = p.expectToken(TYPE_COMMENT)))  // TYPE_COMMENT?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (_PyPegen_add_type_comment_to_arg(p, a, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4125,7 +4516,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 Object tc = null;
                 if (
                     (a = param_star_annotation_rule()) != null  // param_star_annotation
@@ -4135,7 +4526,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (_PyPegen_add_type_comment_to_arg(p, a, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4147,7 +4543,7 @@ public class GeneratedParser {
     }
 
     // param_with_default: param default ',' TYPE_COMMENT? | param default TYPE_COMMENT? &')'
-    private Object param_with_default_rule()
+    private NameDefaultPair param_with_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4156,7 +4552,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        NameDefaultPair _res = null;
         int _mark = p.mark;
         done: {
             { // param default ',' TYPE_COMMENT?
@@ -4165,8 +4561,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object c = null;
+                arg a = null;
+                expr c = null;
                 Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
@@ -4178,7 +4574,12 @@ public class GeneratedParser {
                     p.opt((tc = p.expectToken(TYPE_COMMENT)))  // TYPE_COMMENT?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, c, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4188,8 +4589,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object c = null;
+                arg a = null;
+                expr c = null;
                 Object tc = null;
                 if (
                     (a = param_rule()) != null  // param
@@ -4201,7 +4602,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, c, fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4215,7 +4621,7 @@ public class GeneratedParser {
     // param_maybe_default:
     //     | param default? ',' TYPE_COMMENT?
     //     | param default? TYPE_COMMENT? &')'
-    private Object param_maybe_default_rule()
+    private NameDefaultPair param_maybe_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4224,7 +4630,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        NameDefaultPair _res = null;
         int _mark = p.mark;
         done: {
             { // param default? ',' TYPE_COMMENT?
@@ -4233,7 +4639,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 Object c = null;
                 Object tc = null;
                 if (
@@ -4246,7 +4652,12 @@ public class GeneratedParser {
                     p.opt((tc = p.expectToken(TYPE_COMMENT)))  // TYPE_COMMENT?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, fromVoidPtr(c), fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4256,7 +4667,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 Object c = null;
                 Object tc = null;
                 if (
@@ -4269,7 +4680,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, fromVoidPtr(c), fromVoidPtr(tc)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4281,7 +4697,7 @@ public class GeneratedParser {
     }
 
     // param: NAME annotation?
-    private Object param_rule()
+    private arg param_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4290,7 +4706,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4305,7 +4721,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
@@ -4320,7 +4736,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (arg) (_PyAST_arg(((Name) a).id, fromVoidPtr(b), null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4332,7 +4753,7 @@ public class GeneratedParser {
     }
 
     // param_star_annotation: NAME star_annotation
-    private Object param_star_annotation_rule()
+    private arg param_star_annotation_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4341,7 +4762,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4356,8 +4777,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -4371,7 +4792,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (arg) (_PyAST_arg(((Name) a).id, b, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4383,7 +4809,7 @@ public class GeneratedParser {
     }
 
     // annotation: ':' expression
-    private Object annotation_rule()
+    private expr annotation_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4392,7 +4818,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // ':' expression
@@ -4401,14 +4827,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4420,7 +4851,7 @@ public class GeneratedParser {
     }
 
     // star_annotation: ':' star_expression
-    private Object star_annotation_rule()
+    private expr star_annotation_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4429,7 +4860,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // ':' star_expression
@@ -4438,14 +4869,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
                     (a = star_expression_rule()) != null  // star_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4457,7 +4893,7 @@ public class GeneratedParser {
     }
 
     // default: '=' expression | invalid_default
-    private Object default_rule()
+    private expr default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4466,7 +4902,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // '=' expression
@@ -4475,14 +4911,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(22)) != null  // token='='
                     &&
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4497,7 +4938,7 @@ public class GeneratedParser {
                     (invalid_default_var = invalid_default_rule()) != null  // invalid_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_default_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4512,7 +4953,7 @@ public class GeneratedParser {
     //     | invalid_if_stmt
     //     | 'if' named_expression ':' block elif_stmt
     //     | 'if' named_expression ':' block else_block?
-    private Object if_stmt_rule()
+    private stmt if_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4521,7 +4962,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4541,7 +4982,7 @@ public class GeneratedParser {
                     (invalid_if_stmt_var = invalid_if_stmt_rule()) != null  // invalid_if_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_if_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4553,9 +4994,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> b = null;
-                Object c = null;
+                expr a = null;
+                List<stmt> b = null;
+                stmt c = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
                     &&
@@ -4575,7 +5016,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_If(a, b, (List<stmt>) (List<?>) CHECK(p, _PyPegen_singleton_seq(p, c)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4587,8 +5033,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<stmt> b = null;
                 Object c = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
@@ -4609,7 +5055,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_If(a, b, fromVoidPtr(c), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4624,7 +5075,7 @@ public class GeneratedParser {
     //     | invalid_elif_stmt
     //     | 'elif' named_expression ':' block elif_stmt
     //     | 'elif' named_expression ':' block else_block?
-    private Object elif_stmt_rule()
+    private stmt elif_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4633,7 +5084,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4653,7 +5104,7 @@ public class GeneratedParser {
                     (invalid_elif_stmt_var = invalid_elif_stmt_rule()) != null  // invalid_elif_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_elif_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4665,9 +5116,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> b = null;
-                Object c = null;
+                expr a = null;
+                List<stmt> b = null;
+                stmt c = null;
                 if (
                     (_keyword = p.expectToken(705)) != null  // token='elif'
                     &&
@@ -4687,7 +5138,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_If(a, b, (List<stmt>) (List<?>) CHECK(p, _PyPegen_singleton_seq(p, c)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4699,8 +5155,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<stmt> b = null;
                 Object c = null;
                 if (
                     (_keyword = p.expectToken(705)) != null  // token='elif'
@@ -4721,7 +5177,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_If(a, b, fromVoidPtr(c), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4733,7 +5194,7 @@ public class GeneratedParser {
     }
 
     // else_block: invalid_else_stmt | 'else' &&':' block
-    private List<Object> else_block_rule()
+    private List<stmt> else_block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4742,7 +5203,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_else_stmt
@@ -4755,7 +5216,7 @@ public class GeneratedParser {
                     (invalid_else_stmt_var = invalid_else_stmt_rule()) != null  // invalid_else_stmt
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) voidAsList(invalid_else_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4767,7 +5228,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 if (
                     (_keyword = p.expectToken(704)) != null  // token='else'
                     &&
@@ -4776,7 +5237,12 @@ public class GeneratedParser {
                     (b = block_rule()) != null  // block
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (b);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4788,7 +5254,7 @@ public class GeneratedParser {
     }
 
     // while_stmt: invalid_while_stmt | 'while' named_expression ':' block else_block?
-    private Object while_stmt_rule()
+    private stmt while_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4797,7 +5263,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4817,7 +5283,7 @@ public class GeneratedParser {
                     (invalid_while_stmt_var = invalid_while_stmt_rule()) != null  // invalid_while_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_while_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4829,8 +5295,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<stmt> b = null;
                 Object c = null;
                 if (
                     (_keyword = p.expectToken(707)) != null  // token='while'
@@ -4851,7 +5317,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_While(a, b, fromVoidPtr(c), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4867,7 +5338,7 @@ public class GeneratedParser {
     //     | 'for' star_targets 'in' ~ star_expressions ':' TYPE_COMMENT? block else_block?
     //     | 'async' 'for' star_targets 'in' ~ star_expressions ':' TYPE_COMMENT? block else_block?
     //     | invalid_for_target
-    private Object for_stmt_rule()
+    private stmt for_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -4876,7 +5347,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -4896,7 +5367,7 @@ public class GeneratedParser {
                     (invalid_for_stmt_var = invalid_for_stmt_rule()) != null  // invalid_for_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_for_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -4910,10 +5381,10 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 Object el = null;
-                Object ex = null;
-                Object t = null;
+                expr ex = null;
+                expr t = null;
                 Object tc = null;
                 if (
                     (_keyword = p.expectToken(712)) != null  // token='for'
@@ -4942,7 +5413,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_For(t, ex, b, fromVoidPtr(el), NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -4961,10 +5437,10 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Token _keyword_2 = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 Object el = null;
-                Object ex = null;
-                Object t = null;
+                expr ex = null;
+                expr t = null;
                 Object tc = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
@@ -4995,7 +5471,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 5, "Async for loops are", _PyAST_AsyncFor(t, ex, b, fromVoidPtr(el), NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5014,7 +5495,7 @@ public class GeneratedParser {
                     (invalid_for_target_var = invalid_for_target_rule()) != null  // invalid_for_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_for_target_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5032,7 +5513,7 @@ public class GeneratedParser {
     //     | 'async' 'with' '(' ','.with_item+ ','? ')' ':' block
     //     | 'async' 'with' ','.with_item+ ':' TYPE_COMMENT? block
     //     | invalid_with_stmt
-    private Object with_stmt_rule()
+    private stmt with_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5041,7 +5522,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5061,7 +5542,7 @@ public class GeneratedParser {
                     (invalid_with_stmt_indent_var = invalid_with_stmt_indent_rule()) != null  // invalid_with_stmt_indent
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_with_stmt_indent_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5076,15 +5557,15 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object _opt_var = null;
-                List<Object> a = null;
-                List<Object> b = null;
+                List<withitem> a = null;
+                List<stmt> b = null;
                 Object tc = null;
                 if (
                     (_keyword = p.expectToken(665)) != null  // token='with'
                     &&
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
-                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<withitem>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                     &&
@@ -5104,7 +5585,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_With(a, b, NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5116,13 +5602,13 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> a = null;
-                List<Object> b = null;
+                List<withitem> a = null;
+                List<stmt> b = null;
                 Object tc = null;
                 if (
                     (_keyword = p.expectToken(665)) != null  // token='with'
                     &&
-                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<withitem>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
@@ -5138,7 +5624,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_With(a, b, NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5154,8 +5645,8 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object _opt_var = null;
-                List<Object> a = null;
-                List<Object> b = null;
+                List<withitem> a = null;
+                List<stmt> b = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
@@ -5163,7 +5654,7 @@ public class GeneratedParser {
                     &&
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
-                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<withitem>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                     &&
@@ -5181,7 +5672,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 5, "Async with statements are", _PyAST_AsyncWith(a, b, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5194,15 +5690,15 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _literal = null;
-                List<Object> a = null;
-                List<Object> b = null;
+                List<withitem> a = null;
+                List<stmt> b = null;
                 Object tc = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
                     (_keyword_1 = p.expectToken(665)) != null  // token='with'
                     &&
-                    (a = (List<Object>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
+                    (a = (List<withitem>) (List<?>) _gather_34_rule()) != null  // ','.with_item+
                     &&
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
@@ -5218,7 +5714,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 5, "Async with statements are", _PyAST_AsyncWith(a, b, NEW_TYPE_COMMENT(p, fromVoidPtr(tc)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5233,7 +5734,7 @@ public class GeneratedParser {
                     (invalid_with_stmt_var = invalid_with_stmt_rule()) != null  // invalid_with_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_with_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5248,7 +5749,7 @@ public class GeneratedParser {
     //     | expression 'as' star_target &(',' | ')' | ':')
     //     | invalid_with_item
     //     | expression
-    private Object with_item_rule()
+    private withitem with_item_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5257,7 +5758,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        withitem _res = null;
         int _mark = p.mark;
         done: {
             { // expression 'as' star_target &(',' | ')' | ':')
@@ -5266,8 +5767,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object e = null;
-                Object t = null;
+                expr e = null;
+                expr t = null;
                 if (
                     (e = expression_rule()) != null  // expression
                     &&
@@ -5278,7 +5779,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_35_rule() != null)  // &(',' | ')' | ':')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (withitem) (_PyAST_withitem(e, t, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5293,7 +5799,7 @@ public class GeneratedParser {
                     (invalid_with_item_var = invalid_with_item_rule()) != null  // invalid_with_item
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(withitem.class, invalid_with_item_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5303,12 +5809,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object e = null;
+                expr e = null;
                 if (
                     (e = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (withitem) (_PyAST_withitem(e, null, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5324,7 +5835,7 @@ public class GeneratedParser {
     //     | 'try' &&':' block finally_block
     //     | 'try' &&':' block except_block+ else_block? finally_block?
     //     | 'try' &&':' block except_star_block+ else_block? finally_block?
-    private Object try_stmt_rule()
+    private stmt try_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5333,7 +5844,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5353,7 +5864,7 @@ public class GeneratedParser {
                     (invalid_try_stmt_var = invalid_try_stmt_rule()) != null  // invalid_try_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_try_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5365,8 +5876,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
-                List<Object> f = null;
+                List<stmt> b = null;
+                List<stmt> f = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
                     &&
@@ -5384,7 +5895,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Try(b, null, null, f, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5396,9 +5912,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 Object el = null;
-                List<Object> ex = null;
+                List<excepthandler> ex = null;
                 Object f = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
@@ -5407,7 +5923,7 @@ public class GeneratedParser {
                     &&
                     (b = block_rule()) != null  // block
                     &&
-                    (ex = (List<Object>) (List<?>) _loop1_36_rule()) != null  // except_block+
+                    (ex = (List<excepthandler>) (List<?>) _loop1_36_rule()) != null  // except_block+
                     &&
                     p.opt((el = else_block_rule()))  // else_block?
                     &&
@@ -5421,7 +5937,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) (_PyAST_Try(b, ex, fromVoidPtr(el), fromVoidPtr(f), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5433,9 +5954,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 Object el = null;
-                List<Object> ex = null;
+                List<excepthandler> ex = null;
                 Object f = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
@@ -5444,7 +5965,7 @@ public class GeneratedParser {
                     &&
                     (b = block_rule()) != null  // block
                     &&
-                    (ex = (List<Object>) (List<?>) _loop1_37_rule()) != null  // except_star_block+
+                    (ex = (List<excepthandler>) (List<?>) _loop1_37_rule()) != null  // except_star_block+
                     &&
                     p.opt((el = else_block_rule()))  // else_block?
                     &&
@@ -5458,7 +5979,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 11, "Exception groups are", _PyAST_TryStar(b, ex, fromVoidPtr(el), fromVoidPtr(f), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5476,7 +6002,7 @@ public class GeneratedParser {
     //     | 'except' expressions ':' block
     //     | 'except' ':' block
     //     | invalid_except_stmt
-    private Object except_block_rule()
+    private excepthandler except_block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5485,7 +6011,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        excepthandler _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5505,7 +6031,7 @@ public class GeneratedParser {
                     (invalid_except_stmt_indent_var = invalid_except_stmt_indent_rule()) != null  // invalid_except_stmt_indent
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(excepthandler.class, invalid_except_stmt_indent_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5517,8 +6043,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
-                Object e = null;
+                List<stmt> b = null;
+                expr e = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5536,7 +6062,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) (_PyAST_ExceptHandler(e, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5549,9 +6080,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _literal = null;
-                List<Object> b = null;
-                Object e = null;
-                Object t = null;
+                List<stmt> b = null;
+                expr e = null;
+                expr t = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5573,7 +6104,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) (_PyAST_ExceptHandler(e, ((Name) ((expr) t)).id, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5585,8 +6121,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
-                Object e = null;
+                List<stmt> b = null;
+                expr e = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5604,7 +6140,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) ((excepthandler) CHECK_VERSION(p, 14, "except expressions without parentheses are", _PyAST_ExceptHandler(e, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5616,7 +6157,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> b = null;
+                List<stmt> b = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5632,7 +6173,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) (_PyAST_ExceptHandler(null, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5647,7 +6193,7 @@ public class GeneratedParser {
                     (invalid_except_stmt_var = invalid_except_stmt_rule()) != null  // invalid_except_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(excepthandler.class, invalid_except_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5664,7 +6210,7 @@ public class GeneratedParser {
     //     | 'except' '*' expression 'as' NAME ':' block
     //     | 'except' '*' expressions ':' block
     //     | invalid_except_star_stmt
-    private Object except_star_block_rule()
+    private excepthandler except_star_block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5673,7 +6219,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        excepthandler _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5693,7 +6239,7 @@ public class GeneratedParser {
                     (invalid_except_star_stmt_indent_var = invalid_except_star_stmt_indent_rule()) != null  // invalid_except_star_stmt_indent
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(excepthandler.class, invalid_except_star_stmt_indent_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5706,8 +6252,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> b = null;
-                Object e = null;
+                List<stmt> b = null;
+                expr e = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5727,7 +6273,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) (_PyAST_ExceptHandler(e, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5741,9 +6292,9 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> b = null;
-                Object e = null;
-                Object t = null;
+                List<stmt> b = null;
+                expr e = null;
+                expr t = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5767,7 +6318,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) (_PyAST_ExceptHandler(e, ((Name) ((expr) t)).id, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5780,8 +6336,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> b = null;
-                Object e = null;
+                List<stmt> b = null;
+                expr e = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -5801,7 +6357,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (excepthandler) ((excepthandler) CHECK_VERSION(p, 14, "except expressions without parentheses are", _PyAST_ExceptHandler(e, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5816,7 +6377,7 @@ public class GeneratedParser {
                     (invalid_except_star_stmt_var = invalid_except_star_stmt_rule()) != null  // invalid_except_star_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(excepthandler.class, invalid_except_star_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5828,7 +6389,7 @@ public class GeneratedParser {
     }
 
     // finally_block: invalid_finally_stmt | 'finally' &&':' block
-    private List<Object> finally_block_rule()
+    private List<stmt> finally_block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5837,7 +6398,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<stmt> _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_finally_stmt
@@ -5850,7 +6411,7 @@ public class GeneratedParser {
                     (invalid_finally_stmt_var = invalid_finally_stmt_rule()) != null  // invalid_finally_stmt
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) voidAsList(invalid_finally_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5862,7 +6423,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> a = null;
+                List<stmt> a = null;
                 if (
                     (_keyword = p.expectToken(691)) != null  // token='finally'
                     &&
@@ -5871,7 +6432,12 @@ public class GeneratedParser {
                     (a = block_rule()) != null  // block
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<stmt>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5885,7 +6451,7 @@ public class GeneratedParser {
     // match_stmt:
     //     | "match" subject_expr ':' NEWLINE INDENT case_block+ DEDENT
     //     | invalid_match_stmt
-    private Object match_stmt_rule()
+    private stmt match_stmt_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5894,7 +6460,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5909,13 +6475,13 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 Token _literal = null;
-                List<Object> cases = null;
+                List<match_case> cases = null;
                 Token dedent_var = null;
                 Token indent_var = null;
                 Token newline_var = null;
-                Object subject = null;
+                expr subject = null;
                 if (
                     (_keyword = p.expectSoftKeyword("match")) != null  // soft_keyword='"match"'
                     &&
@@ -5927,7 +6493,7 @@ public class GeneratedParser {
                     &&
                     (indent_var = p.expectToken(INDENT)) != null  // token='INDENT'
                     &&
-                    (cases = (List<Object>) (List<?>) _loop1_38_rule()) != null  // case_block+
+                    (cases = (List<match_case>) (List<?>) _loop1_38_rule()) != null  // case_block+
                     &&
                     (dedent_var = p.expectToken(DEDENT)) != null  // token='DEDENT'
                 )
@@ -5939,7 +6505,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 10, "Pattern matching is", _PyAST_Match(subject, cases, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -5954,7 +6525,7 @@ public class GeneratedParser {
                     (invalid_match_stmt_var = invalid_match_stmt_rule()) != null  // invalid_match_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(stmt.class, invalid_match_stmt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -5966,7 +6537,7 @@ public class GeneratedParser {
     }
 
     // subject_expr: star_named_expression ',' star_named_expressions? | named_expression
-    private Object subject_expr_rule()
+    private expr subject_expr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -5975,7 +6546,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -5991,7 +6562,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object value = null;
+                expr value = null;
                 Object values = null;
                 if (
                     (value = star_named_expression_rule()) != null  // star_named_expression
@@ -6008,7 +6579,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, value, fromVoidPtr(values))), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6018,12 +6594,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 if (
                     (named_expression_var = named_expression_rule()) != null  // named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) named_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6035,7 +6611,7 @@ public class GeneratedParser {
     }
 
     // case_block: invalid_case_block | "case" patterns guard? ':' block
-    private Object case_block_rule()
+    private match_case case_block_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6044,7 +6620,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        match_case _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_case_block
@@ -6057,7 +6633,7 @@ public class GeneratedParser {
                     (invalid_case_block_var = invalid_case_block_rule()) != null  // invalid_case_block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(match_case.class, invalid_case_block_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -6067,11 +6643,11 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 Token _literal = null;
-                List<Object> body = null;
+                List<stmt> body = null;
                 Object guard = null;
-                Object pattern = null;
+                pattern pattern = null;
                 if (
                     (_keyword = p.expectSoftKeyword("case")) != null  // soft_keyword='"case"'
                     &&
@@ -6084,7 +6660,12 @@ public class GeneratedParser {
                     (body = block_rule()) != null  // block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (match_case) (_PyAST_match_case(pattern, fromVoidPtr(guard), body, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6096,7 +6677,7 @@ public class GeneratedParser {
     }
 
     // guard: 'if' named_expression
-    private Object guard_rule()
+    private expr guard_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6105,7 +6686,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // 'if' named_expression
@@ -6114,14 +6695,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object guard = null;
+                expr guard = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
                     &&
                     (guard = named_expression_rule()) != null  // named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (guard);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6133,7 +6719,7 @@ public class GeneratedParser {
     }
 
     // patterns: open_sequence_pattern | pattern
-    private Object patterns_rule()
+    private pattern patterns_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6142,7 +6728,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6157,9 +6743,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> patterns = null;
+                List<pattern> patterns = null;
                 if (
-                    (patterns = (List<Object>) (List<?>) open_sequence_pattern_rule()) != null  // open_sequence_pattern
+                    (patterns = (List<pattern>) (List<?>) open_sequence_pattern_rule()) != null  // open_sequence_pattern
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -6169,7 +6755,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSequence(patterns, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6179,12 +6770,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object pattern_var = null;
+                pattern pattern_var = null;
                 if (
                     (pattern_var = pattern_rule()) != null  // pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6196,7 +6787,7 @@ public class GeneratedParser {
     }
 
     // pattern: as_pattern | or_pattern
-    private Object pattern_rule()
+    private pattern pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6205,7 +6796,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         done: {
             { // as_pattern
@@ -6213,12 +6804,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object as_pattern_var = null;
+                pattern as_pattern_var = null;
                 if (
                     (as_pattern_var = as_pattern_rule()) != null  // as_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) as_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6228,12 +6819,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object or_pattern_var = null;
+                pattern or_pattern_var = null;
                 if (
                     (or_pattern_var = or_pattern_rule()) != null  // or_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) or_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6245,7 +6836,7 @@ public class GeneratedParser {
     }
 
     // as_pattern: or_pattern 'as' pattern_capture_target | invalid_as_pattern
-    private Object as_pattern_rule()
+    private pattern as_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6254,7 +6845,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6270,8 +6861,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object pattern = null;
-                Object target = null;
+                pattern pattern = null;
+                expr target = null;
                 if (
                     (pattern = or_pattern_rule()) != null  // or_pattern
                     &&
@@ -6287,7 +6878,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchAs(pattern, ((Name) target).id, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6302,7 +6898,7 @@ public class GeneratedParser {
                     (invalid_as_pattern_var = invalid_as_pattern_rule()) != null  // invalid_as_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(pattern.class, invalid_as_pattern_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -6314,7 +6910,7 @@ public class GeneratedParser {
     }
 
     // or_pattern: '|'.closed_pattern+
-    private Object or_pattern_rule()
+    private pattern or_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6323,7 +6919,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6338,9 +6934,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> patterns = null;
+                List<pattern> patterns = null;
                 if (
-                    (patterns = (List<Object>) (List<?>) _gather_40_rule()) != null  // '|'.closed_pattern+
+                    (patterns = (List<pattern>) (List<?>) _gather_40_rule()) != null  // '|'.closed_pattern+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -6350,7 +6946,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (asdl_seq_LEN(patterns) == 1 ? asdl_seq_GET(patterns, 0) : _PyAST_MatchOr(patterns, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6370,7 +6971,7 @@ public class GeneratedParser {
     //     | sequence_pattern
     //     | mapping_pattern
     //     | class_pattern
-    private Object closed_pattern_rule()
+    private pattern closed_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6379,10 +6980,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         Parser.Memo _memo = p.isMemoized(closed_pattern_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (pattern) _memo.node;
             p.level--;
             return _res;
         }
@@ -6393,12 +6994,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object literal_pattern_var = null;
+                pattern literal_pattern_var = null;
                 if (
                     (literal_pattern_var = literal_pattern_rule()) != null  // literal_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) literal_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6408,12 +7009,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object capture_pattern_var = null;
+                pattern capture_pattern_var = null;
                 if (
                     (capture_pattern_var = capture_pattern_rule()) != null  // capture_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) capture_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6423,12 +7024,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object wildcard_pattern_var = null;
+                pattern wildcard_pattern_var = null;
                 if (
                     (wildcard_pattern_var = wildcard_pattern_rule()) != null  // wildcard_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) wildcard_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6438,12 +7039,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object value_pattern_var = null;
+                pattern value_pattern_var = null;
                 if (
                     (value_pattern_var = value_pattern_rule()) != null  // value_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) value_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6453,12 +7054,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object group_pattern_var = null;
+                pattern group_pattern_var = null;
                 if (
                     (group_pattern_var = group_pattern_rule()) != null  // group_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) group_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6468,12 +7069,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object sequence_pattern_var = null;
+                pattern sequence_pattern_var = null;
                 if (
                     (sequence_pattern_var = sequence_pattern_rule()) != null  // sequence_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) sequence_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6483,12 +7084,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object mapping_pattern_var = null;
+                pattern mapping_pattern_var = null;
                 if (
                     (mapping_pattern_var = mapping_pattern_rule()) != null  // mapping_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) mapping_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6498,12 +7099,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object class_pattern_var = null;
+                pattern class_pattern_var = null;
                 if (
                     (class_pattern_var = class_pattern_rule()) != null  // class_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) class_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6522,7 +7123,7 @@ public class GeneratedParser {
     //     | 'None'
     //     | 'True'
     //     | 'False'
-    private Object literal_pattern_rule()
+    private pattern literal_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6531,7 +7132,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6546,7 +7147,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object value = null;
+                expr value = null;
                 if (
                     (value = signed_number_rule()) != null  // signed_number
                     &&
@@ -6560,7 +7161,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchValue(value, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6570,7 +7176,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object value = null;
+                expr value = null;
                 if (
                     (value = complex_number_rule()) != null  // complex_number
                 )
@@ -6582,7 +7188,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchValue(value, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6592,7 +7203,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object value = null;
+                expr value = null;
                 if (
                     (value = strings_rule()) != null  // strings
                 )
@@ -6604,7 +7215,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchValue(value, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6626,7 +7242,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSingleton(Py_None, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6648,7 +7269,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSingleton(Py_True, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6670,7 +7296,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSingleton(Py_False, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6688,7 +7319,7 @@ public class GeneratedParser {
     //     | 'None'
     //     | 'True'
     //     | 'False'
-    private Object literal_expr_rule()
+    private expr literal_expr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6697,7 +7328,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6712,14 +7343,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object signed_number_var = null;
+                expr signed_number_var = null;
                 if (
                     (signed_number_var = signed_number_rule()) != null  // signed_number
                     &&
                     p.lookahead(false, p.mark, _tmp_41_rule() != null)  // !('+' | '-')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) signed_number_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6729,12 +7360,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object complex_number_var = null;
+                expr complex_number_var = null;
                 if (
                     (complex_number_var = complex_number_rule()) != null  // complex_number
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) complex_number_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6744,14 +7375,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object strings_var = null;
+                expr strings_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_42_rule() != null)  // &(STRING | FSTRING_START | TSTRING_START)
                     &&
                     (strings_var = strings_rule()) != null  // strings
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) strings_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6773,7 +7404,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_None, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6795,7 +7431,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_True, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6817,7 +7458,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_False, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6831,7 +7477,7 @@ public class GeneratedParser {
     // complex_number:
     //     | signed_real_number '+' imaginary_number
     //     | signed_real_number '-' imaginary_number
-    private Object complex_number_rule()
+    private expr complex_number_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6840,7 +7486,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6856,8 +7502,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object imag = null;
-                Object real = null;
+                expr imag = null;
+                expr real = null;
                 if (
                     (real = signed_real_number_rule()) != null  // signed_real_number
                     &&
@@ -6873,7 +7519,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(real, Add, imag, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6884,8 +7535,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object imag = null;
-                Object real = null;
+                expr imag = null;
+                expr real = null;
                 if (
                     (real = signed_real_number_rule()) != null  // signed_real_number
                     &&
@@ -6901,7 +7552,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(real, Sub, imag, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6913,7 +7569,7 @@ public class GeneratedParser {
     }
 
     // signed_number: NUMBER | '+' NUMBER | '-' NUMBER
-    private Object signed_number_rule()
+    private expr signed_number_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -6922,7 +7578,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -6937,12 +7593,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object number_var = null;
+                expr number_var = null;
                 if (
                     (number_var = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) number_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -6953,14 +7609,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object number = null;
+                expr number = null;
                 if (
                     (_literal = p.expectToken(14)) != null  // token='+'
                     &&
                     (number = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (number);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6971,7 +7632,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object number = null;
+                expr number = null;
                 if (
                     (_literal = p.expectToken(15)) != null  // token='-'
                     &&
@@ -6985,7 +7646,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(USub, number, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -6997,7 +7663,7 @@ public class GeneratedParser {
     }
 
     // signed_real_number: real_number | '+' real_number | '-' real_number
-    private Object signed_real_number_rule()
+    private expr signed_real_number_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7006,7 +7672,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7021,12 +7687,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object real_number_var = null;
+                expr real_number_var = null;
                 if (
                     (real_number_var = real_number_rule()) != null  // real_number
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) real_number_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -7037,14 +7703,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object real = null;
+                expr real = null;
                 if (
                     (_literal = p.expectToken(14)) != null  // token='+'
                     &&
                     (real = real_number_rule()) != null  // real_number
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (real);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7055,7 +7726,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object real = null;
+                expr real = null;
                 if (
                     (_literal = p.expectToken(15)) != null  // token='-'
                     &&
@@ -7069,7 +7740,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(USub, real, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7081,7 +7757,7 @@ public class GeneratedParser {
     }
 
     // real_number: NUMBER
-    private Object real_number_rule()
+    private expr real_number_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7090,7 +7766,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // NUMBER
@@ -7098,12 +7774,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object real = null;
+                expr real = null;
                 if (
                     (real = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_ensure_real(p, real));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7115,7 +7796,7 @@ public class GeneratedParser {
     }
 
     // imaginary_number: NUMBER
-    private Object imaginary_number_rule()
+    private expr imaginary_number_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7124,7 +7805,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // NUMBER
@@ -7132,12 +7813,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object imag = null;
+                expr imag = null;
                 if (
                     (imag = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_ensure_imaginary(p, imag));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7149,7 +7835,7 @@ public class GeneratedParser {
     }
 
     // capture_pattern: pattern_capture_target
-    private Object capture_pattern_rule()
+    private pattern capture_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7158,7 +7844,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7173,7 +7859,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object target = null;
+                expr target = null;
                 if (
                     (target = pattern_capture_target_rule()) != null  // pattern_capture_target
                 )
@@ -7185,7 +7871,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchAs(null, ((Name) target).id, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7197,7 +7888,7 @@ public class GeneratedParser {
     }
 
     // pattern_capture_target: !"_" NAME !('.' | '(' | '=')
-    private Object pattern_capture_target_rule()
+    private expr pattern_capture_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7206,7 +7897,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // !"_" NAME !('.' | '(' | '=')
@@ -7214,7 +7905,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object name = null;
+                expr name = null;
                 if (
                     p.lookahead(false, p.mark, p.expectSoftKeyword("_") != null)  // !"_"
                     &&
@@ -7223,7 +7914,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_43_rule() != null)  // !('.' | '(' | '=')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, name, Store));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7235,7 +7931,7 @@ public class GeneratedParser {
     }
 
     // wildcard_pattern: "_"
-    private Object wildcard_pattern_rule()
+    private pattern wildcard_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7244,7 +7940,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7259,7 +7955,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 if (
                     (_keyword = p.expectSoftKeyword("_")) != null  // soft_keyword='"_"'
                 )
@@ -7271,7 +7967,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchAs(null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7283,7 +7984,7 @@ public class GeneratedParser {
     }
 
     // value_pattern: attr !('.' | '(' | '=')
-    private Object value_pattern_rule()
+    private pattern value_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7292,7 +7993,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7307,7 +8008,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object attr = null;
+                expr attr = null;
                 if (
                     (attr = attr_rule()) != null  // attr
                     &&
@@ -7321,7 +8022,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchValue(attr, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7334,15 +8040,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // attr: name_or_attr '.' NAME
-    private Object attr_rule()
+    private expr attr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(attr_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -7351,7 +8057,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, attr_type, _res);
             p.mark = _mark;
-            Object _raw = attr_raw();
+            expr _raw = attr_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -7367,7 +8073,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object attr_raw()
+    private expr attr_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7376,7 +8082,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7392,8 +8098,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object attr = null;
-                Object value = null;
+                expr attr = null;
+                expr value = null;
                 if (
                     (value = name_or_attr_rule()) != null  // name_or_attr
                     &&
@@ -7409,7 +8115,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(value, ((Name) attr).id, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7422,7 +8133,7 @@ public class GeneratedParser {
 
     // Left-recursive
     // name_or_attr: attr | NAME
-    private Object name_or_attr_rule()
+    private expr name_or_attr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7431,7 +8142,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // attr
@@ -7439,12 +8150,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object attr_var = null;
+                expr attr_var = null;
                 if (
                     (attr_var = attr_rule()) != null  // attr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) attr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -7454,12 +8165,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) name_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -7471,7 +8182,7 @@ public class GeneratedParser {
     }
 
     // group_pattern: '(' pattern ')'
-    private Object group_pattern_rule()
+    private pattern group_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7480,7 +8191,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         done: {
             { // '(' pattern ')'
@@ -7490,7 +8201,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object pattern = null;
+                pattern pattern = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -7499,7 +8210,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) (pattern);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7511,7 +8227,7 @@ public class GeneratedParser {
     }
 
     // sequence_pattern: '[' maybe_sequence_pattern? ']' | '(' open_sequence_pattern? ')'
-    private Object sequence_pattern_rule()
+    private pattern sequence_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7520,7 +8236,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7553,7 +8269,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSequence(fromVoidPtr(patterns), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7581,7 +8302,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchSequence(fromVoidPtr(patterns), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7611,7 +8337,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object pattern = null;
+                pattern pattern = null;
                 Object patterns = null;
                 if (
                     (pattern = maybe_star_pattern_rule()) != null  // maybe_star_pattern
@@ -7621,7 +8347,12 @@ public class GeneratedParser {
                     p.opt((patterns = maybe_sequence_pattern_rule()))  // maybe_sequence_pattern?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) (_PyPegen_seq_insert_in_front(p, pattern, fromVoidPtr(patterns)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7658,7 +8389,12 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) (patterns);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7670,7 +8406,7 @@ public class GeneratedParser {
     }
 
     // maybe_star_pattern: star_pattern | pattern
-    private Object maybe_star_pattern_rule()
+    private pattern maybe_star_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7679,7 +8415,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         done: {
             { // star_pattern
@@ -7687,12 +8423,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_pattern_var = null;
+                pattern star_pattern_var = null;
                 if (
                     (star_pattern_var = star_pattern_rule()) != null  // star_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) star_pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -7702,12 +8438,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object pattern_var = null;
+                pattern pattern_var = null;
                 if (
                     (pattern_var = pattern_rule()) != null  // pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (pattern) pattern_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -7719,7 +8455,7 @@ public class GeneratedParser {
     }
 
     // star_pattern: '*' pattern_capture_target | '*' wildcard_pattern
-    private Object star_pattern_rule()
+    private pattern star_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7728,10 +8464,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         Parser.Memo _memo = p.isMemoized(star_pattern_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (pattern) _memo.node;
             p.level--;
             return _res;
         }
@@ -7750,7 +8486,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object target = null;
+                expr target = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -7764,7 +8500,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchStar(((Name) target).id, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7775,7 +8516,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object wildcard_pattern_var = null;
+                pattern wildcard_pattern_var = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -7789,7 +8530,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchStar(null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7807,7 +8553,7 @@ public class GeneratedParser {
     //     | '{' items_pattern ',' double_star_pattern ','? '}'
     //     | '{' items_pattern ','? '}'
     //     | invalid_mapping_pattern
-    private Object mapping_pattern_rule()
+    private pattern mapping_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -7816,7 +8562,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -7846,7 +8592,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchMapping(null, null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7859,7 +8610,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Object _opt_var = null;
-                Object rest = null;
+                expr rest = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -7877,7 +8628,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchMapping(null, null, ((Name) rest).id, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7892,7 +8648,7 @@ public class GeneratedParser {
                 Token _literal_2 = null;
                 Object _opt_var = null;
                 List<Object> items = null;
-                Object rest = null;
+                expr rest = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -7914,7 +8670,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchMapping((List<expr>) (List<?>) CHECK(p, _PyPegen_get_pattern_keys(p, items)), (List<pattern>) (List<?>) CHECK(p, _PyPegen_get_patterns(p, items)), ((Name) rest).id, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7945,7 +8706,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchMapping((List<expr>) (List<?>) CHECK(p, _PyPegen_get_pattern_keys(p, items)), (List<pattern>) (List<?>) CHECK(p, _PyPegen_get_patterns(p, items)), null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -7960,7 +8726,7 @@ public class GeneratedParser {
                     (invalid_mapping_pattern_var = invalid_mapping_pattern_rule()) != null  // invalid_mapping_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(pattern.class, invalid_mapping_pattern_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -7994,7 +8760,7 @@ public class GeneratedParser {
                     (_gather_47_var = _gather_47_rule()) != null  // ','.key_value_pattern+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) _gather_47_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8006,7 +8772,7 @@ public class GeneratedParser {
     }
 
     // key_value_pattern: (literal_expr | attr) ':' pattern
-    private Object key_value_pattern_rule()
+    private KeyPatternPair key_value_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8015,7 +8781,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeyPatternPair _res = null;
         int _mark = p.mark;
         done: {
             { // (literal_expr | attr) ':' pattern
@@ -8025,7 +8791,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object key = null;
-                Object pattern = null;
+                pattern pattern = null;
                 if (
                     (key = _tmp_48_rule()) != null  // literal_expr | attr
                     &&
@@ -8034,7 +8800,12 @@ public class GeneratedParser {
                     (pattern = pattern_rule()) != null  // pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeyPatternPair) (_PyPegen_key_pattern_pair(p, fromVoidPtr(key), pattern));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8046,7 +8817,7 @@ public class GeneratedParser {
     }
 
     // double_star_pattern: '**' pattern_capture_target
-    private Object double_star_pattern_rule()
+    private expr double_star_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8055,7 +8826,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // '**' pattern_capture_target
@@ -8064,14 +8835,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object target = null;
+                expr target = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
                     (target = pattern_capture_target_rule()) != null  // pattern_capture_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (target);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8088,7 +8864,7 @@ public class GeneratedParser {
     //     | name_or_attr '(' keyword_patterns ','? ')'
     //     | name_or_attr '(' positional_patterns ',' keyword_patterns ','? ')'
     //     | invalid_class_pattern
-    private Object class_pattern_rule()
+    private pattern class_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8097,7 +8873,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        pattern _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -8114,7 +8890,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object cls = null;
+                expr cls = null;
                 if (
                     (cls = name_or_attr_rule()) != null  // name_or_attr
                     &&
@@ -8130,7 +8906,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchClass(cls, null, null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8143,8 +8924,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Object _opt_var = null;
-                Object cls = null;
-                List<Object> patterns = null;
+                expr cls = null;
+                List<pattern> patterns = null;
                 if (
                     (cls = name_or_attr_rule()) != null  // name_or_attr
                     &&
@@ -8164,7 +8945,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchClass(cls, patterns, null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8177,7 +8963,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Object _opt_var = null;
-                Object cls = null;
+                expr cls = null;
                 List<Object> keywords = null;
                 if (
                     (cls = name_or_attr_rule()) != null  // name_or_attr
@@ -8198,7 +8984,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchClass(cls, null, (List<String>) (List<?>) CHECK(p, _PyPegen_map_names_to_ids(p, (List<expr>) (List<?>) CHECK(p, _PyPegen_get_pattern_keys(p, keywords)))), (List<pattern>) (List<?>) CHECK(p, _PyPegen_get_patterns(p, keywords)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8212,9 +9003,9 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Token _literal_2 = null;
                 Object _opt_var = null;
-                Object cls = null;
+                expr cls = null;
                 List<Object> keywords = null;
-                List<Object> patterns = null;
+                List<pattern> patterns = null;
                 if (
                     (cls = name_or_attr_rule()) != null  // name_or_attr
                     &&
@@ -8238,7 +9029,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (pattern) (_PyAST_MatchClass(cls, patterns, (List<String>) (List<?>) CHECK(p, _PyPegen_map_names_to_ids(p, (List<expr>) (List<?>) CHECK(p, _PyPegen_get_pattern_keys(p, keywords)))), (List<pattern>) (List<?>) CHECK(p, _PyPegen_get_patterns(p, keywords)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8253,7 +9049,7 @@ public class GeneratedParser {
                     (invalid_class_pattern_var = invalid_class_pattern_rule()) != null  // invalid_class_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(pattern.class, invalid_class_pattern_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8265,7 +9061,7 @@ public class GeneratedParser {
     }
 
     // positional_patterns: ','.pattern+
-    private List<Object> positional_patterns_rule()
+    private List<pattern> positional_patterns_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8274,7 +9070,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<pattern> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.pattern+
@@ -8282,12 +9078,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> args = null;
+                List<pattern> args = null;
                 if (
-                    (args = (List<Object>) (List<?>) _gather_50_rule()) != null  // ','.pattern+
+                    (args = (List<pattern>) (List<?>) _gather_50_rule()) != null  // ','.pattern+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<pattern>) (List<?>) (args);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8321,7 +9122,7 @@ public class GeneratedParser {
                     (_gather_52_var = _gather_52_rule()) != null  // ','.keyword_pattern+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) _gather_52_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8333,7 +9134,7 @@ public class GeneratedParser {
     }
 
     // keyword_pattern: NAME '=' pattern
-    private Object keyword_pattern_rule()
+    private KeyPatternPair keyword_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8342,7 +9143,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeyPatternPair _res = null;
         int _mark = p.mark;
         done: {
             { // NAME '=' pattern
@@ -8351,8 +9152,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object arg = null;
-                Object value = null;
+                expr arg = null;
+                pattern value = null;
                 if (
                     (arg = p.nameToken()) != null  // NAME
                     &&
@@ -8361,7 +9162,12 @@ public class GeneratedParser {
                     (value = pattern_rule()) != null  // pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeyPatternPair) (_PyPegen_key_pattern_pair(p, arg, value));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8373,7 +9179,7 @@ public class GeneratedParser {
     }
 
     // type_alias: "type" NAME type_params? '=' expression
-    private Object type_alias_rule()
+    private stmt type_alias_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8382,7 +9188,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        stmt _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -8397,10 +9203,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 Token _literal = null;
-                Object b = null;
-                Object n = null;
+                expr b = null;
+                expr n = null;
                 Object t = null;
                 if (
                     (_keyword = p.expectSoftKeyword("type")) != null  // soft_keyword='"type"'
@@ -8421,7 +9227,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (stmt) ((stmt) CHECK_VERSION(p, 12, "Type statement is", _PyAST_TypeAlias((expr) CHECK(p, _PyPegen_set_expr_context(p, n, Store)), fromVoidPtr(t), b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8433,7 +9244,7 @@ public class GeneratedParser {
     }
 
     // type_params: invalid_type_params | '[' type_param_seq ']'
-    private List<Object> type_params_rule()
+    private List<type_param> type_params_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8442,7 +9253,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<type_param> _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_type_params
@@ -8455,7 +9266,7 @@ public class GeneratedParser {
                     (invalid_type_params_var = invalid_type_params_rule()) != null  // invalid_type_params
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<type_param>) (List<?>) voidAsList(invalid_type_params_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8467,7 +9278,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> t = null;
+                List<type_param> t = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -8476,7 +9287,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(10)) != null  // token=']'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<type_param>) (List<?>) ((List<type_param>) (List<?>) CHECK_VERSION(p, 12, "Type parameter lists are", t));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8488,7 +9304,7 @@ public class GeneratedParser {
     }
 
     // type_param_seq: ','.type_param+ ','?
-    private List<Object> type_param_seq_rule()
+    private List<type_param> type_param_seq_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8497,7 +9313,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<type_param> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.type_param+ ','?
@@ -8506,14 +9322,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<type_param> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_54_rule()) != null  // ','.type_param+
+                    (a = (List<type_param>) (List<?>) _gather_54_rule()) != null  // ','.type_param+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<type_param>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8529,7 +9350,7 @@ public class GeneratedParser {
     //     | invalid_type_param
     //     | '*' NAME type_param_starred_default?
     //     | '**' NAME type_param_default?
-    private Object type_param_rule()
+    private type_param type_param_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8538,10 +9359,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        type_param _res = null;
         Parser.Memo _memo = p.isMemoized(type_param_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (type_param) _memo.node;
             p.level--;
             return _res;
         }
@@ -8559,7 +9380,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 Object c = null;
                 if (
@@ -8577,7 +9398,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (type_param) (_PyAST_TypeVar(((Name) a).id, fromVoidPtr(b), fromVoidPtr(c), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8592,7 +9418,7 @@ public class GeneratedParser {
                     (invalid_type_param_var = invalid_type_param_rule()) != null  // invalid_type_param
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(type_param.class, invalid_type_param_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8603,7 +9429,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
@@ -8620,7 +9446,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (type_param) (_PyAST_TypeVarTuple(((Name) a).id, fromVoidPtr(b), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8631,7 +9462,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
@@ -8648,7 +9479,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (type_param) (_PyAST_ParamSpec(((Name) a).id, fromVoidPtr(b), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8661,7 +9497,7 @@ public class GeneratedParser {
     }
 
     // type_param_bound: ':' expression
-    private Object type_param_bound_rule()
+    private expr type_param_bound_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8670,7 +9506,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // ':' expression
@@ -8679,14 +9515,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object e = null;
+                expr e = null;
                 if (
                     (_literal = p.expectToken(11)) != null  // token=':'
                     &&
                     (e = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (e);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8698,7 +9539,7 @@ public class GeneratedParser {
     }
 
     // type_param_default: '=' expression
-    private Object type_param_default_rule()
+    private expr type_param_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8707,7 +9548,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // '=' expression
@@ -8716,14 +9557,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object e = null;
+                expr e = null;
                 if (
                     (_literal = p.expectToken(22)) != null  // token='='
                     &&
                     (e = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 13, "Type parameter defaults are", e));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8735,7 +9581,7 @@ public class GeneratedParser {
     }
 
     // type_param_starred_default: '=' star_expression
-    private Object type_param_starred_default_rule()
+    private expr type_param_starred_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8744,7 +9590,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // '=' star_expression
@@ -8753,14 +9599,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object e = null;
+                expr e = null;
                 if (
                     (_literal = p.expectToken(22)) != null  // token='='
                     &&
                     (e = star_expression_rule()) != null  // star_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 13, "Type parameter defaults are", e));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8772,7 +9623,7 @@ public class GeneratedParser {
     }
 
     // expressions: expression ((',' expression))+ ','? | expression ',' | expression
-    private Object expressions_rule()
+    private expr expressions_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8781,7 +9632,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -8797,7 +9648,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = expression_rule()) != null  // expression
@@ -8814,7 +9665,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, a, b)), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8825,7 +9681,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
@@ -8839,7 +9695,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_singleton_seq(p, a)), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -8849,12 +9710,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8872,7 +9733,7 @@ public class GeneratedParser {
     //     | if_expression
     //     | disjunction
     //     | lambdef
-    private Object expression_rule()
+    private expr expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8881,10 +9742,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(expression_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -8900,7 +9761,7 @@ public class GeneratedParser {
                     (invalid_if_expression_var = invalid_if_expression_rule()) != null  // invalid_if_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_if_expression_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8915,7 +9776,7 @@ public class GeneratedParser {
                     (invalid_expression_var = invalid_expression_rule()) != null  // invalid_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_expression_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8930,7 +9791,7 @@ public class GeneratedParser {
                     (invalid_legacy_expression_var = invalid_legacy_expression_rule()) != null  // invalid_legacy_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_legacy_expression_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -8940,12 +9801,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object if_expression_var = null;
+                expr if_expression_var = null;
                 if (
                     (if_expression_var = if_expression_rule()) != null  // if_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) if_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8955,12 +9816,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object disjunction_var = null;
+                expr disjunction_var = null;
                 if (
                     (disjunction_var = disjunction_rule()) != null  // disjunction
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) disjunction_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8970,12 +9831,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambdef_var = null;
+                expr lambdef_var = null;
                 if (
                     (lambdef_var = lambdef_rule()) != null  // lambdef
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) lambdef_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -8988,7 +9849,7 @@ public class GeneratedParser {
     }
 
     // if_expression: disjunction 'if' disjunction 'else' expression
-    private Object if_expression_rule()
+    private expr if_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -8997,7 +9858,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9014,9 +9875,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
-                Object c = null;
+                expr a = null;
+                expr b = null;
+                expr c = null;
                 if (
                     (a = disjunction_rule()) != null  // disjunction
                     &&
@@ -9036,7 +9897,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_IfExp(b, a, c, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9048,7 +9914,7 @@ public class GeneratedParser {
     }
 
     // yield_expr: 'yield' 'from' expression | 'yield' star_expressions?
-    private Object yield_expr_rule()
+    private expr yield_expr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9057,7 +9923,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9074,7 +9940,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(588)) != null  // token='yield'
                     &&
@@ -9090,7 +9956,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_YieldFrom(a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9115,7 +9986,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Yield(fromVoidPtr(a), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9130,7 +10006,7 @@ public class GeneratedParser {
     //     | star_expression ((',' star_expression))+ ','?
     //     | star_expression ','
     //     | star_expression
-    private Object star_expressions_rule()
+    private expr star_expressions_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9139,7 +10015,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9155,7 +10031,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = star_expression_rule()) != null  // star_expression
@@ -9172,7 +10048,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, a, b)), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9183,7 +10064,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (a = star_expression_rule()) != null  // star_expression
                     &&
@@ -9197,7 +10078,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_singleton_seq(p, a)), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9207,12 +10093,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_expression_var = null;
+                expr star_expression_var = null;
                 if (
                     (star_expression_var = star_expression_rule()) != null  // star_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) star_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9224,7 +10110,7 @@ public class GeneratedParser {
     }
 
     // star_expression: '*' bitwise_or | expression
-    private Object star_expression_rule()
+    private expr star_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9233,10 +10119,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(star_expression_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -9255,7 +10141,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -9269,7 +10155,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Starred(a, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9279,12 +10170,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9297,7 +10188,7 @@ public class GeneratedParser {
     }
 
     // star_named_expressions: ','.star_named_expression+ ','?
-    private List<Object> star_named_expressions_rule()
+    private List<expr> star_named_expressions_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9306,7 +10197,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.star_named_expression+ ','?
@@ -9315,14 +10206,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_58_rule()) != null  // ','.star_named_expression+
+                    (a = (List<expr>) (List<?>) _gather_58_rule()) != null  // ','.star_named_expression+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9334,7 +10230,7 @@ public class GeneratedParser {
     }
 
     // star_named_expressions_sequence: ','.star_named_expression_sequence+ ','?
-    private List<Object> star_named_expressions_sequence_rule()
+    private List<expr> star_named_expressions_sequence_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9343,7 +10239,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.star_named_expression_sequence+ ','?
@@ -9352,14 +10248,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_60_rule()) != null  // ','.star_named_expression_sequence+
+                    (a = (List<expr>) (List<?>) _gather_60_rule()) != null  // ','.star_named_expression_sequence+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9371,7 +10272,7 @@ public class GeneratedParser {
     }
 
     // star_named_expression: '*' bitwise_or | named_expression
-    private Object star_named_expression_rule()
+    private expr star_named_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9380,7 +10281,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9396,7 +10297,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -9410,7 +10311,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Starred(a, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9420,12 +10326,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 if (
                     (named_expression_var = named_expression_rule()) != null  // named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) named_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9439,7 +10345,7 @@ public class GeneratedParser {
     // star_named_expression_sequence:
     //     | invalid_starred_expression_unpacking_sequence
     //     | star_named_expression
-    private Object star_named_expression_sequence_rule()
+    private expr star_named_expression_sequence_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9448,7 +10354,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_starred_expression_unpacking_sequence
@@ -9461,7 +10367,7 @@ public class GeneratedParser {
                     (invalid_starred_expression_unpacking_sequence_var = invalid_starred_expression_unpacking_sequence_rule()) != null  // invalid_starred_expression_unpacking_sequence
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_starred_expression_unpacking_sequence_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -9471,12 +10377,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_named_expression_var = null;
+                expr star_named_expression_var = null;
                 if (
                     (star_named_expression_var = star_named_expression_rule()) != null  // star_named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) star_named_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9488,7 +10394,7 @@ public class GeneratedParser {
     }
 
     // assignment_expression: NAME ':=' ~ expression
-    private Object assignment_expression_rule()
+    private expr assignment_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9497,7 +10403,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9514,8 +10420,8 @@ public class GeneratedParser {
                 }
                 boolean _cut_var = false;
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -9533,7 +10439,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 8, "Assignment expressions are", _PyAST_NamedExpr((expr) CHECK(p, _PyPegen_set_expr_context(p, a, Store)), b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9549,7 +10460,7 @@ public class GeneratedParser {
     }
 
     // named_expression: assignment_expression | invalid_named_expression | expression !':='
-    private Object named_expression_rule()
+    private expr named_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9558,7 +10469,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // assignment_expression
@@ -9566,12 +10477,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object assignment_expression_var = null;
+                expr assignment_expression_var = null;
                 if (
                     (assignment_expression_var = assignment_expression_rule()) != null  // assignment_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) assignment_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9586,7 +10497,7 @@ public class GeneratedParser {
                     (invalid_named_expression_var = invalid_named_expression_rule()) != null  // invalid_named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_named_expression_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -9596,14 +10507,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     p.lookahead(false, p.mark, p.expectToken(53) != null)  // !':='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9615,7 +10526,7 @@ public class GeneratedParser {
     }
 
     // disjunction: conjunction (('or' conjunction))+ | conjunction
-    private Object disjunction_rule()
+    private expr disjunction_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9624,10 +10535,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(disjunction_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -9645,7 +10556,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = conjunction_rule()) != null  // conjunction
@@ -9660,7 +10571,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BoolOp(Or, (List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, a, b)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9670,12 +10586,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object conjunction_var = null;
+                expr conjunction_var = null;
                 if (
                     (conjunction_var = conjunction_rule()) != null  // conjunction
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) conjunction_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9688,7 +10604,7 @@ public class GeneratedParser {
     }
 
     // conjunction: inversion (('and' inversion))+ | inversion
-    private Object conjunction_rule()
+    private expr conjunction_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9697,10 +10613,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(conjunction_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -9718,7 +10634,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = inversion_rule()) != null  // inversion
@@ -9733,7 +10649,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BoolOp(And, (List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, a, b)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9743,12 +10664,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object inversion_var = null;
+                expr inversion_var = null;
                 if (
                     (inversion_var = inversion_rule()) != null  // inversion
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) inversion_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9761,7 +10682,7 @@ public class GeneratedParser {
     }
 
     // inversion: 'not' inversion | comparison
-    private Object inversion_rule()
+    private expr inversion_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9770,10 +10691,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(inversion_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -9792,7 +10713,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(721)) != null  // token='not'
                     &&
@@ -9806,7 +10727,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(Not, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9816,12 +10742,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object comparison_var = null;
+                expr comparison_var = null;
                 if (
                     (comparison_var = comparison_rule()) != null  // comparison
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) comparison_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9834,7 +10760,7 @@ public class GeneratedParser {
     }
 
     // comparison: bitwise_or compare_op_bitwise_or_pair+ | bitwise_or
-    private Object comparison_rule()
+    private expr comparison_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9843,7 +10769,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -9858,7 +10784,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = bitwise_or_rule()) != null  // bitwise_or
@@ -9873,7 +10799,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Compare(a, (List<cmpopType>) (List<?>) CHECK(p, _PyPegen_get_cmpops(p, b)), (List<expr>) (List<?>) CHECK(p, _PyPegen_get_exprs(p, b)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -9883,12 +10814,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object bitwise_or_var = null;
+                expr bitwise_or_var = null;
                 if (
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9910,7 +10841,7 @@ public class GeneratedParser {
     //     | in_bitwise_or
     //     | isnot_bitwise_or
     //     | is_bitwise_or
-    private Object compare_op_bitwise_or_pair_rule()
+    private CmpopExprPair compare_op_bitwise_or_pair_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -9919,7 +10850,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // eq_bitwise_or
@@ -9927,12 +10858,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object eq_bitwise_or_var = null;
+                CmpopExprPair eq_bitwise_or_var = null;
                 if (
                     (eq_bitwise_or_var = eq_bitwise_or_rule()) != null  // eq_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) eq_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9942,12 +10873,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object noteq_bitwise_or_var = null;
+                CmpopExprPair noteq_bitwise_or_var = null;
                 if (
                     (noteq_bitwise_or_var = noteq_bitwise_or_rule()) != null  // noteq_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) noteq_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9957,12 +10888,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lte_bitwise_or_var = null;
+                CmpopExprPair lte_bitwise_or_var = null;
                 if (
                     (lte_bitwise_or_var = lte_bitwise_or_rule()) != null  // lte_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) lte_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9972,12 +10903,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lt_bitwise_or_var = null;
+                CmpopExprPair lt_bitwise_or_var = null;
                 if (
                     (lt_bitwise_or_var = lt_bitwise_or_rule()) != null  // lt_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) lt_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -9987,12 +10918,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object gte_bitwise_or_var = null;
+                CmpopExprPair gte_bitwise_or_var = null;
                 if (
                     (gte_bitwise_or_var = gte_bitwise_or_rule()) != null  // gte_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) gte_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10002,12 +10933,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object gt_bitwise_or_var = null;
+                CmpopExprPair gt_bitwise_or_var = null;
                 if (
                     (gt_bitwise_or_var = gt_bitwise_or_rule()) != null  // gt_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) gt_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10017,12 +10948,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object notin_bitwise_or_var = null;
+                CmpopExprPair notin_bitwise_or_var = null;
                 if (
                     (notin_bitwise_or_var = notin_bitwise_or_rule()) != null  // notin_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) notin_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10032,12 +10963,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object in_bitwise_or_var = null;
+                CmpopExprPair in_bitwise_or_var = null;
                 if (
                     (in_bitwise_or_var = in_bitwise_or_rule()) != null  // in_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) in_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10047,12 +10978,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object isnot_bitwise_or_var = null;
+                CmpopExprPair isnot_bitwise_or_var = null;
                 if (
                     (isnot_bitwise_or_var = isnot_bitwise_or_rule()) != null  // isnot_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) isnot_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10062,12 +10993,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object is_bitwise_or_var = null;
+                CmpopExprPair is_bitwise_or_var = null;
                 if (
                     (is_bitwise_or_var = is_bitwise_or_rule()) != null  // is_bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) is_bitwise_or_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10079,7 +11010,7 @@ public class GeneratedParser {
     }
 
     // eq_bitwise_or: '==' bitwise_or
-    private Object eq_bitwise_or_rule()
+    private CmpopExprPair eq_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10088,7 +11019,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // '==' bitwise_or
@@ -10097,14 +11028,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(27)) != null  // token='=='
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, Eq, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10116,7 +11052,7 @@ public class GeneratedParser {
     }
 
     // noteq_bitwise_or: ('!=') bitwise_or
-    private Object noteq_bitwise_or_rule()
+    private CmpopExprPair noteq_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10125,7 +11061,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // ('!=') bitwise_or
@@ -10134,14 +11070,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _tmp_64_var = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_tmp_64_var = _tmp_64_rule()) != null  // '!='
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, NotEq, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10153,7 +11094,7 @@ public class GeneratedParser {
     }
 
     // lte_bitwise_or: '<=' bitwise_or
-    private Object lte_bitwise_or_rule()
+    private CmpopExprPair lte_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10162,7 +11103,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // '<=' bitwise_or
@@ -10171,14 +11112,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(29)) != null  // token='<='
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, LtE, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10190,7 +11136,7 @@ public class GeneratedParser {
     }
 
     // lt_bitwise_or: '<' bitwise_or
-    private Object lt_bitwise_or_rule()
+    private CmpopExprPair lt_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10199,7 +11145,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // '<' bitwise_or
@@ -10208,14 +11154,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(20)) != null  // token='<'
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, Lt, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10227,7 +11178,7 @@ public class GeneratedParser {
     }
 
     // gte_bitwise_or: '>=' bitwise_or
-    private Object gte_bitwise_or_rule()
+    private CmpopExprPair gte_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10236,7 +11187,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // '>=' bitwise_or
@@ -10245,14 +11196,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(30)) != null  // token='>='
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, GtE, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10264,7 +11220,7 @@ public class GeneratedParser {
     }
 
     // gt_bitwise_or: '>' bitwise_or
-    private Object gt_bitwise_or_rule()
+    private CmpopExprPair gt_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10273,7 +11229,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // '>' bitwise_or
@@ -10282,14 +11238,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(21)) != null  // token='>'
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, Gt, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10301,7 +11262,7 @@ public class GeneratedParser {
     }
 
     // notin_bitwise_or: 'not' 'in' bitwise_or
-    private Object notin_bitwise_or_rule()
+    private CmpopExprPair notin_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10310,7 +11271,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // 'not' 'in' bitwise_or
@@ -10320,7 +11281,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(721)) != null  // token='not'
                     &&
@@ -10329,7 +11290,12 @@ public class GeneratedParser {
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, NotIn, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10341,7 +11307,7 @@ public class GeneratedParser {
     }
 
     // in_bitwise_or: 'in' bitwise_or
-    private Object in_bitwise_or_rule()
+    private CmpopExprPair in_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10350,7 +11316,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // 'in' bitwise_or
@@ -10359,14 +11325,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(713)) != null  // token='in'
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, In, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10378,7 +11349,7 @@ public class GeneratedParser {
     }
 
     // isnot_bitwise_or: 'is' 'not' bitwise_or
-    private Object isnot_bitwise_or_rule()
+    private CmpopExprPair isnot_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10387,7 +11358,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // 'is' 'not' bitwise_or
@@ -10397,7 +11368,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(597)) != null  // token='is'
                     &&
@@ -10406,7 +11377,12 @@ public class GeneratedParser {
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, IsNot, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10418,7 +11394,7 @@ public class GeneratedParser {
     }
 
     // is_bitwise_or: 'is' bitwise_or
-    private Object is_bitwise_or_rule()
+    private CmpopExprPair is_bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10427,7 +11403,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        CmpopExprPair _res = null;
         int _mark = p.mark;
         done: {
             { // 'is' bitwise_or
@@ -10436,14 +11412,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(597)) != null  // token='is'
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (CmpopExprPair) (_PyPegen_cmpop_expr_pair(p, Is, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10456,15 +11437,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // bitwise_or: bitwise_or '|' bitwise_xor | bitwise_xor
-    private Object bitwise_or_rule()
+    private expr bitwise_or_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(bitwise_or_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -10473,7 +11454,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, bitwise_or_type, _res);
             p.mark = _mark;
-            Object _raw = bitwise_or_raw();
+            expr _raw = bitwise_or_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -10489,7 +11470,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object bitwise_or_raw()
+    private expr bitwise_or_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10498,7 +11479,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -10514,8 +11495,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = bitwise_or_rule()) != null  // bitwise_or
                     &&
@@ -10531,7 +11512,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, BitOr, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10541,12 +11527,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object bitwise_xor_var = null;
+                expr bitwise_xor_var = null;
                 if (
                     (bitwise_xor_var = bitwise_xor_rule()) != null  // bitwise_xor
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) bitwise_xor_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10559,15 +11545,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // bitwise_xor: bitwise_xor '^' bitwise_and | bitwise_and
-    private Object bitwise_xor_rule()
+    private expr bitwise_xor_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(bitwise_xor_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -10576,7 +11562,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, bitwise_xor_type, _res);
             p.mark = _mark;
-            Object _raw = bitwise_xor_raw();
+            expr _raw = bitwise_xor_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -10592,7 +11578,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object bitwise_xor_raw()
+    private expr bitwise_xor_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10601,7 +11587,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -10617,8 +11603,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = bitwise_xor_rule()) != null  // bitwise_xor
                     &&
@@ -10634,7 +11620,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, BitXor, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10644,12 +11635,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object bitwise_and_var = null;
+                expr bitwise_and_var = null;
                 if (
                     (bitwise_and_var = bitwise_and_rule()) != null  // bitwise_and
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) bitwise_and_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10662,15 +11653,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // bitwise_and: bitwise_and '&' shift_expr | shift_expr
-    private Object bitwise_and_rule()
+    private expr bitwise_and_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(bitwise_and_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -10679,7 +11670,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, bitwise_and_type, _res);
             p.mark = _mark;
-            Object _raw = bitwise_and_raw();
+            expr _raw = bitwise_and_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -10695,7 +11686,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object bitwise_and_raw()
+    private expr bitwise_and_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10704,7 +11695,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -10720,8 +11711,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = bitwise_and_rule()) != null  // bitwise_and
                     &&
@@ -10737,7 +11728,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, BitAnd, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10747,12 +11743,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object shift_expr_var = null;
+                expr shift_expr_var = null;
                 if (
                     (shift_expr_var = shift_expr_rule()) != null  // shift_expr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) shift_expr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10765,15 +11761,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // shift_expr: shift_expr '<<' sum | shift_expr '>>' sum | invalid_arithmetic | sum
-    private Object shift_expr_rule()
+    private expr shift_expr_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(shift_expr_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -10782,7 +11778,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, shift_expr_type, _res);
             p.mark = _mark;
-            Object _raw = shift_expr_raw();
+            expr _raw = shift_expr_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -10798,7 +11794,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object shift_expr_raw()
+    private expr shift_expr_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10807,7 +11803,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -10823,8 +11819,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = shift_expr_rule()) != null  // shift_expr
                     &&
@@ -10840,7 +11836,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, LShift, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10851,8 +11852,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = shift_expr_rule()) != null  // shift_expr
                     &&
@@ -10868,7 +11869,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, RShift, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10883,7 +11889,7 @@ public class GeneratedParser {
                     (invalid_arithmetic_var = invalid_arithmetic_rule()) != null  // invalid_arithmetic
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_arithmetic_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -10893,12 +11899,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object sum_var = null;
+                expr sum_var = null;
                 if (
                     (sum_var = sum_rule()) != null  // sum
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) sum_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -10911,15 +11917,15 @@ public class GeneratedParser {
 
     // Left-recursive
     // sum: sum '+' term | sum '-' term | term
-    private Object sum_rule()
+    private expr sum_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(sum_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -10928,7 +11934,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, sum_type, _res);
             p.mark = _mark;
-            Object _raw = sum_raw();
+            expr _raw = sum_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -10944,7 +11950,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object sum_raw()
+    private expr sum_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -10953,7 +11959,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -10969,8 +11975,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = sum_rule()) != null  // sum
                     &&
@@ -10986,7 +11992,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Add, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -10997,8 +12008,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = sum_rule()) != null  // sum
                     &&
@@ -11014,7 +12025,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Sub, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11024,12 +12040,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object term_var = null;
+                expr term_var = null;
                 if (
                     (term_var = term_rule()) != null  // term
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) term_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11049,15 +12065,15 @@ public class GeneratedParser {
     //     | term '@' factor
     //     | invalid_factor
     //     | factor
-    private Object term_rule()
+    private expr term_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(term_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -11066,7 +12082,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, term_type, _res);
             p.mark = _mark;
-            Object _raw = term_raw();
+            expr _raw = term_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -11082,7 +12098,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object term_raw()
+    private expr term_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11091,7 +12107,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11107,8 +12123,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = term_rule()) != null  // term
                     &&
@@ -11124,7 +12140,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Mult, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11135,8 +12156,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = term_rule()) != null  // term
                     &&
@@ -11152,7 +12173,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Div, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11163,8 +12189,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = term_rule()) != null  // term
                     &&
@@ -11180,7 +12206,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, FloorDiv, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11191,8 +12222,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = term_rule()) != null  // term
                     &&
@@ -11208,7 +12239,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Mod, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11219,8 +12255,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = term_rule()) != null  // term
                     &&
@@ -11236,7 +12272,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 5, "The '@' operator is", _PyAST_BinOp(a, MatMult, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11251,7 +12292,7 @@ public class GeneratedParser {
                     (invalid_factor_var = invalid_factor_rule()) != null  // invalid_factor
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_factor_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -11261,12 +12302,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object factor_var = null;
+                expr factor_var = null;
                 if (
                     (factor_var = factor_rule()) != null  // factor
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) factor_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11278,7 +12319,7 @@ public class GeneratedParser {
     }
 
     // factor: '+' factor | '-' factor | '~' factor | power
-    private Object factor_rule()
+    private expr factor_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11287,10 +12328,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(factor_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -11309,7 +12350,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(14)) != null  // token='+'
                     &&
@@ -11323,7 +12364,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(UAdd, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11334,7 +12380,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(15)) != null  // token='-'
                     &&
@@ -11348,7 +12394,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(USub, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11359,7 +12410,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(31)) != null  // token='~'
                     &&
@@ -11373,7 +12424,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_UnaryOp(Invert, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11383,12 +12439,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object power_var = null;
+                expr power_var = null;
                 if (
                     (power_var = power_rule()) != null  // power
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) power_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11401,7 +12457,7 @@ public class GeneratedParser {
     }
 
     // power: await_primary '**' factor | await_primary
-    private Object power_rule()
+    private expr power_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11410,7 +12466,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11426,8 +12482,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = await_primary_rule()) != null  // await_primary
                     &&
@@ -11443,7 +12499,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_BinOp(a, Pow, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11453,12 +12514,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object await_primary_var = null;
+                expr await_primary_var = null;
                 if (
                     (await_primary_var = await_primary_rule()) != null  // await_primary
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) await_primary_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11470,7 +12531,7 @@ public class GeneratedParser {
     }
 
     // await_primary: 'await' primary | primary
-    private Object await_primary_rule()
+    private expr await_primary_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11479,10 +12540,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(await_primary_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -11501,7 +12562,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(598)) != null  // token='await'
                     &&
@@ -11515,7 +12576,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 5, "Await expressions are", _PyAST_Await(a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11525,12 +12591,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object primary_var = null;
+                expr primary_var = null;
                 if (
                     (primary_var = primary_rule()) != null  // primary
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) primary_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11549,15 +12615,15 @@ public class GeneratedParser {
     //     | primary '(' arguments? ')'
     //     | primary '[' slices ']'
     //     | atom
-    private Object primary_rule()
+    private expr primary_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(primary_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -11566,7 +12632,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, primary_type, _res);
             p.mark = _mark;
-            Object _raw = primary_raw();
+            expr _raw = primary_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -11582,7 +12648,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object primary_raw()
+    private expr primary_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11591,7 +12657,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11607,8 +12673,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = primary_rule()) != null  // primary
                     &&
@@ -11624,7 +12690,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(a, ((Name) b).id, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11634,8 +12705,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = primary_rule()) != null  // primary
                     &&
@@ -11649,7 +12720,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Call(a, (List<expr>) (List<?>) CHECK(p, (List<expr>) (List<?>) _PyPegen_singleton_seq(p, b)), null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11661,7 +12737,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (a = primary_rule()) != null  // primary
@@ -11680,7 +12756,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Call(a, (b) != null ? ((Call) ((expr) b)).args : null, (b) != null ? ((Call) ((expr) b)).keywords : null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11692,8 +12773,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = primary_rule()) != null  // primary
                     &&
@@ -11711,7 +12792,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Subscript(a, b, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11721,12 +12807,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object atom_var = null;
+                expr atom_var = null;
                 if (
                     (atom_var = atom_rule()) != null  // atom
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) atom_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11738,7 +12824,7 @@ public class GeneratedParser {
     }
 
     // slices: slice !',' | ','.(slice | starred_expression)+ ','?
-    private Object slices_rule()
+    private expr slices_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11747,7 +12833,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11762,14 +12848,19 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = slice_rule()) != null  // slice
                     &&
                     p.lookahead(false, p.mark, p.expectToken(12) != null)  // !','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11780,9 +12871,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_66_rule()) != null  // ','.(slice | starred_expression)+
+                    (a = (List<expr>) (List<?>) _gather_66_rule()) != null  // ','.(slice | starred_expression)+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
@@ -11794,7 +12885,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple(a, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11806,7 +12902,7 @@ public class GeneratedParser {
     }
 
     // slice: expression? ':' expression? [':' expression?] | named_expression
-    private Object slice_rule()
+    private expr slice_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11815,7 +12911,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11851,7 +12947,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Slice(fromVoidPtr(a), fromVoidPtr(b), fromVoidPtr(c), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11861,12 +12962,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = named_expression_rule()) != null  // named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11888,7 +12994,7 @@ public class GeneratedParser {
     //     | &'[' (listcomp | list)
     //     | &'{' (dictcomp | setcomp | dict | set)
     //     | '...'
-    private Object atom_rule()
+    private expr atom_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -11897,7 +13003,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -11912,12 +13018,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) name_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -11939,7 +13045,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_True, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11961,7 +13072,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_False, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11983,7 +13099,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_None, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -11993,14 +13114,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object strings_var = null;
+                expr strings_var = null;
                 if (
                     p.lookahead(true, p.mark, _tmp_42_rule() != null)  // &(STRING | FSTRING_START | TSTRING_START)
                     &&
                     (strings_var = strings_rule()) != null  // strings
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) strings_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -12010,12 +13131,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object number_var = null;
+                expr number_var = null;
                 if (
                     (number_var = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) number_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -12032,7 +13153,7 @@ public class GeneratedParser {
                     (_tmp_68_var = _tmp_68_rule()) != null  // genexp | tuple | group
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, _tmp_68_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12049,7 +13170,7 @@ public class GeneratedParser {
                     (_tmp_69_var = _tmp_69_rule()) != null  // listcomp | list
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, _tmp_69_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12066,7 +13187,7 @@ public class GeneratedParser {
                     (_tmp_70_var = _tmp_70_rule()) != null  // dictcomp | setcomp | dict | set
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, _tmp_70_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12088,7 +13209,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Constant(Py_Ellipsis, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12100,7 +13226,7 @@ public class GeneratedParser {
     }
 
     // group: '(' (yield_expr | named_expression) ')' | invalid_group
-    private Object group_rule()
+    private expr group_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12109,7 +13235,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // '(' (yield_expr | named_expression) ')'
@@ -12128,7 +13254,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12143,7 +13274,7 @@ public class GeneratedParser {
                     (invalid_group_var = invalid_group_rule()) != null  // invalid_group
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_group_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12155,7 +13286,7 @@ public class GeneratedParser {
     }
 
     // lambdef: 'lambda' lambda_params? ':' expression
-    private Object lambdef_rule()
+    private expr lambdef_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12164,7 +13295,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -12182,7 +13313,7 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Object a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (_keyword = p.expectToken(622)) != null  // token='lambda'
                     &&
@@ -12200,7 +13331,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Lambda(fromVoidPtr((a) != null ? a : (arguments) CHECK(p, _PyPegen_empty_arguments(p))), b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12212,7 +13348,7 @@ public class GeneratedParser {
     }
 
     // lambda_params: invalid_lambda_parameters | lambda_parameters
-    private Object lambda_params_rule()
+    private arguments lambda_params_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12221,7 +13357,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arguments _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_lambda_parameters
@@ -12234,7 +13370,7 @@ public class GeneratedParser {
                     (invalid_lambda_parameters_var = invalid_lambda_parameters_rule()) != null  // invalid_lambda_parameters
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(arguments.class, invalid_lambda_parameters_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12244,12 +13380,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambda_parameters_var = null;
+                arguments lambda_parameters_var = null;
                 if (
                     (lambda_parameters_var = lambda_parameters_rule()) != null  // lambda_parameters
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) lambda_parameters_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -12266,7 +13402,7 @@ public class GeneratedParser {
     //     | lambda_param_no_default+ lambda_param_with_default* lambda_star_etc?
     //     | lambda_param_with_default+ lambda_star_etc?
     //     | lambda_star_etc
-    private Object lambda_parameters_rule()
+    private arguments lambda_parameters_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12275,7 +13411,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arguments _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_slash_no_default lambda_param_no_default* lambda_param_with_default* lambda_star_etc?
@@ -12283,21 +13419,26 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
-                List<Object> b = null;
+                List<arg> a = null;
+                List<arg> b = null;
                 List<Object> c = null;
                 Object d = null;
                 if (
                     (a = lambda_slash_no_default_rule()) != null  // lambda_slash_no_default
                     &&
-                    (b = (List<Object>) (List<?>) _loop0_72_rule()) != null  // lambda_param_no_default*
+                    (b = (List<arg>) (List<?>) _loop0_72_rule()) != null  // lambda_param_no_default*
                     &&
                     (c = _loop0_73_rule()) != null  // lambda_param_with_default*
                     &&
                     p.opt((d = lambda_star_etc_rule()))  // lambda_star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) ((arguments) CHECK_VERSION(p, 8, "Positional-only parameters are", _PyPegen_make_arguments(p, a, null, b, c, fromVoidPtr(d))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12307,7 +13448,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                SlashWithDefault a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
@@ -12318,7 +13459,12 @@ public class GeneratedParser {
                     p.opt((c = lambda_star_etc_rule()))  // lambda_star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) ((arguments) CHECK_VERSION(p, 8, "Positional-only parameters are", _PyPegen_make_arguments(p, null, a, null, b, fromVoidPtr(c))));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12328,18 +13474,23 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<arg> a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (b = _loop0_73_rule()) != null  // lambda_param_with_default*
                     &&
                     p.opt((c = lambda_star_etc_rule()))  // lambda_star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, a, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12357,7 +13508,12 @@ public class GeneratedParser {
                     p.opt((b = lambda_star_etc_rule()))  // lambda_star_etc?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, null, a, fromVoidPtr(b)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12367,12 +13523,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                StarEtc a = null;
                 if (
                     (a = lambda_star_etc_rule()) != null  // lambda_star_etc
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arguments) (_PyPegen_make_arguments(p, null, null, null, null, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12386,7 +13547,7 @@ public class GeneratedParser {
     // lambda_slash_no_default:
     //     | lambda_param_no_default+ '/' ','
     //     | lambda_param_no_default+ '/' &':'
-    private List<Object> lambda_slash_no_default_rule()
+    private List<arg> lambda_slash_no_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12395,7 +13556,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<arg> _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_param_no_default+ '/' ','
@@ -12405,16 +13566,21 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                List<arg> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<arg>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12425,16 +13591,21 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> a = null;
+                List<arg> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
+                    (a = (List<arg>) (List<?>) _loop1_74_rule()) != null  // lambda_param_no_default+
                     &&
                     (_literal = p.expectToken(17)) != null  // token='/'
                     &&
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<arg>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12448,7 +13619,7 @@ public class GeneratedParser {
     // lambda_slash_with_default:
     //     | lambda_param_no_default* lambda_param_with_default+ '/' ','
     //     | lambda_param_no_default* lambda_param_with_default+ '/' &':'
-    private Object lambda_slash_with_default_rule()
+    private SlashWithDefault lambda_slash_with_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12457,7 +13628,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        SlashWithDefault _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_param_no_default* lambda_param_with_default+ '/' ','
@@ -12479,7 +13650,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (SlashWithDefault) (_PyPegen_slash_with_default(p, (List<arg>) (List<?>) a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12502,7 +13678,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (SlashWithDefault) (_PyPegen_slash_with_default(p, (List<arg>) (List<?>) a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12518,7 +13699,7 @@ public class GeneratedParser {
     //     | '*' lambda_param_no_default lambda_param_maybe_default* lambda_kwds?
     //     | '*' ',' lambda_param_maybe_default+ lambda_kwds?
     //     | lambda_kwds
-    private Object lambda_star_etc_rule()
+    private StarEtc lambda_star_etc_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12527,7 +13708,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        StarEtc _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_lambda_star_etc
@@ -12540,7 +13721,7 @@ public class GeneratedParser {
                     (invalid_lambda_star_etc_var = invalid_lambda_star_etc_rule()) != null  // invalid_lambda_star_etc
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(StarEtc.class, invalid_lambda_star_etc_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12551,7 +13732,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 List<Object> b = null;
                 Object c = null;
                 if (
@@ -12564,7 +13745,12 @@ public class GeneratedParser {
                     p.opt((c = lambda_kwds_rule()))  // lambda_kwds?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, a, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12588,7 +13774,12 @@ public class GeneratedParser {
                     p.opt((c = lambda_kwds_rule()))  // lambda_kwds?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, null, b, fromVoidPtr(c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12598,12 +13789,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 if (
                     (a = lambda_kwds_rule()) != null  // lambda_kwds
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (StarEtc) (_PyPegen_star_etc(p, null, null, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12615,7 +13811,7 @@ public class GeneratedParser {
     }
 
     // lambda_kwds: invalid_lambda_kwds | '**' lambda_param_no_default
-    private Object lambda_kwds_rule()
+    private arg lambda_kwds_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12624,7 +13820,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         done: {
             if (p.call_invalid_rules) { // invalid_lambda_kwds
@@ -12637,7 +13833,7 @@ public class GeneratedParser {
                     (invalid_lambda_kwds_var = invalid_lambda_kwds_rule()) != null  // invalid_lambda_kwds
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(arg.class, invalid_lambda_kwds_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -12648,14 +13844,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
                     (a = lambda_param_no_default_rule()) != null  // lambda_param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12667,7 +13868,7 @@ public class GeneratedParser {
     }
 
     // lambda_param_no_default: lambda_param ',' | lambda_param &':'
-    private Object lambda_param_no_default_rule()
+    private arg lambda_param_no_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12676,7 +13877,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_param ','
@@ -12685,14 +13886,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
                     &&
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12702,14 +13908,19 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
                     &&
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (arg) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12721,7 +13932,7 @@ public class GeneratedParser {
     }
 
     // lambda_param_with_default: lambda_param default ',' | lambda_param default &':'
-    private Object lambda_param_with_default_rule()
+    private NameDefaultPair lambda_param_with_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12730,7 +13941,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        NameDefaultPair _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_param default ','
@@ -12739,8 +13950,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object c = null;
+                arg a = null;
+                expr c = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
                     &&
@@ -12749,7 +13960,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, c, null));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12759,8 +13975,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object c = null;
+                arg a = null;
+                expr c = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
                     &&
@@ -12769,7 +13985,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, c, null));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12781,7 +14002,7 @@ public class GeneratedParser {
     }
 
     // lambda_param_maybe_default: lambda_param default? ',' | lambda_param default? &':'
-    private Object lambda_param_maybe_default_rule()
+    private NameDefaultPair lambda_param_maybe_default_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12790,7 +14011,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        NameDefaultPair _res = null;
         int _mark = p.mark;
         done: {
             { // lambda_param default? ','
@@ -12799,7 +14020,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                arg a = null;
                 Object c = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
@@ -12809,7 +14030,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, fromVoidPtr(c), null));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12819,7 +14045,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                arg a = null;
                 Object c = null;
                 if (
                     (a = lambda_param_rule()) != null  // lambda_param
@@ -12829,7 +14055,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(11) != null)  // &':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (NameDefaultPair) (_PyPegen_name_default_pair(p, a, fromVoidPtr(c), null));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12841,7 +14072,7 @@ public class GeneratedParser {
     }
 
     // lambda_param: NAME
-    private Object lambda_param_rule()
+    private arg lambda_param_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12850,7 +14081,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        arg _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -12865,7 +14096,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                 )
@@ -12877,7 +14108,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (arg) (_PyAST_arg(((Name) a).id, null, null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12889,7 +14125,7 @@ public class GeneratedParser {
     }
 
     // fstring_middle: fstring_replacement_field | FSTRING_MIDDLE
-    private Object fstring_middle_rule()
+    private expr fstring_middle_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12898,7 +14134,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // fstring_replacement_field
@@ -12906,12 +14142,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object fstring_replacement_field_var = null;
+                expr fstring_replacement_field_var = null;
                 if (
                     (fstring_replacement_field_var = fstring_replacement_field_rule()) != null  // fstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) fstring_replacement_field_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -12926,7 +14162,12 @@ public class GeneratedParser {
                     (t = p.expectToken(FSTRING_MIDDLE)) != null  // token='FSTRING_MIDDLE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_constant_from_token(p, t));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -12940,7 +14181,7 @@ public class GeneratedParser {
     // fstring_replacement_field:
     //     | '{' annotated_rhs '='? fstring_conversion? fstring_full_format_spec? '}'
     //     | invalid_fstring_replacement_field
-    private Object fstring_replacement_field_rule()
+    private expr fstring_replacement_field_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -12949,7 +14190,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -12965,7 +14206,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object conversion = null;
                 Object debug_expr = null;
                 Object format = null;
@@ -12991,7 +14232,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_formatted_value(p, a, fromVoidPtr(debug_expr), fromVoidPtr(conversion), fromVoidPtr(format), rbrace, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13006,7 +14252,7 @@ public class GeneratedParser {
                     (invalid_fstring_replacement_field_var = invalid_fstring_replacement_field_rule()) != null  // invalid_fstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_fstring_replacement_field_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -13018,7 +14264,7 @@ public class GeneratedParser {
     }
 
     // fstring_conversion: "!" NAME
-    private Object fstring_conversion_rule()
+    private ResultTokenWithMetadata fstring_conversion_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13027,7 +14273,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        ResultTokenWithMetadata _res = null;
         int _mark = p.mark;
         done: {
             { // "!" NAME
@@ -13035,7 +14281,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object conv = null;
+                expr conv = null;
                 Token conv_token = null;
                 if (
                     (conv_token = p.expectToken(54)) != null  // token='!'
@@ -13043,7 +14289,12 @@ public class GeneratedParser {
                     (conv = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (ResultTokenWithMetadata) (_PyPegen_check_fstring_conversion(p, conv_token, conv));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13055,7 +14306,7 @@ public class GeneratedParser {
     }
 
     // fstring_full_format_spec: ':' fstring_format_spec*
-    private Object fstring_full_format_spec_rule()
+    private ResultTokenWithMetadata fstring_full_format_spec_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13064,7 +14315,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        ResultTokenWithMetadata _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13094,7 +14345,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (ResultTokenWithMetadata) (_PyPegen_setup_full_format_spec(p, colon, (List<expr>) (List<?>) spec, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13106,7 +14362,7 @@ public class GeneratedParser {
     }
 
     // fstring_format_spec: FSTRING_MIDDLE | fstring_replacement_field
-    private Object fstring_format_spec_rule()
+    private expr fstring_format_spec_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13115,7 +14371,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // FSTRING_MIDDLE
@@ -13128,7 +14384,12 @@ public class GeneratedParser {
                     (t = p.expectToken(FSTRING_MIDDLE)) != null  // token='FSTRING_MIDDLE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_decoded_constant_from_token(p, t));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13138,12 +14399,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object fstring_replacement_field_var = null;
+                expr fstring_replacement_field_var = null;
                 if (
                     (fstring_replacement_field_var = fstring_replacement_field_rule()) != null  // fstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) fstring_replacement_field_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -13155,7 +14416,7 @@ public class GeneratedParser {
     }
 
     // fstring: FSTRING_START fstring_middle* FSTRING_END
-    private Object fstring_rule()
+    private expr fstring_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13164,7 +14425,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // FSTRING_START fstring_middle* FSTRING_END
@@ -13183,7 +14444,12 @@ public class GeneratedParser {
                     (c = p.expectToken(FSTRING_END)) != null  // token='FSTRING_END'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_joined_str(p, a, (List<expr>) (List<?>) b, c));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13197,7 +14463,7 @@ public class GeneratedParser {
     // tstring_format_spec_replacement_field:
     //     | '{' annotated_rhs '='? fstring_conversion? tstring_full_format_spec? '}'
     //     | invalid_tstring_replacement_field
-    private Object tstring_format_spec_replacement_field_rule()
+    private expr tstring_format_spec_replacement_field_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13206,7 +14472,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13222,7 +14488,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object conversion = null;
                 Object debug_expr = null;
                 Object format = null;
@@ -13248,7 +14514,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_formatted_value(p, a, fromVoidPtr(debug_expr), fromVoidPtr(conversion), fromVoidPtr(format), rbrace, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13263,7 +14534,7 @@ public class GeneratedParser {
                     (invalid_tstring_replacement_field_var = invalid_tstring_replacement_field_rule()) != null  // invalid_tstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_tstring_replacement_field_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -13275,7 +14546,7 @@ public class GeneratedParser {
     }
 
     // tstring_format_spec: TSTRING_MIDDLE | tstring_format_spec_replacement_field
-    private Object tstring_format_spec_rule()
+    private expr tstring_format_spec_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13284,7 +14555,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // TSTRING_MIDDLE
@@ -13297,7 +14568,12 @@ public class GeneratedParser {
                     (t = p.expectToken(TSTRING_MIDDLE)) != null  // token='TSTRING_MIDDLE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_decoded_constant_from_token(p, t));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13307,12 +14583,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object tstring_format_spec_replacement_field_var = null;
+                expr tstring_format_spec_replacement_field_var = null;
                 if (
                     (tstring_format_spec_replacement_field_var = tstring_format_spec_replacement_field_rule()) != null  // tstring_format_spec_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) tstring_format_spec_replacement_field_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -13324,7 +14600,7 @@ public class GeneratedParser {
     }
 
     // tstring_full_format_spec: ':' tstring_format_spec*
-    private Object tstring_full_format_spec_rule()
+    private ResultTokenWithMetadata tstring_full_format_spec_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13333,7 +14609,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        ResultTokenWithMetadata _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13363,7 +14639,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (ResultTokenWithMetadata) (_PyPegen_setup_full_format_spec(p, colon, (List<expr>) (List<?>) spec, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13377,7 +14658,7 @@ public class GeneratedParser {
     // tstring_replacement_field:
     //     | '{' annotated_rhs '='? fstring_conversion? tstring_full_format_spec? '}'
     //     | invalid_tstring_replacement_field
-    private Object tstring_replacement_field_rule()
+    private expr tstring_replacement_field_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13386,7 +14667,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13402,7 +14683,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Object conversion = null;
                 Object debug_expr = null;
                 Object format = null;
@@ -13428,7 +14709,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_interpolation(p, a, fromVoidPtr(debug_expr), fromVoidPtr(conversion), fromVoidPtr(format), rbrace, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13443,7 +14729,7 @@ public class GeneratedParser {
                     (invalid_tstring_replacement_field_var = invalid_tstring_replacement_field_rule()) != null  // invalid_tstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_tstring_replacement_field_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -13455,7 +14741,7 @@ public class GeneratedParser {
     }
 
     // tstring_middle: tstring_replacement_field | TSTRING_MIDDLE
-    private Object tstring_middle_rule()
+    private expr tstring_middle_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13464,7 +14750,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // tstring_replacement_field
@@ -13472,12 +14758,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object tstring_replacement_field_var = null;
+                expr tstring_replacement_field_var = null;
                 if (
                     (tstring_replacement_field_var = tstring_replacement_field_rule()) != null  // tstring_replacement_field
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) tstring_replacement_field_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -13492,7 +14778,12 @@ public class GeneratedParser {
                     (t = p.expectToken(TSTRING_MIDDLE)) != null  // token='TSTRING_MIDDLE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_constant_from_token(p, t));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13504,7 +14795,7 @@ public class GeneratedParser {
     }
 
     // tstring: TSTRING_START tstring_middle* TSTRING_END
-    private Object tstring_rule()
+    private expr tstring_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13513,10 +14804,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(tstring_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -13538,7 +14829,12 @@ public class GeneratedParser {
                     (c = p.expectToken(TSTRING_END)) != null  // token='TSTRING_END'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) ((expr) CHECK_VERSION(p, 14, "t-strings are", _PyPegen_template_str(p, a, (List<expr>) (List<?>) b, c)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13551,7 +14847,7 @@ public class GeneratedParser {
     }
 
     // string: STRING
-    private Object string_rule()
+    private expr string_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13560,7 +14856,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // STRING
@@ -13573,7 +14869,12 @@ public class GeneratedParser {
                     (s = (Token) p.stringToken()) != null  // STRING
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_constant_from_string(p, s));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13585,7 +14886,7 @@ public class GeneratedParser {
     }
 
     // strings: invalid_string_tstring_concat | ((fstring | string))+ | tstring+
-    private Object strings_rule()
+    private expr strings_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13594,10 +14895,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(strings_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -13620,7 +14921,7 @@ public class GeneratedParser {
                     (invalid_string_tstring_concat_var = invalid_string_tstring_concat_rule()) != null  // invalid_string_tstring_concat
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_string_tstring_concat_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -13630,9 +14931,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_82_rule()) != null  // ((fstring | string))+
+                    (a = (List<expr>) (List<?>) _loop1_82_rule()) != null  // ((fstring | string))+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -13642,7 +14943,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_concatenate_strings(p, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13652,9 +14958,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_83_rule()) != null  // tstring+
+                    (a = (List<expr>) (List<?>) _loop1_83_rule()) != null  // tstring+
                 )
                 {
                     Token _token = p.getLastNonWhitespaceToken();
@@ -13664,7 +14970,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_concatenate_tstrings(p, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13677,7 +14988,7 @@ public class GeneratedParser {
     }
 
     // list: '[' star_named_expressions_sequence? ']'
-    private Object list_rule()
+    private expr list_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13686,7 +14997,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13719,7 +15030,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_List(fromVoidPtr(a), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13731,7 +15047,7 @@ public class GeneratedParser {
     }
 
     // tuple: '(' [star_named_expression_sequence ',' star_named_expressions_sequence?] ')'
-    private Object tuple_rule()
+    private expr tuple_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13740,7 +15056,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13773,7 +15089,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple(fromVoidPtr(a), Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13785,7 +15106,7 @@ public class GeneratedParser {
     }
 
     // set: '{' star_named_expressions_sequence '}'
-    private Object set_rule()
+    private expr set_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13794,7 +15115,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13811,7 +15132,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -13827,7 +15148,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Set(a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13839,7 +15165,7 @@ public class GeneratedParser {
     }
 
     // dict: '{' double_starred_kvpairs? '}' | '{' invalid_double_starred_kvpairs '}'
-    private Object dict_rule()
+    private expr dict_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13848,7 +15174,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -13881,7 +15207,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Dict((List<expr>) (List<?>) CHECK(p, _PyPegen_get_keys(p, fromVoidPtr(a))), (List<expr>) (List<?>) CHECK(p, _PyPegen_get_values(p, fromVoidPtr(a))), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13902,7 +15233,7 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, _PyPegen_dummy_name(p, _literal, invalid_double_starred_kvpairs_var, _literal_1));
                     break done;
                 }
                 p.mark = _mark;
@@ -13939,7 +15270,12 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13951,7 +15287,7 @@ public class GeneratedParser {
     }
 
     // double_starred_kvpair: '**' bitwise_or | kvpair
-    private Object double_starred_kvpair_rule()
+    private KeyValuePair double_starred_kvpair_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -13960,7 +15296,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeyValuePair _res = null;
         int _mark = p.mark;
         done: {
             { // '**' bitwise_or
@@ -13969,14 +15305,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
                     (a = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeyValuePair) (_PyPegen_key_value_pair(p, null, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -13986,12 +15327,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object kvpair_var = null;
+                KeyValuePair kvpair_var = null;
                 if (
                     (kvpair_var = kvpair_rule()) != null  // kvpair
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeyValuePair) kvpair_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -14003,7 +15344,7 @@ public class GeneratedParser {
     }
 
     // kvpair: expression ':' expression
-    private Object kvpair_rule()
+    private KeyValuePair kvpair_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14012,7 +15353,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeyValuePair _res = null;
         int _mark = p.mark;
         done: {
             { // expression ':' expression
@@ -14021,8 +15362,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
@@ -14031,7 +15372,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeyValuePair) (_PyPegen_key_value_pair(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14043,7 +15389,7 @@ public class GeneratedParser {
     }
 
     // for_if_clauses: for_if_clause+
-    private List<Object> for_if_clauses_rule()
+    private List<comprehension> for_if_clauses_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14052,7 +15398,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<comprehension> _res = null;
         int _mark = p.mark;
         done: {
             { // for_if_clause+
@@ -14060,12 +15406,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<comprehension> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _loop1_87_rule()) != null  // for_if_clause+
+                    (a = (List<comprehension>) (List<?>) _loop1_87_rule()) != null  // for_if_clause+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<comprehension>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14081,7 +15432,7 @@ public class GeneratedParser {
     //     | 'for' star_targets 'in' ~ disjunction (('if' disjunction))*
     //     | invalid_for_if_clause
     //     | invalid_for_target
-    private Object for_if_clause_rule()
+    private comprehension for_if_clause_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14090,7 +15441,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        comprehension _res = null;
         int _mark = p.mark;
         done: {
             { // 'async' 'for' star_targets 'in' ~ disjunction (('if' disjunction))*
@@ -14102,9 +15453,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _keyword_2 = null;
-                Object a = null;
-                Object b = null;
-                List<Object> c = null;
+                expr a = null;
+                expr b = null;
+                List<expr> c = null;
                 if (
                     (_keyword = p.expectToken(716)) != null  // token='async'
                     &&
@@ -14118,10 +15469,15 @@ public class GeneratedParser {
                     &&
                     (b = disjunction_rule()) != null  // disjunction
                     &&
-                    (c = (List<Object>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
+                    (c = (List<expr>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (comprehension) ((comprehension) CHECK_VERSION(p, 6, "Async comprehensions are", _PyAST_comprehension(a, b, c, 1, p.arena)));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14138,9 +15494,9 @@ public class GeneratedParser {
                 boolean _cut_var = false;
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
-                List<Object> c = null;
+                expr a = null;
+                expr b = null;
+                List<expr> c = null;
                 if (
                     (_keyword = p.expectToken(712)) != null  // token='for'
                     &&
@@ -14152,10 +15508,15 @@ public class GeneratedParser {
                     &&
                     (b = disjunction_rule()) != null  // disjunction
                     &&
-                    (c = (List<Object>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
+                    (c = (List<expr>) (List<?>) _loop0_88_rule()) != null  // (('if' disjunction))*
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (comprehension) (_PyAST_comprehension(a, b, c, 0, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14174,7 +15535,7 @@ public class GeneratedParser {
                     (invalid_for_if_clause_var = invalid_for_if_clause_rule()) != null  // invalid_for_if_clause
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(comprehension.class, invalid_for_if_clause_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14189,7 +15550,7 @@ public class GeneratedParser {
                     (invalid_for_target_var = invalid_for_target_rule()) != null  // invalid_for_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(comprehension.class, invalid_for_target_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14201,7 +15562,7 @@ public class GeneratedParser {
     }
 
     // listcomp: '[' star_named_expression for_if_clauses ']' | invalid_comprehension
-    private Object listcomp_rule()
+    private expr listcomp_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14210,7 +15571,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14227,8 +15588,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<comprehension> b = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -14246,7 +15607,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_ListComp(a, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14261,7 +15627,7 @@ public class GeneratedParser {
                     (invalid_comprehension_var = invalid_comprehension_rule()) != null  // invalid_comprehension
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_comprehension_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14273,7 +15639,7 @@ public class GeneratedParser {
     }
 
     // setcomp: '{' star_named_expression for_if_clauses '}' | invalid_comprehension
-    private Object setcomp_rule()
+    private expr setcomp_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14282,7 +15648,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14299,8 +15665,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<comprehension> b = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -14318,7 +15684,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_SetComp(a, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14333,7 +15704,7 @@ public class GeneratedParser {
                     (invalid_comprehension_var = invalid_comprehension_rule()) != null  // invalid_comprehension
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_comprehension_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14347,7 +15718,7 @@ public class GeneratedParser {
     // genexp:
     //     | '(' (assignment_expression | expression !':=' | starred_expression) for_if_clauses ')'
     //     | invalid_comprehension
-    private Object genexp_rule()
+    private expr genexp_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14356,7 +15727,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14374,7 +15745,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Object a = null;
-                List<Object> b = null;
+                List<comprehension> b = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -14392,7 +15763,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_GeneratorExp(fromVoidPtr(a), b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14407,7 +15783,7 @@ public class GeneratedParser {
                     (invalid_comprehension_var = invalid_comprehension_rule()) != null  // invalid_comprehension
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_comprehension_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14419,7 +15795,7 @@ public class GeneratedParser {
     }
 
     // dictcomp: '{' kvpair for_if_clauses '}' | '{' '**' expression for_if_clauses '}'
-    private Object dictcomp_rule()
+    private expr dictcomp_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14428,7 +15804,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14445,8 +15821,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                List<Object> b = null;
+                KeyValuePair a = null;
+                List<comprehension> b = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -14464,7 +15840,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_DictComp(a.key, a.value, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14477,8 +15858,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<comprehension> b = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -14498,7 +15879,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_DictComp(a, null, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14510,7 +15896,7 @@ public class GeneratedParser {
     }
 
     // arguments: args ','? &')' | invalid_arguments
-    private Object arguments_rule()
+    private expr arguments_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14519,10 +15905,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(arguments_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -14534,7 +15920,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (a = args_rule()) != null  // args
                     &&
@@ -14543,7 +15929,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(8) != null)  // &')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14558,7 +15949,7 @@ public class GeneratedParser {
                     (invalid_arguments_var = invalid_arguments_rule()) != null  // invalid_arguments
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_arguments_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14573,7 +15964,7 @@ public class GeneratedParser {
     // args:
     //     | ','.(starred_expression | (assignment_expression | expression !':=') !'=')+ [',' kwargs]
     //     | kwargs
-    private Object args_rule()
+    private expr args_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14582,7 +15973,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14597,10 +15988,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<expr> a = null;
                 Object b = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_91_rule()) != null  // ','.(starred_expression | (assignment_expression | expression !':=') !'=')+
+                    (a = (List<expr>) (List<?>) _gather_91_rule()) != null  // ','.(starred_expression | (assignment_expression | expression !':=') !'=')+
                     &&
                     p.opt((b = _tmp_92_rule()))  // [',' kwargs]
                 )
@@ -14612,7 +16003,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_collect_call_seqs(p, a, fromVoidPtr(b), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14634,7 +16030,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Call(_PyPegen_dummy_name(p), (List<expr>) (List<?>) CHECK_NULL_ALLOWED(p, _PyPegen_seq_extract_starred_exprs(p, a)), (List<keyword>) (List<?>) CHECK_NULL_ALLOWED(p, _PyPegen_seq_delete_starred_exprs(p, a)), _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14677,7 +16078,12 @@ public class GeneratedParser {
                     (b = _gather_96_rule()) != null  // ','.kwarg_or_double_starred+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) (_PyPegen_join_sequences(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14692,7 +16098,7 @@ public class GeneratedParser {
                     (_gather_94_var = _gather_94_rule()) != null  // ','.kwarg_or_starred+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) _gather_94_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -14707,7 +16113,7 @@ public class GeneratedParser {
                     (_gather_96_var = _gather_96_rule()) != null  // ','.kwarg_or_double_starred+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<Object>) (List<?>) _gather_96_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -14722,7 +16128,7 @@ public class GeneratedParser {
     //     | invalid_starred_expression_unpacking
     //     | '*' expression
     //     | invalid_starred_expression
-    private Object starred_expression_rule()
+    private expr starred_expression_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14731,7 +16137,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14751,7 +16157,7 @@ public class GeneratedParser {
                     (invalid_starred_expression_unpacking_var = invalid_starred_expression_unpacking_rule()) != null  // invalid_starred_expression_unpacking
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_starred_expression_unpacking_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14762,7 +16168,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -14776,7 +16182,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Starred(a, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14791,7 +16202,7 @@ public class GeneratedParser {
                     (invalid_starred_expression_var = invalid_starred_expression_rule()) != null  // invalid_starred_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(expr.class, invalid_starred_expression_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14803,7 +16214,7 @@ public class GeneratedParser {
     }
 
     // kwarg_or_starred: invalid_kwarg | NAME '=' expression | starred_expression
-    private Object kwarg_or_starred_rule()
+    private KeywordOrStarred kwarg_or_starred_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14812,7 +16223,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeywordOrStarred _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14832,7 +16243,7 @@ public class GeneratedParser {
                     (invalid_kwarg_var = invalid_kwarg_rule()) != null  // invalid_kwarg
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(KeywordOrStarred.class, invalid_kwarg_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14843,8 +16254,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -14860,7 +16271,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (KeywordOrStarred) (_PyPegen_keyword_or_starred(p, (keyword) CHECK(p, _PyAST_keyword(((Name) a).id, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)), 1));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14870,12 +16286,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = starred_expression_rule()) != null  // starred_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (KeywordOrStarred) (_PyPegen_keyword_or_starred(p, a, 0));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14887,7 +16308,7 @@ public class GeneratedParser {
     }
 
     // kwarg_or_double_starred: invalid_kwarg | NAME '=' expression | '**' expression
-    private Object kwarg_or_double_starred_rule()
+    private KeywordOrStarred kwarg_or_double_starred_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14896,7 +16317,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        KeywordOrStarred _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -14916,7 +16337,7 @@ public class GeneratedParser {
                     (invalid_kwarg_var = invalid_kwarg_rule()) != null  // invalid_kwarg
                 )
                 {
-                    _res = p.dummyName();
+                    _res = voidAs(KeywordOrStarred.class, invalid_kwarg_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -14927,8 +16348,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -14944,7 +16365,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (KeywordOrStarred) (_PyPegen_keyword_or_starred(p, (keyword) CHECK(p, _PyAST_keyword(((Name) a).id, b, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)), 1));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14955,7 +16381,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -14969,7 +16395,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (KeywordOrStarred) (_PyPegen_keyword_or_starred(p, (keyword) CHECK(p, _PyAST_keyword(null, a, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena)), 1));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -14981,7 +16412,7 @@ public class GeneratedParser {
     }
 
     // star_targets: star_target !',' | star_target ((',' star_target))* ','?
-    private Object star_targets_rule()
+    private expr star_targets_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -14990,7 +16421,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -15005,14 +16436,19 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = star_target_rule()) != null  // star_target
                     &&
                     p.lookahead(false, p.mark, p.expectToken(12) != null)  // !','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15023,7 +16459,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = star_target_rule()) != null  // star_target
@@ -15040,7 +16476,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple((List<expr>) (List<?>) CHECK(p, _PyPegen_seq_insert_in_front(p, a, b)), Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15052,7 +16493,7 @@ public class GeneratedParser {
     }
 
     // star_targets_list_seq: ','.star_target+ ','?
-    private List<Object> star_targets_list_seq_rule()
+    private List<expr> star_targets_list_seq_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15061,7 +16502,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.star_target+ ','?
@@ -15070,14 +16511,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_99_rule()) != null  // ','.star_target+
+                    (a = (List<expr>) (List<?>) _gather_99_rule()) != null  // ','.star_target+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15089,7 +16535,7 @@ public class GeneratedParser {
     }
 
     // star_targets_tuple_seq: star_target ((',' star_target))+ ','? | star_target ','
-    private List<Object> star_targets_tuple_seq_rule()
+    private List<expr> star_targets_tuple_seq_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15098,7 +16544,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // star_target ((',' star_target))+ ','?
@@ -15107,7 +16553,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 List<Object> b = null;
                 if (
                     (a = star_target_rule()) != null  // star_target
@@ -15117,7 +16563,12 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_seq_insert_in_front(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15128,14 +16579,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (a = star_target_rule()) != null  // star_target
                     &&
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_singleton_seq(p, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15147,7 +16603,7 @@ public class GeneratedParser {
     }
 
     // star_target: '*' (!'*' star_target) | target_with_star_atom
-    private Object star_target_rule()
+    private expr star_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15156,10 +16612,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(star_target_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -15192,7 +16648,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Starred((expr) CHECK(p, _PyPegen_set_expr_context(p, fromVoidPtr(a), Store)), Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15202,12 +16663,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object target_with_star_atom_var = null;
+                expr target_with_star_atom_var = null;
                 if (
                     (target_with_star_atom_var = target_with_star_atom_rule()) != null  // target_with_star_atom
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) target_with_star_atom_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -15223,7 +16684,7 @@ public class GeneratedParser {
     //     | t_primary '.' NAME !t_lookahead
     //     | t_primary '[' slices ']' !t_lookahead
     //     | star_atom
-    private Object target_with_star_atom_rule()
+    private expr target_with_star_atom_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15232,10 +16693,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(target_with_star_atom_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -15254,8 +16715,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15273,7 +16734,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(a, ((Name) b).id, Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15285,8 +16751,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15306,7 +16772,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Subscript(a, b, Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15316,12 +16787,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_atom_var = null;
+                expr star_atom_var = null;
                 if (
                     (star_atom_var = star_atom_rule()) != null  // star_atom
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) star_atom_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -15338,7 +16809,7 @@ public class GeneratedParser {
     //     | '(' target_with_star_atom ')'
     //     | '(' star_targets_tuple_seq? ')'
     //     | '[' star_targets_list_seq? ']'
-    private Object star_atom_rule()
+    private expr star_atom_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15347,7 +16818,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -15362,12 +16833,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, a, Store));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15379,7 +16855,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -15388,7 +16864,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, a, Store));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15416,7 +16897,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple(fromVoidPtr(a), Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15444,7 +16930,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_List(fromVoidPtr(a), Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15456,7 +16947,7 @@ public class GeneratedParser {
     }
 
     // single_target: single_subscript_attribute_target | NAME | '(' single_target ')'
-    private Object single_target_rule()
+    private expr single_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15465,7 +16956,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // single_subscript_attribute_target
@@ -15473,12 +16964,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object single_subscript_attribute_target_var = null;
+                expr single_subscript_attribute_target_var = null;
                 if (
                     (single_subscript_attribute_target_var = single_subscript_attribute_target_rule()) != null  // single_subscript_attribute_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) single_subscript_attribute_target_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -15488,12 +16979,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, a, Store));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15505,7 +17001,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -15514,7 +17010,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15528,7 +17029,7 @@ public class GeneratedParser {
     // single_subscript_attribute_target:
     //     | t_primary '.' NAME !t_lookahead
     //     | t_primary '[' slices ']' !t_lookahead
-    private Object single_subscript_attribute_target_rule()
+    private expr single_subscript_attribute_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15537,7 +17038,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -15553,8 +17054,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15572,7 +17073,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(a, ((Name) b).id, Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15584,8 +17090,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15605,7 +17111,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Subscript(a, b, Store, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15623,15 +17134,15 @@ public class GeneratedParser {
     //     | t_primary genexp &t_lookahead
     //     | t_primary '(' arguments? ')' &t_lookahead
     //     | atom &t_lookahead
-    private Object t_primary_rule()
+    private expr t_primary_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(t_primary_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -15640,7 +17151,7 @@ public class GeneratedParser {
         while (true) {
             p.updateMemo(_mark, t_primary_type, _res);
             p.mark = _mark;
-            Object _raw = t_primary_raw();
+            expr _raw = t_primary_raw();
             if (p.error_indicator) {
                 p.level--;
                 return null;
@@ -15656,7 +17167,7 @@ public class GeneratedParser {
         return _res;
     }
 
-    private Object t_primary_raw()
+    private expr t_primary_raw()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15665,7 +17176,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -15681,8 +17192,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15700,7 +17211,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(a, ((Name) b).id, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15712,8 +17228,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15733,7 +17249,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Subscript(a, b, Load, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15743,8 +17264,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15760,7 +17281,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Call(a, (List<expr>) (List<?>) CHECK(p, (List<expr>) (List<?>) _PyPegen_singleton_seq(p, b)), null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15772,7 +17298,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 Object b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
@@ -15793,7 +17319,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Call(a, (b) != null ? ((Call) ((expr) b)).args : null, (b) != null ? ((Call) ((expr) b)).keywords : null, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15803,14 +17334,19 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = atom_rule()) != null  // atom
                     &&
                     p.lookahead(true, p.mark, t_lookahead_rule() != null)  // &t_lookahead
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15844,7 +17380,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(7)) != null  // token='('
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -15859,7 +17395,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(9)) != null  // token='['
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -15874,7 +17410,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(23)) != null  // token='.'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -15886,7 +17422,7 @@ public class GeneratedParser {
     }
 
     // del_targets: ','.del_target+ ','?
-    private List<Object> del_targets_rule()
+    private List<expr> del_targets_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15895,7 +17431,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.del_target+ ','?
@@ -15904,14 +17440,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_103_rule()) != null  // ','.del_target+
+                    (a = (List<expr>) (List<?>) _gather_103_rule()) != null  // ','.del_target+
                     &&
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15926,7 +17467,7 @@ public class GeneratedParser {
     //     | t_primary '.' NAME !t_lookahead
     //     | t_primary '[' slices ']' !t_lookahead
     //     | del_t_atom
-    private Object del_target_rule()
+    private expr del_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -15935,10 +17476,10 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         Parser.Memo _memo = p.isMemoized(del_target_type);
         if (_memo != null) {
-            _res = _memo.node;
+            _res = (expr) _memo.node;
             p.level--;
             return _res;
         }
@@ -15957,8 +17498,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -15976,7 +17517,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Attribute(a, ((Name) b).id, Del, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -15988,8 +17534,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = t_primary_rule()) != null  // t_primary
                     &&
@@ -16009,7 +17555,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Subscript(a, b, Del, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16019,12 +17570,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object del_t_atom_var = null;
+                expr del_t_atom_var = null;
                 if (
                     (del_t_atom_var = del_t_atom_rule()) != null  // del_t_atom
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) del_t_atom_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -16037,7 +17588,7 @@ public class GeneratedParser {
     }
 
     // del_t_atom: NAME | '(' del_target ')' | '(' del_targets? ')' | '[' del_targets? ']'
-    private Object del_t_atom_rule()
+    private expr del_t_atom_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -16046,7 +17597,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -16061,12 +17612,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, a, Del));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16078,7 +17634,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -16087,7 +17643,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (_PyPegen_set_expr_context(p, a, Del));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16115,7 +17676,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_Tuple(fromVoidPtr(a), Del, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16143,7 +17709,12 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_List(fromVoidPtr(a), Del, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16162,7 +17733,7 @@ public class GeneratedParser {
     //     | '*' expression
     //     | '**' expression
     //     | ','.expression+
-    private List<Object> type_expressions_rule()
+    private List<expr> type_expressions_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -16171,7 +17742,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<expr> _res = null;
         int _mark = p.mark;
         done: {
             { // ','.expression+ ',' '*' expression ',' '**' expression
@@ -16184,8 +17755,8 @@ public class GeneratedParser {
                 Token _literal_2 = null;
                 Token _literal_3 = null;
                 List<Object> a = null;
-                Object b = null;
-                Object c = null;
+                expr b = null;
+                expr c = null;
                 if (
                     (a = _gather_105_rule()) != null  // ','.expression+
                     &&
@@ -16202,7 +17773,12 @@ public class GeneratedParser {
                     (c = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_seq_append_to_end(p, (List<Object>) (List<?>) CHECK(p, _PyPegen_seq_append_to_end(p, a, b)), c));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16215,7 +17791,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 List<Object> a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = _gather_105_rule()) != null  // ','.expression+
                     &&
@@ -16226,7 +17802,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_seq_append_to_end(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16239,7 +17820,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 List<Object> a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = _gather_105_rule()) != null  // ','.expression+
                     &&
@@ -16250,7 +17831,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_seq_append_to_end(p, a, b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16263,8 +17849,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -16277,7 +17863,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_seq_append_to_end(p, (List<Object>) (List<?>) CHECK(p, _PyPegen_singleton_seq(p, a)), b));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16288,14 +17879,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_singleton_seq(p, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16306,14 +17902,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) ((List<expr>) (List<?>) _PyPegen_singleton_seq(p, a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16323,12 +17924,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> a = null;
+                List<expr> a = null;
                 if (
-                    (a = (List<Object>) (List<?>) _gather_105_rule()) != null  // ','.expression+
+                    (a = (List<expr>) (List<?>) _gather_105_rule()) != null  // ','.expression+
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<expr>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16370,7 +17976,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_106_rule() != null)  // &(NEWLINE INDENT)
                 )
                 {
-                    _res = p.dummyToken();
+                    _res = (Token) (t);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16385,7 +17996,7 @@ public class GeneratedParser {
                     (invalid_double_type_comments_var = invalid_double_type_comments_rule()) != null  // invalid_double_type_comments
                 )
                 {
-                    _res = p.dummyToken();
+                    _res = voidAs(Token.class, invalid_double_type_comments_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -16400,7 +18011,7 @@ public class GeneratedParser {
                     (type_comment_var = p.expectToken(TYPE_COMMENT)) != null  // token='TYPE_COMMENT'
                 )
                 {
-                    _res = p.dummyToken();
+                    _res = (Token) type_comment_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -16447,7 +18058,12 @@ public class GeneratedParser {
                     (_gather_109_var = _gather_109_rule()) != null  // ','.(starred_expression !'=')+
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "iterable argument unpacking follows keyword argument unpacking");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16459,8 +18075,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _opt_var = null;
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<comprehension> b = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
@@ -16471,7 +18087,12 @@ public class GeneratedParser {
                     p.opt((_opt_var = _tmp_110_rule()))  // [args | expression for_if_clauses]
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, _PyPegen_get_last_comprehension_item((comprehension) PyPegen_last_item(b)), "Generator expression must be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16481,10 +18102,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Token b = null;
-                Object expression_var = null;
-                List<Object> for_if_clauses_var = null;
+                expr expression_var = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -16495,7 +18116,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid syntax. Maybe you meant '==' or ':=' instead of '='?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16506,7 +18132,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 Token b = null;
                 if (
                     p.opt((_opt_var = _tmp_111_rule()))  // [(args ',')]
@@ -16518,7 +18144,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_112_rule() != null)  // &(',' | ')')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "expected argument value expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16528,15 +18159,20 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                List<Object> b = null;
+                expr a = null;
+                List<comprehension> b = null;
                 if (
                     (a = args_rule()) != null  // args
                     &&
                     (b = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_nonparen_genexp_in_call(p, a, b);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16547,9 +18183,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object args_var = null;
-                List<Object> b = null;
+                expr a = null;
+                expr args_var = null;
+                List<comprehension> b = null;
                 if (
                     (args_var = args_rule()) != null  // args
                     &&
@@ -16560,7 +18196,12 @@ public class GeneratedParser {
                     (b = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, _PyPegen_get_last_comprehension_item((comprehension) PyPegen_last_item(b)), "Generator expression must be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16571,8 +18212,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object args_var = null;
+                expr a = null;
+                expr args_var = null;
                 if (
                     (a = args_rule()) != null  // args
                     &&
@@ -16581,7 +18222,12 @@ public class GeneratedParser {
                     (args_var = args_rule()) != null  // args
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_arguments_parsing_error(p, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16622,7 +18268,12 @@ public class GeneratedParser {
                     (b = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot assign to %s", a.string);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16632,10 +18283,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Token b = null;
-                Object expression_var = null;
-                List<Object> for_if_clauses_var = null;
+                expr expression_var = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -16646,7 +18297,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid syntax. Maybe you meant '==' or ':=' instead of '='?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16656,7 +18312,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Token b = null;
                 if (
                     p.lookahead(false, p.mark, _tmp_114_rule() != null)  // !(NAME '=')
@@ -16666,7 +18322,12 @@ public class GeneratedParser {
                     (b = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "expression cannot contain assignment, perhaps you meant \"==\"?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16678,8 +18339,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (a = p.expectToken(35)) != null  // token='**'
                     &&
@@ -16690,7 +18351,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot assign to keyword argument unpacking");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16705,7 +18371,7 @@ public class GeneratedParser {
     //     | disjunction 'if' disjunction 'else' expression
     //     | disjunction
     //     | lambdef
-    private Object expression_without_invalid_rule()
+    private expr expression_without_invalid_rule()
     {
         boolean _prev_call_invalid = p.call_invalid_rules;
         p.call_invalid_rules = false;
@@ -16717,7 +18383,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         if (p.mark == p.fill && p.fillToken() < 0) {
             p.error_indicator = true;
@@ -16736,9 +18402,9 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
-                Object c = null;
+                expr a = null;
+                expr b = null;
+                expr c = null;
                 if (
                     (a = disjunction_rule()) != null  // disjunction
                     &&
@@ -16759,7 +18425,13 @@ public class GeneratedParser {
                     }
                     int _end_lineno = _token.end_lineno;
                     int _end_col_offset = _token.end_col_offset;
-                    _res = p.dummyName();
+                    _res = (expr) (_PyAST_IfExp(b, a, c, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.call_invalid_rules = _prev_call_invalid;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16770,12 +18442,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object disjunction_var = null;
+                expr disjunction_var = null;
                 if (
                     (disjunction_var = disjunction_rule()) != null  // disjunction
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) disjunction_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -16786,12 +18458,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambdef_var = null;
+                expr lambdef_var = null;
                 if (
                     (lambdef_var = lambdef_rule()) != null  // lambdef
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) lambdef_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -16821,8 +18493,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -16831,7 +18503,12 @@ public class GeneratedParser {
                     (b = star_expressions_rule()) != null  // star_expressions
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_check_legacy_stmt(p, a) ? RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "Missing parentheses in call to '%U'. Did you mean %U(...)?", ((Name) a).id, ((Name) a).id) : null;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16861,9 +18538,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Token colon = null;
-                Object e = null;
+                expr e = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -16874,7 +18551,12 @@ public class GeneratedParser {
                     (e = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, colon, (e instanceof Tuple) ? "cannot use constraints with TypeVarTuple" : "cannot use bound with TypeVarTuple");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16885,9 +18567,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Token colon = null;
-                Object e = null;
+                expr e = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -16898,7 +18580,12 @@ public class GeneratedParser {
                     (e = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, colon, (e instanceof Tuple) ? "cannot use constraints with ParamSpec" : "cannot use bound with ParamSpec");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16945,7 +18632,12 @@ public class GeneratedParser {
                     (string_var_1 = p.stringToken()) != null  // STRING
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, (expr) PyPegen_first_item(a), (expr) PyPegen_last_item(a), "invalid syntax. Is this intended to be part of the string?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16955,8 +18647,8 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     p.lookahead(false, p.mark, _tmp_116_rule() != null)  // !(NAME STRING | SOFT_KEYWORD)
                     &&
@@ -16965,7 +18657,12 @@ public class GeneratedParser {
                     (b = expression_without_invalid_rule()) != null  // expression_without_invalid
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_raise_error_for_missing_comma(p, a, b);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -16976,8 +18673,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = disjunction_rule()) != null  // disjunction
                     &&
@@ -16988,7 +18685,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_117_rule() != null)  // !('else' | ':')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "expected 'else' after 'if' expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17000,8 +18702,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = disjunction_rule()) != null  // disjunction
                     &&
@@ -17014,7 +18716,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, expression_rule() != null)  // !expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "expected expression after 'else', but statement is given");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17026,11 +18733,11 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _keyword_1 = null;
-                Object a = null;
-                Object b = null;
-                Object c = null;
+                stmt a = null;
+                expr b = null;
+                stmt c = null;
                 if (
-                    (a = _tmp_118_rule()) != null  // pass_stmt | break_stmt | continue_stmt
+                    (a = (stmt) _tmp_118_rule()) != null  // pass_stmt | break_stmt | continue_stmt
                     &&
                     (_keyword = p.expectToken(700)) != null  // token='if'
                     &&
@@ -17041,7 +18748,12 @@ public class GeneratedParser {
                     (c = simple_stmt_rule()) != null  // simple_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expected expression before 'if', but statement is given");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17064,7 +18776,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(FSTRING_MIDDLE) != null)  // &FSTRING_MIDDLE
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "f-string: lambda expressions are not allowed without parentheses");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17087,7 +18804,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, p.expectToken(TSTRING_MIDDLE) != null)  // &TSTRING_MIDDLE
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "t-string: lambda expressions are not allowed without parentheses");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17121,8 +18843,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token a = null;
-                Object b = null;
-                Object disjunction_var = null;
+                expr b = null;
+                expr disjunction_var = null;
                 if (
                     (disjunction_var = disjunction_rule()) != null  // disjunction
                     &&
@@ -17135,7 +18857,12 @@ public class GeneratedParser {
                     (a = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot unpack only part of a conditional expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17148,8 +18875,8 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token a = null;
-                Object b = null;
-                Object disjunction_var = null;
+                expr b = null;
+                expr disjunction_var = null;
                 if (
                     (disjunction_var = disjunction_rule()) != null  // disjunction
                     &&
@@ -17162,7 +18889,12 @@ public class GeneratedParser {
                     (a = p.expectToken(35)) != null  // token='**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use dict unpacking on only part of a conditional expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17201,8 +18933,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object expression_var = null;
+                expr a = null;
+                expr expression_var = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
@@ -17211,7 +18943,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use assignment expressions with %s", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17222,8 +18959,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (a = p.nameToken()) != null  // NAME
                     &&
@@ -17234,7 +18971,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_119_rule() != null)  // !('=' | ':=')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid syntax. Maybe you meant '==' or ':=' instead of '='?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17244,9 +18986,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 Token b = null;
-                Object bitwise_or_var = null;
+                expr bitwise_or_var = null;
                 if (
                     p.lookahead(false, p.mark, _tmp_120_rule() != null)  // !(list | tuple | genexp | 'True' | 'None' | 'False')
                     &&
@@ -17259,7 +19001,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_119_rule() != null)  // !('=' | ':=')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot assign to %s here. Maybe you meant '==' instead of '='?", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17296,8 +19043,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object expression_var = null;
+                expr a = null;
+                expr expression_var = null;
                 if (
                     (a = invalid_ann_assign_target_rule()) != null  // invalid_ann_assign_target
                     &&
@@ -17306,7 +19053,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "only single target (not %s) can be annotated", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17319,8 +19071,8 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 List<Object> _loop0_121_var = null;
-                Object a = null;
-                Object expression_var = null;
+                expr a = null;
+                expr expression_var = null;
                 if (
                     (a = star_named_expression_rule()) != null  // star_named_expression
                     &&
@@ -17333,7 +19085,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "only single target (not tuple) can be annotated");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17344,8 +19101,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
-                Object expression_var = null;
+                expr a = null;
+                expr expression_var = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
@@ -17354,7 +19111,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "illegal target for annotation");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17366,7 +19128,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 List<Object> _loop0_122_var = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_loop0_122_var = _loop0_122_rule()) != null  // ((star_targets '='))*
                     &&
@@ -17375,7 +19137,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_INVALID_TARGET(p, STAR_TARGETS, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17387,7 +19154,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 List<Object> _loop0_122_var = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_loop0_122_var = _loop0_122_rule()) != null  // ((star_targets '='))*
                     &&
@@ -17396,7 +19163,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "assignment to yield expression not possible");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17406,9 +19178,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
-                Object annotated_rhs_var = null;
-                Object augassign_var = null;
+                expr a = null;
+                expr annotated_rhs_var = null;
+                AugOperator augassign_var = null;
                 if (
                     (a = star_expressions_rule()) != null  // star_expressions
                     &&
@@ -17417,7 +19189,12 @@ public class GeneratedParser {
                     (annotated_rhs_var = annotated_rhs_rule()) != null  // annotated_rhs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "'%s' is an illegal expression for augmented assignment", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17429,7 +19206,7 @@ public class GeneratedParser {
     }
 
     // invalid_ann_assign_target: list | tuple | '(' invalid_ann_assign_target ')'
-    private Object invalid_ann_assign_target_rule()
+    private expr invalid_ann_assign_target_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -17438,7 +19215,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        Object _res = null;
+        expr _res = null;
         int _mark = p.mark;
         done: {
             { // list
@@ -17446,12 +19223,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object list_var = null;
+                expr list_var = null;
                 if (
                     (list_var = list_rule()) != null  // list
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) list_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -17461,12 +19238,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object tuple_var = null;
+                expr tuple_var = null;
                 if (
                     (tuple_var = tuple_rule()) != null  // tuple
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) tuple_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -17478,7 +19255,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -17487,7 +19264,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = (expr) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17524,7 +19306,12 @@ public class GeneratedParser {
                     (b = p.expectToken(650)) != null  // token='from'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "did you forget an expression between 'raise' and 'from'?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17536,7 +19323,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(632)) != null  // token='raise'
                     &&
@@ -17545,7 +19332,12 @@ public class GeneratedParser {
                     (a = p.expectToken(650)) != null  // token='from'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "did you forget an expression after 'from'?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17575,14 +19367,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_keyword = p.expectToken(634)) != null  // token='del'
                     &&
                     (a = star_expressions_rule()) != null  // star_expressions
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_INVALID_TARGET(p, DEL_TARGETS, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17617,8 +19414,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (_keyword = p.expectToken(638)) != null  // token='assert'
                     &&
@@ -17629,7 +19426,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot assign to %s here. Maybe you meant '==' instead of '='?", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17642,9 +19444,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr a = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(638)) != null  // token='assert'
                     &&
@@ -17659,7 +19461,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot assign to %s here. Maybe you meant '==' instead of '='?", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17671,8 +19478,8 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                Object a = null;
-                Object b = null;
+                expr a = null;
+                expr b = null;
                 if (
                     (_keyword = p.expectToken(638)) != null  // token='assert'
                     &&
@@ -17683,7 +19490,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use named expression without parentheses here");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17696,9 +19508,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr a = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(638)) != null  // token='assert'
                     &&
@@ -17713,7 +19525,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use named expression without parentheses here");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17749,7 +19566,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17784,8 +19606,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                List<Object> for_if_clauses_var = null;
+                expr b = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (_literal = p.expectToken(9)) != null  // token='['
                     &&
@@ -17796,7 +19618,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use dict unpacking in list comprehension");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17808,8 +19635,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                List<Object> for_if_clauses_var = null;
+                expr b = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -17820,7 +19647,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use dict unpacking in generator expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17832,9 +19664,9 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _tmp_123_var = null;
-                Object a = null;
-                List<Object> b = null;
-                List<Object> for_if_clauses_var = null;
+                expr a = null;
+                List<expr> b = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (_tmp_123_var = _tmp_123_rule()) != null  // '[' | '{'
                     &&
@@ -17847,7 +19679,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, (expr) PyPegen_last_item(b), "did you forget parentheses around the comprehension target?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17858,9 +19695,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _tmp_123_var = null;
-                Object a = null;
+                expr a = null;
                 Token b = null;
-                List<Object> for_if_clauses_var = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (_tmp_123_var = _tmp_123_rule()) != null  // '[' | '{'
                     &&
@@ -17871,7 +19708,12 @@ public class GeneratedParser {
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "did you forget parentheses around the comprehension target?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17914,7 +19756,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "at least one parameter must precede /");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17935,7 +19782,12 @@ public class GeneratedParser {
                     (a = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "/ may appear only once");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17947,7 +19799,7 @@ public class GeneratedParser {
                 }
                 List<Object> _loop0_27_var = null;
                 Object _opt_var = null;
-                Object a = null;
+                arg a = null;
                 Object invalid_parameters_helper_var = null;
                 if (
                     p.opt((_opt_var = slash_no_default_rule()))  // slash_no_default?
@@ -17959,7 +19811,12 @@ public class GeneratedParser {
                     (a = param_no_default_rule()) != null  // param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameter without a default follows parameter with a default");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -17986,7 +19843,12 @@ public class GeneratedParser {
                     (b = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "Function parameters cannot be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18016,7 +19878,12 @@ public class GeneratedParser {
                     (a = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "/ must be ahead of *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18037,7 +19904,12 @@ public class GeneratedParser {
                     (a = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expected comma between / and *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18073,7 +19945,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_126_rule() != null)  // &(')' | ',')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expected default value expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18114,7 +19991,12 @@ public class GeneratedParser {
                     (_tmp_127_var = _tmp_127_rule()) != null  // ')' | ',' (')' | '**')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "named parameters must follow bare *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18135,7 +20017,12 @@ public class GeneratedParser {
                     (type_comment_var = p.expectToken(TYPE_COMMENT)) != null  // token='TYPE_COMMENT'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "bare * has associated type comment");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18147,7 +20034,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object param_var = null;
+                arg param_var = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -18156,7 +20043,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "var-positional parameter cannot have default value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18183,7 +20075,12 @@ public class GeneratedParser {
                     (_tmp_128_var_1 = _tmp_128_rule()) != null  // param_no_default | ','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "* may appear only once");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18214,7 +20111,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object param_var = null;
+                arg param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18223,7 +20120,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "var-keyword parameter cannot have default value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18235,8 +20137,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object param_var = null;
+                arg a = null;
+                arg param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18247,7 +20149,12 @@ public class GeneratedParser {
                     (a = param_rule()) != null  // param
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameters cannot follow var-keyword parameter");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18260,7 +20167,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token a = null;
-                Object param_var = null;
+                arg param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18271,7 +20178,12 @@ public class GeneratedParser {
                     (a = (Token) _tmp_129_rule()) != null  // '*' | '**' | '/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameters cannot follow var-keyword parameter");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18300,12 +20212,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                SlashWithDefault a = null;
                 if (
                     (a = slash_with_default_rule()) != null  // slash_with_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_singleton_seq(p, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18320,7 +20237,7 @@ public class GeneratedParser {
                     (_loop1_30_var = _loop1_30_rule()) != null  // param_with_default+
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _loop1_30_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -18363,7 +20280,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "at least one parameter must precede /");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18384,7 +20306,12 @@ public class GeneratedParser {
                     (a = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "/ may appear only once");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18396,7 +20323,7 @@ public class GeneratedParser {
                 }
                 List<Object> _loop0_72_var = null;
                 Object _opt_var = null;
-                Object a = null;
+                arg a = null;
                 Object invalid_lambda_parameters_helper_var = null;
                 if (
                     p.opt((_opt_var = lambda_slash_no_default_rule()))  // lambda_slash_no_default?
@@ -18408,7 +20335,12 @@ public class GeneratedParser {
                     (a = lambda_param_no_default_rule()) != null  // lambda_param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameter without a default follows parameter with a default");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18435,7 +20367,12 @@ public class GeneratedParser {
                     (b = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "Lambda expression parameters cannot be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18465,7 +20402,12 @@ public class GeneratedParser {
                     (a = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "/ must be ahead of *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18486,7 +20428,12 @@ public class GeneratedParser {
                     (a = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expected comma between / and *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18517,12 +20464,17 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                SlashWithDefault a = null;
                 if (
                     (a = lambda_slash_with_default_rule()) != null  // lambda_slash_with_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_singleton_seq(p, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18537,7 +20489,7 @@ public class GeneratedParser {
                     (_loop1_75_var = _loop1_75_rule()) != null  // lambda_param_with_default+
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _loop1_75_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -18577,7 +20529,12 @@ public class GeneratedParser {
                     (_tmp_134_var = _tmp_134_rule()) != null  // ':' | ',' (':' | '**')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "named parameters must follow bare *");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18589,7 +20546,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object lambda_param_var = null;
+                arg lambda_param_var = null;
                 if (
                     (_literal = p.expectToken(16)) != null  // token='*'
                     &&
@@ -18598,7 +20555,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "var-positional parameter cannot have default value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18625,7 +20587,12 @@ public class GeneratedParser {
                     (_tmp_135_var_1 = _tmp_135_rule()) != null  // lambda_param_no_default | ','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "* may appear only once");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18659,7 +20626,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object lambda_param_var = null;
+                arg lambda_param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18668,7 +20635,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "var-keyword parameter cannot have default value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18680,8 +20652,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object lambda_param_var = null;
+                arg a = null;
+                arg lambda_param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18692,7 +20664,12 @@ public class GeneratedParser {
                     (a = lambda_param_rule()) != null  // lambda_param
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameters cannot follow var-keyword parameter");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18705,7 +20682,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token a = null;
-                Object lambda_param_var = null;
+                arg lambda_param_var = null;
                 if (
                     (_literal = p.expectToken(35)) != null  // token='**'
                     &&
@@ -18716,7 +20693,12 @@ public class GeneratedParser {
                     (a = (Token) _tmp_129_rule()) != null  // '*' | '**' | '/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "parameters cannot follow var-keyword parameter");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18762,7 +20744,12 @@ public class GeneratedParser {
                     (indent_var = p.expectToken(INDENT)) != null  // token='INDENT'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "Cannot have two type comments on def");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18792,8 +20779,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object expression_var = null;
+                expr a = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -18804,7 +20791,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_35_rule() != null)  // &(',' | ')' | ':')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_INVALID_TARGET(p, STAR_TARGETS, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18846,7 +20838,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(713) != null)  // !'in'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "'in' expected after for-loop variables");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18877,7 +20874,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
                     &&
@@ -18886,7 +20883,12 @@ public class GeneratedParser {
                     (a = star_expressions_rule()) != null  // star_expressions
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_INVALID_TARGET(p, FOR_TARGETS, a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18917,7 +20919,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
+                expr a = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -18926,7 +20928,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use starred expression here");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18939,7 +20946,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -18950,7 +20957,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use double starred expression here");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -18982,7 +20994,7 @@ public class GeneratedParser {
                 List<Object> _gather_138_var = null;
                 Token _keyword = null;
                 Token a = null;
-                Object dotted_name_var = null;
+                expr dotted_name_var = null;
                 if (
                     (a = p.expectToken(651)) != null  // token='import'
                     &&
@@ -18993,7 +21005,12 @@ public class GeneratedParser {
                     (dotted_name_var = dotted_name_rule()) != null  // dotted_name
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "Did you mean to use 'from ... import ...' instead?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19011,7 +21028,12 @@ public class GeneratedParser {
                     (token = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, token, "Expected one or more names after 'import'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19041,8 +21063,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object dotted_name_var = null;
+                expr a = null;
+                expr dotted_name_var = null;
                 if (
                     (dotted_name_var = dotted_name_rule()) != null  // dotted_name
                     &&
@@ -19053,7 +21075,12 @@ public class GeneratedParser {
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use %s as import target", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19083,8 +21110,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object name_var = null;
+                expr a = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                     &&
@@ -19095,7 +21122,12 @@ public class GeneratedParser {
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use %s as import target", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19128,9 +21160,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 List<Object> _loop0_17_var = null;
-                Object a = null;
-                Object dotted_name_var = null;
-                List<Object> import_from_targets_var = null;
+                expr a = null;
+                expr dotted_name_var = null;
+                List<alias> import_from_targets_var = null;
                 if (
                     (_keyword = p.expectToken(650)) != null  // token='from'
                     &&
@@ -19145,7 +21177,12 @@ public class GeneratedParser {
                     (import_from_targets_var = import_from_targets_rule()) != null  // import_from_targets
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "use 'lazy from ... ' instead of 'from ... lazy import'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19175,7 +21212,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> import_from_as_names_var = null;
+                List<alias> import_from_as_names_var = null;
                 Token newline_var = null;
                 if (
                     (import_from_as_names_var = import_from_as_names_rule()) != null  // import_from_as_names
@@ -19185,7 +21222,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "trailing comma not allowed without surrounding parentheses");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19200,7 +21242,12 @@ public class GeneratedParser {
                     (token = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, token, "Expected one or more names after 'import'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19249,7 +21296,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, trailing, "the last 'with' item has a trailing comma");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19273,7 +21325,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19306,7 +21363,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19356,7 +21418,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'with' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19394,7 +21461,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'with' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19440,7 +21512,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'try' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19452,7 +21529,7 @@ public class GeneratedParser {
                 }
                 Token _keyword = null;
                 Token _literal = null;
-                List<Object> block_var = null;
+                List<stmt> block_var = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
                     &&
@@ -19463,7 +21540,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_144_rule() != null)  // !('except' | 'finally')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected 'except' or 'finally' block");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19481,7 +21563,7 @@ public class GeneratedParser {
                 Object _opt_var = null;
                 Token a = null;
                 Token b = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(674)) != null  // token='try'
                     &&
@@ -19502,7 +21584,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot have both 'except' and 'except*' on the same 'try'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19535,7 +21622,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot have both 'except' and 'except*' on the same 'try'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19572,9 +21664,9 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                Object expressions_var = null;
-                Object name_var = null;
+                expr a = null;
+                expr expressions_var = null;
+                expr name_var = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -19591,7 +21683,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "multiple exception types must be parenthesized when using 'as'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19603,7 +21700,7 @@ public class GeneratedParser {
                 }
                 Object _opt_var = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(695)) != null  // token='except'
@@ -19615,7 +21712,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19633,7 +21735,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19646,9 +21753,9 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _literal = null;
-                Object a = null;
-                List<Object> block_var = null;
-                Object expression_var = null;
+                expr a = null;
+                List<stmt> block_var = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -19663,7 +21770,12 @@ public class GeneratedParser {
                     (block_var = block_rule()) != null  // block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use except statement with %s", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19701,9 +21813,9 @@ public class GeneratedParser {
                 Token _literal = null;
                 Token _literal_1 = null;
                 Token _literal_2 = null;
-                Object a = null;
-                Object expressions_var = null;
-                Object name_var = null;
+                expr a = null;
+                expr expressions_var = null;
+                expr name_var = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -19722,7 +21834,12 @@ public class GeneratedParser {
                     (_literal_2 = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "multiple exception types must be parenthesized when using 'as'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19735,7 +21852,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(695)) != null  // token='except'
@@ -19749,7 +21866,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19770,7 +21892,12 @@ public class GeneratedParser {
                     (_tmp_147_var = _tmp_147_rule()) != null  // NEWLINE | ':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected one or more exception types");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19784,9 +21911,9 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object a = null;
-                List<Object> block_var = null;
-                Object expression_var = null;
+                expr a = null;
+                List<stmt> block_var = null;
+                expr expression_var = null;
                 if (
                     (_keyword = p.expectToken(695)) != null  // token='except'
                     &&
@@ -19803,7 +21930,12 @@ public class GeneratedParser {
                     (block_var = block_rule()) != null  // block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use except* statement with %s", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19845,7 +21977,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'finally' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19879,7 +22016,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(695)) != null  // token='except'
@@ -19895,7 +22032,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'except' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19918,7 +22060,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'except' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -19952,7 +22099,7 @@ public class GeneratedParser {
                 Token _literal_1 = null;
                 Object _opt_var = null;
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(695)) != null  // token='except'
@@ -19970,7 +22117,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'except*' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20002,9 +22154,9 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 Token newline_var = null;
-                Object subject_expr_var = null;
+                expr subject_expr_var = null;
                 if (
                     (_keyword = p.expectSoftKeyword("match")) != null  // soft_keyword='"match"'
                     &&
@@ -20013,7 +22165,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = CHECK_VERSION(p, 10, "Pattern matching is", RAISE_SYNTAX_ERROR(p, "expected ':'"));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20024,9 +22181,9 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object a = null;
+                expr a = null;
                 Token newline_var = null;
-                Object subject = null;
+                expr subject = null;
                 if (
                     (a = p.expectSoftKeyword("match")) != null  // soft_keyword='"match"'
                     &&
@@ -20039,7 +22196,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'match' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20050,10 +22212,10 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 Token b = null;
-                List<Object> block_var = null;
-                Object patterns_var = null;
+                List<stmt> block_var = null;
+                pattern patterns_var = null;
                 if (
                     (a = p.expectSoftKeyword("case")) != null  // soft_keyword='"case"'
                     &&
@@ -20066,7 +22228,12 @@ public class GeneratedParser {
                     (block_var = block_rule()) != null  // block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "case statement must be inside match statement");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20097,10 +22264,10 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 Object _opt_var = null;
                 Token newline_var = null;
-                Object patterns_var = null;
+                pattern patterns_var = null;
                 if (
                     (_keyword = p.expectSoftKeyword("case")) != null  // soft_keyword='"case"'
                     &&
@@ -20111,7 +22278,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20123,9 +22295,9 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _opt_var = null;
-                Object a = null;
+                expr a = null;
                 Token newline_var = null;
-                Object patterns_var = null;
+                pattern patterns_var = null;
                 if (
                     (a = p.expectSoftKeyword("case")) != null  // soft_keyword='"case"'
                     &&
@@ -20140,7 +22312,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'case' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20170,8 +22347,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object or_pattern_var = null;
+                expr a = null;
+                pattern or_pattern_var = null;
                 if (
                     (or_pattern_var = or_pattern_rule()) != null  // or_pattern
                     &&
@@ -20180,7 +22357,12 @@ public class GeneratedParser {
                     (a = p.expectSoftKeyword("_")) != null  // soft_keyword='"_"'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use '_' as a target");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20191,8 +22373,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object a = null;
-                Object or_pattern_var = null;
+                expr a = null;
+                pattern or_pattern_var = null;
                 if (
                     (or_pattern_var = or_pattern_rule()) != null  // or_pattern
                     &&
@@ -20201,7 +22383,12 @@ public class GeneratedParser {
                     (a = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use %s as pattern target", _PyPegen_get_expr_name(a));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20231,8 +22418,8 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> a = null;
-                Object name_or_attr_var = null;
+                List<pattern> a = null;
+                expr name_or_attr_var = null;
                 if (
                     (name_or_attr_var = name_or_attr_rule()) != null  // name_or_attr
                     &&
@@ -20241,7 +22428,12 @@ public class GeneratedParser {
                     (a = invalid_class_argument_pattern_rule()) != null  // invalid_class_argument_pattern
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, (pattern) PyPegen_first_item(a), (pattern) PyPegen_last_item(a), "positional patterns follow keyword patterns");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20277,7 +22469,7 @@ public class GeneratedParser {
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
                 List<Object> items_pattern_var = null;
-                Object rest = null;
+                expr rest = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -20294,7 +22486,12 @@ public class GeneratedParser {
                     (_literal_2 = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, rest, "double star pattern must be the last (right-most) subpattern in the mapping pattern");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20307,7 +22504,7 @@ public class GeneratedParser {
 
     // invalid_class_argument_pattern:
     //     | [positional_patterns ','] keyword_patterns ',' positional_patterns
-    private List<Object> invalid_class_argument_pattern_rule()
+    private List<pattern> invalid_class_argument_pattern_rule()
     {
         if (p.level++ == MAXSTACK) {
             p.stackOverflow();
@@ -20316,7 +22513,7 @@ public class GeneratedParser {
             p.level--;
             return null;
         }
-        List<Object> _res = null;
+        List<pattern> _res = null;
         int _mark = p.mark;
         done: {
             { // [positional_patterns ','] keyword_patterns ',' positional_patterns
@@ -20326,7 +22523,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _opt_var = null;
-                List<Object> a = null;
+                List<pattern> a = null;
                 List<Object> keyword_patterns_var = null;
                 if (
                     p.opt((_opt_var = _tmp_149_rule()))  // [positional_patterns ',']
@@ -20338,7 +22535,12 @@ public class GeneratedParser {
                     (a = positional_patterns_rule()) != null  // positional_patterns
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = (List<pattern>) (List<?>) (a);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20370,7 +22572,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 Token newline_var = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
@@ -20380,7 +22582,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20392,7 +22599,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object a_1 = null;
+                expr a_1 = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(700)) != null  // token='if'
@@ -20406,7 +22613,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'if' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20438,7 +22650,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 Token newline_var = null;
                 if (
                     (_keyword = p.expectToken(705)) != null  // token='elif'
@@ -20448,7 +22660,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20460,7 +22677,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(705)) != null  // token='elif'
@@ -20474,7 +22691,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'elif' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20516,7 +22738,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'else' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20529,7 +22756,7 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Token _keyword_1 = null;
                 Token _literal = null;
-                List<Object> block_var = null;
+                List<stmt> block_var = null;
                 if (
                     (_keyword = p.expectToken(704)) != null  // token='else'
                     &&
@@ -20540,7 +22767,12 @@ public class GeneratedParser {
                     (_keyword_1 = p.expectToken(705)) != null  // token='elif'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "'elif' block follows an 'else' block");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20572,7 +22804,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 Token newline_var = null;
                 if (
                     (_keyword = p.expectToken(707)) != null  // token='while'
@@ -20582,7 +22814,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20594,7 +22831,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(707)) != null  // token='while'
@@ -20608,7 +22845,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'while' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20643,8 +22885,8 @@ public class GeneratedParser {
                 Token _keyword_1 = null;
                 Object _opt_var = null;
                 Token newline_var = null;
-                Object star_expressions_var = null;
-                Object star_targets_var = null;
+                expr star_expressions_var = null;
+                expr star_targets_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
                     &&
@@ -20659,7 +22901,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20674,8 +22921,8 @@ public class GeneratedParser {
                 Object _opt_var = null;
                 Token a = null;
                 Token newline_var = null;
-                Object star_expressions_var = null;
-                Object star_targets_var = null;
+                expr star_expressions_var = null;
+                expr star_targets_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
                     &&
@@ -20694,7 +22941,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after 'for' statement on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20733,7 +22985,7 @@ public class GeneratedParser {
                 Object _opt_var_2 = null;
                 Object _opt_var_3 = null;
                 Token a = null;
-                Object name_var = null;
+                expr name_var = null;
                 Token newline_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
@@ -20759,7 +23011,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after function definition on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20778,8 +23035,8 @@ public class GeneratedParser {
                 Object _opt_var_2 = null;
                 Object _opt_var_3 = null;
                 Object _opt_var_4 = null;
-                List<Object> block_var = null;
-                Object name_var = null;
+                List<stmt> block_var = null;
+                expr name_var = null;
                 if (
                     p.opt((_opt_var = p.expectToken(716)))  // 'async'?
                     &&
@@ -20804,7 +23061,7 @@ public class GeneratedParser {
                     (block_var = block_rule()) != null  // block
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _opt_var, _keyword, name_var, _opt_var_1, _literal, _opt_var_2, _literal_1, _opt_var_3, _literal_2, _opt_var_4, block_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -20838,7 +23095,7 @@ public class GeneratedParser {
                 Token _keyword = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object name_var = null;
+                expr name_var = null;
                 Token newline_var = null;
                 if (
                     (_keyword = p.expectToken(719)) != null  // token='class'
@@ -20852,7 +23109,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "expected ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20866,7 +23128,7 @@ public class GeneratedParser {
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
                 Token a = null;
-                Object name_var = null;
+                expr name_var = null;
                 Token newline_var = null;
                 if (
                     (a = p.expectToken(719)) != null  // token='class'
@@ -20884,7 +23146,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(INDENT) != null)  // !INDENT
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_INDENTATION_ERROR(p, "expected an indented block after class definition on line %d", a.lineno);
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -20924,7 +23191,7 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, invalid_kvpair_unpacking_var, _opt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -20945,7 +23212,7 @@ public class GeneratedParser {
                     (_tmp_150_var = _tmp_150_rule()) != null  // invalid_kvpair | invalid_kvpair_unpacking
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _gather_86_var, _literal, _tmp_150_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -20956,7 +23223,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -20965,7 +23232,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_151_rule() != null)  // &('}' | ',')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expression expected after dictionary key and ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21000,14 +23272,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = p.expectToken(35)) != null  // token='**'
                     &&
                     (b = if_expression_rule()) != null  // if_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid double starred expression. Did you forget to wrap the conditional expression in parentheses?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21019,8 +23296,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (a = p.expectToken(16)) != null  // token='*'
                     &&
@@ -21031,7 +23308,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use a starred expression in a dictionary key");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21043,8 +23325,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (a = p.expectToken(35)) != null  // token='**'
                     &&
@@ -21055,7 +23337,12 @@ public class GeneratedParser {
                     (expression_var = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use dict unpacking in a dictionary key");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21067,8 +23354,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -21079,7 +23366,12 @@ public class GeneratedParser {
                     (b = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use a starred expression in a dictionary value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21091,8 +23383,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -21103,7 +23395,12 @@ public class GeneratedParser {
                     (b = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot use dict unpacking in a dictionary value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21136,14 +23433,19 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object a = null;
+                expr a = null;
                 if (
                     (a = expression_rule()) != null  // expression
                     &&
                     p.lookahead(false, p.mark, p.expectToken(11) != null)  // !(':')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_ERROR_KNOWN_LOCATION(p, PyExc_SyntaxError, a.lineno, a.end_col_offset - 1, a.end_lineno, -1, "':' expected after dictionary key");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21155,8 +23457,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object bitwise_or_var = null;
-                Object expression_var = null;
+                expr bitwise_or_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -21167,7 +23469,12 @@ public class GeneratedParser {
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "cannot use a starred expression in a dictionary value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21179,8 +23486,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object bitwise_or_var = null;
-                Object expression_var = null;
+                expr bitwise_or_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -21191,7 +23498,12 @@ public class GeneratedParser {
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, a, "cannot use dict unpacking in a dictionary value");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21202,7 +23514,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token a = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
@@ -21211,7 +23523,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_151_rule() != null)  // &('}' | ',')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "expression expected after dictionary key and ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21241,14 +23558,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = p.expectToken(16)) != null  // token='*'
                     &&
                     (b = if_expression_rule()) != null  // if_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid starred expression. Did you forget to wrap the conditional expression in parentheses?");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21260,8 +23582,8 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token a = null;
-                Object b = null;
-                Object expression_var = null;
+                expr b = null;
+                expr expression_var = null;
                 if (
                     (a = p.expectToken(16)) != null  // token='*'
                     &&
@@ -21272,7 +23594,12 @@ public class GeneratedParser {
                     (b = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "cannot assign to iterable argument unpacking");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21304,14 +23631,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token a = null;
-                Object bitwise_or_var = null;
+                expr bitwise_or_var = null;
                 if (
                     (a = p.expectToken(35)) != null  // token='**'
                     &&
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "cannot use dict unpacking here");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21326,7 +23658,7 @@ public class GeneratedParser {
                     (invalid_starred_expression_unpacking_var = invalid_starred_expression_unpacking_rule()) != null  // invalid_starred_expression_unpacking
                 )
                 {
-                    _res = p.dummyName();
+                    _res = invalid_starred_expression_unpacking_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -21360,7 +23692,12 @@ public class GeneratedParser {
                     (_literal = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR(p, "Invalid star expression");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21408,7 +23745,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "f-string: valid expression required before '='");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21426,7 +23768,12 @@ public class GeneratedParser {
                     (a = p.expectToken(54)) != null  // token='!'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "f-string: valid expression required before '!'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21444,7 +23791,12 @@ public class GeneratedParser {
                     (a = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "f-string: valid expression required before ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21462,7 +23814,12 @@ public class GeneratedParser {
                     (a = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "f-string: valid expression required before '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21479,7 +23836,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, annotated_rhs_rule() != null)  // !annotated_rhs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting a valid expression after '{'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21490,7 +23852,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21499,7 +23861,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_152_rule() != null)  // !('=' | '!' | ':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting '=', or '!', or ':', or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21511,7 +23878,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21522,7 +23889,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_153_rule() != null)  // !('!' | ':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting '!', or ':', or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21534,7 +23906,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _opt_var = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 Object invalid_fstring_conversion_character_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
@@ -21546,7 +23918,7 @@ public class GeneratedParser {
                     (invalid_fstring_conversion_character_var = invalid_fstring_conversion_character_rule()) != null  // invalid_fstring_conversion_character
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, annotated_rhs_var, _opt_var, invalid_fstring_conversion_character_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -21559,7 +23931,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21572,7 +23944,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_155_rule() != null)  // !(':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting ':' or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21587,7 +23964,7 @@ public class GeneratedParser {
                 List<Object> _loop0_78_var = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21604,7 +23981,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(26) != null)  // !'}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting '}', or format specs");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21617,7 +23999,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21630,7 +24012,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(26) != null)  // !'}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: expecting '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21666,7 +24053,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_155_rule() != null)  // &(':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: missing conversion character");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21683,7 +24075,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.nameToken() != null)  // !NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "f-string: invalid conversion character");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21731,7 +24128,12 @@ public class GeneratedParser {
                     (a = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "t-string: valid expression required before '='");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21749,7 +24151,12 @@ public class GeneratedParser {
                     (a = p.expectToken(54)) != null  // token='!'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "t-string: valid expression required before '!'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21767,7 +24174,12 @@ public class GeneratedParser {
                     (a = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "t-string: valid expression required before ':'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21785,7 +24197,12 @@ public class GeneratedParser {
                     (a = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, a, "t-string: valid expression required before '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21802,7 +24219,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, annotated_rhs_rule() != null)  // !annotated_rhs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting a valid expression after '{'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21813,7 +24235,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21822,7 +24244,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_152_rule() != null)  // !('=' | '!' | ':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting '=', or '!', or ':', or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21834,7 +24261,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21845,7 +24272,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_153_rule() != null)  // !('!' | ':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting '!', or ':', or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21857,7 +24289,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Object _opt_var = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 Object invalid_tstring_conversion_character_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
@@ -21869,7 +24301,7 @@ public class GeneratedParser {
                     (invalid_tstring_conversion_character_var = invalid_tstring_conversion_character_rule()) != null  // invalid_tstring_conversion_character
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, annotated_rhs_var, _opt_var, invalid_tstring_conversion_character_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -21882,7 +24314,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21895,7 +24327,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, _tmp_155_rule() != null)  // !(':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting ':' or '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21910,7 +24347,7 @@ public class GeneratedParser {
                 List<Object> _loop0_78_var = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21927,7 +24364,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(26) != null)  // !'}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting '}', or format specs");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21940,7 +24382,7 @@ public class GeneratedParser {
                 Token _literal = null;
                 Object _opt_var = null;
                 Object _opt_var_1 = null;
-                Object annotated_rhs_var = null;
+                expr annotated_rhs_var = null;
                 if (
                     (_literal = p.expectToken(25)) != null  // token='{'
                     &&
@@ -21953,7 +24395,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(26) != null)  // !'}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = p.errorOccurred() ? null : RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: expecting '}'");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -21989,7 +24436,12 @@ public class GeneratedParser {
                     p.lookahead(true, p.mark, _tmp_155_rule() != null)  // &(':' | '}')
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: missing conversion character");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22006,7 +24458,12 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.nameToken() != null)  // !NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_ON_NEXT_TOKEN(p, "t-string: invalid conversion character");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22038,14 +24495,19 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = _loop1_82_rule()) != null  // ((fstring | string))+
                     &&
-                    (b = tstring_rule()) != null  // tstring
+                    (b = (expr) tstring_rule()) != null  // tstring
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, (expr) PyPegen_last_item(a), b, "cannot mix t-string literals with string or bytes literals");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22056,14 +24518,19 @@ public class GeneratedParser {
                     return null;
                 }
                 List<Object> a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (a = _loop1_83_rule()) != null  // tstring+
                     &&
-                    (b = _tmp_156_rule()) != null  // fstring | string
+                    (b = (expr) _tmp_156_rule()) != null  // fstring | string
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, (expr) PyPegen_last_item(a), b, "cannot mix t-string literals with string or bytes literals");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22094,8 +24561,8 @@ public class GeneratedParser {
                 }
                 Object _tmp_157_var = null;
                 Token a = null;
-                Object b = null;
-                Object sum_var = null;
+                expr b = null;
+                expr sum_var = null;
                 if (
                     (sum_var = sum_rule()) != null  // sum
                     &&
@@ -22106,7 +24573,12 @@ public class GeneratedParser {
                     (b = inversion_rule()) != null  // inversion
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "'not' after an operator must be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22137,7 +24609,7 @@ public class GeneratedParser {
                 }
                 Object _tmp_158_var = null;
                 Token a = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (_tmp_158_var = _tmp_158_rule()) != null  // '+' | '-' | '~'
                     &&
@@ -22146,7 +24618,12 @@ public class GeneratedParser {
                     (b = factor_rule()) != null  // factor
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "'not' after an operator must be parenthesized");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22183,7 +24660,12 @@ public class GeneratedParser {
                     (token = p.expectToken(10)) != null  // token=']'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, token, "Type parameter list cannot be empty");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22217,7 +24699,7 @@ public class GeneratedParser {
                 (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
             )
             {
-                _res = p.dummyName();
+                _res = newline_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22246,12 +24728,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            List<Object> statement_var = null;
+            List<stmt> statement_var = null;
             while (
                 (statement_var = statement_rule()) != null  // statement
             )
             {
-                _res = p.dummyName();
+                _res = statement_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22285,14 +24767,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            stmt elem = null;
             while (
                 (_literal = p.expectToken(13)) != null  // token=';'
                 &&
                 (elem = simple_stmt_rule()) != null  // simple_stmt
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22321,7 +24808,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                stmt elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = simple_stmt_rule()) != null  // simple_stmt
@@ -22329,7 +24816,7 @@ public class GeneratedParser {
                     (seq = _loop0_3_rule()) != null  // _loop0_3
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -22363,7 +24850,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(651)) != null  // token='import'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22378,7 +24865,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(650)) != null  // token='from'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22388,12 +24875,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object _keyword = null;
+                expr _keyword = null;
                 if (
                     (_keyword = p.expectSoftKeyword("lazy")) != null  // soft_keyword='"lazy"'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22427,7 +24914,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(717)) != null  // token='def'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22442,7 +24929,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(49)) != null  // token='@'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -22457,7 +24944,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(716)) != null  // token='async'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22491,7 +24978,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(719)) != null  // token='class'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22506,7 +24993,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(49)) != null  // token='@'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -22540,7 +25027,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(665)) != null  // token='with'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22555,7 +25042,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(716)) != null  // token='async'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22589,7 +25076,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(712)) != null  // token='for'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22604,7 +25091,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(716)) != null  // token='async'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -22634,14 +25121,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object d = null;
+                expr d = null;
                 if (
                     (_literal = p.expectToken(22)) != null  // token='='
                     &&
                     (d = annotated_rhs_rule()) != null  // annotated_rhs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = d;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22672,7 +25164,7 @@ public class GeneratedParser {
                 }
                 Token _literal = null;
                 Token _literal_1 = null;
-                Object b = null;
+                expr b = null;
                 if (
                     (_literal = p.expectToken(7)) != null  // token='('
                     &&
@@ -22681,7 +25173,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = b;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22691,12 +25188,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object single_subscript_attribute_target_var = null;
+                expr single_subscript_attribute_target_var = null;
                 if (
                     (single_subscript_attribute_target_var = single_subscript_attribute_target_rule()) != null  // single_subscript_attribute_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = single_subscript_attribute_target_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -22730,7 +25227,7 @@ public class GeneratedParser {
                 (_tmp_159_var = _tmp_159_rule()) != null  // star_targets '='
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_159_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22764,14 +25261,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = p.nameToken()) != null  // NAME
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22800,7 +25302,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = p.nameToken()) != null  // NAME
@@ -22808,7 +25310,7 @@ public class GeneratedParser {
                     (seq = _loop0_13_rule()) != null  // _loop0_13
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -22842,7 +25344,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(13)) != null  // token=';'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -22857,7 +25359,7 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = newline_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -22887,14 +25389,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object z = null;
+                expr z = null;
                 if (
                     (_literal = p.expectToken(12)) != null  // token=','
                     &&
                     (z = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -22928,7 +25435,7 @@ public class GeneratedParser {
                 (_tmp_160_var = _tmp_160_rule()) != null  // '.' | '...'
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_160_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22962,7 +25469,7 @@ public class GeneratedParser {
                 (_tmp_160_var = _tmp_160_rule()) != null  // '.' | '...'
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_160_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -22996,14 +25503,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            alias elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = import_from_as_name_rule()) != null  // import_from_as_name
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23032,7 +25544,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                alias elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = import_from_as_name_rule()) != null  // import_from_as_name
@@ -23040,7 +25552,7 @@ public class GeneratedParser {
                     (seq = _loop0_19_rule()) != null  // _loop0_19
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -23070,14 +25582,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object z = null;
+                expr z = null;
                 if (
                     (_keyword = p.expectToken(698)) != null  // token='as'
                     &&
                     (z = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -23107,14 +25624,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            alias elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = dotted_as_name_rule()) != null  // dotted_as_name
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23143,7 +25665,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                alias elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = dotted_as_name_rule()) != null  // dotted_as_name
@@ -23151,7 +25673,7 @@ public class GeneratedParser {
                     (seq = _loop0_22_rule()) != null  // _loop0_22
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -23185,7 +25707,7 @@ public class GeneratedParser {
                 (_tmp_161_var = _tmp_161_rule()) != null  // '@' named_expression NEWLINE
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_161_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23229,7 +25751,12 @@ public class GeneratedParser {
                     (_literal_1 = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -23259,14 +25786,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object z = null;
+                expr z = null;
                 if (
                     (_literal = p.expectToken(51)) != null  // token='->'
                     &&
                     (z = expression_rule()) != null  // expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -23295,12 +25827,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_no_default_var = null;
+            arg param_no_default_var = null;
             while (
                 (param_no_default_var = param_no_default_rule()) != null  // param_no_default
             )
             {
-                _res = p.dummyName();
+                _res = param_no_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23329,12 +25861,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_with_default_var = null;
+            NameDefaultPair param_with_default_var = null;
             while (
                 (param_with_default_var = param_with_default_rule()) != null  // param_with_default
             )
             {
-                _res = p.dummyName();
+                _res = param_with_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23363,12 +25895,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_no_default_var = null;
+            arg param_no_default_var = null;
             while (
                 (param_no_default_var = param_no_default_rule()) != null  // param_no_default
             )
             {
-                _res = p.dummyName();
+                _res = param_no_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23401,12 +25933,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_with_default_var = null;
+            NameDefaultPair param_with_default_var = null;
             while (
                 (param_with_default_var = param_with_default_rule()) != null  // param_with_default
             )
             {
-                _res = p.dummyName();
+                _res = param_with_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23439,12 +25971,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_maybe_default_var = null;
+            NameDefaultPair param_maybe_default_var = null;
             while (
                 (param_maybe_default_var = param_maybe_default_rule()) != null  // param_maybe_default
             )
             {
-                _res = p.dummyName();
+                _res = param_maybe_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23473,12 +26005,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object param_maybe_default_var = null;
+            NameDefaultPair param_maybe_default_var = null;
             while (
                 (param_maybe_default_var = param_maybe_default_rule()) != null  // param_maybe_default
             )
             {
-                _res = p.dummyName();
+                _res = param_maybe_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23512,14 +26044,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            withitem elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = with_item_rule()) != null  // with_item
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23548,7 +26085,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                withitem elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = with_item_rule()) != null  // with_item
@@ -23556,7 +26093,7 @@ public class GeneratedParser {
                     (seq = _loop0_33_rule()) != null  // _loop0_33
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -23590,7 +26127,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23605,7 +26142,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23620,7 +26157,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23649,12 +26186,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object except_block_var = null;
+            excepthandler except_block_var = null;
             while (
                 (except_block_var = except_block_rule()) != null  // except_block
             )
             {
-                _res = p.dummyName();
+                _res = except_block_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23687,12 +26224,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object except_star_block_var = null;
+            excepthandler except_star_block_var = null;
             while (
                 (except_star_block_var = except_star_block_rule()) != null  // except_star_block
             )
             {
-                _res = p.dummyName();
+                _res = except_star_block_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23725,12 +26262,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object case_block_var = null;
+            match_case case_block_var = null;
             while (
                 (case_block_var = case_block_rule()) != null  // case_block
             )
             {
-                _res = p.dummyName();
+                _res = case_block_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23764,14 +26301,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            pattern elem = null;
             while (
                 (_literal = p.expectToken(18)) != null  // token='|'
                 &&
                 (elem = closed_pattern_rule()) != null  // closed_pattern
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -23800,7 +26342,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                pattern elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = closed_pattern_rule()) != null  // closed_pattern
@@ -23808,7 +26350,7 @@ public class GeneratedParser {
                     (seq = _loop0_39_rule()) != null  // _loop0_39
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -23842,7 +26384,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(14)) != null  // token='+'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23857,7 +26399,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(15)) != null  // token='-'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23891,7 +26433,7 @@ public class GeneratedParser {
                     (string_var = p.stringToken()) != null  // STRING
                 )
                 {
-                    _res = p.dummyName();
+                    _res = string_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -23906,7 +26448,7 @@ public class GeneratedParser {
                     (fstring_start_var = p.expectToken(FSTRING_START)) != null  // token='FSTRING_START'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = fstring_start_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -23921,7 +26463,7 @@ public class GeneratedParser {
                     (tstring_start_var = p.expectToken(TSTRING_START)) != null  // token='TSTRING_START'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = tstring_start_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -23955,7 +26497,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(23)) != null  // token='.'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23970,7 +26512,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(7)) != null  // token='('
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -23985,7 +26527,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -24015,14 +26557,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            pattern elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = maybe_star_pattern_rule()) != null  // maybe_star_pattern
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24051,7 +26598,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                pattern elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = maybe_star_pattern_rule()) != null  // maybe_star_pattern
@@ -24059,7 +26606,7 @@ public class GeneratedParser {
                     (seq = _loop0_44_rule()) != null  // _loop0_44
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24089,14 +26636,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            KeyPatternPair elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = key_value_pattern_rule()) != null  // key_value_pattern
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24125,7 +26677,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                KeyPatternPair elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = key_value_pattern_rule()) != null  // key_value_pattern
@@ -24133,7 +26685,7 @@ public class GeneratedParser {
                     (seq = _loop0_46_rule()) != null  // _loop0_46
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24162,12 +26714,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object literal_expr_var = null;
+                expr literal_expr_var = null;
                 if (
                     (literal_expr_var = literal_expr_rule()) != null  // literal_expr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = literal_expr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24177,12 +26729,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object attr_var = null;
+                expr attr_var = null;
                 if (
                     (attr_var = attr_rule()) != null  // attr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = attr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24212,14 +26764,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            pattern elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = pattern_rule()) != null  // pattern
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24248,7 +26805,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                pattern elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = pattern_rule()) != null  // pattern
@@ -24256,7 +26813,7 @@ public class GeneratedParser {
                     (seq = _loop0_49_rule()) != null  // _loop0_49
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24286,14 +26843,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            KeyPatternPair elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = keyword_pattern_rule()) != null  // keyword_pattern
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24322,7 +26884,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                KeyPatternPair elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = keyword_pattern_rule()) != null  // keyword_pattern
@@ -24330,7 +26892,7 @@ public class GeneratedParser {
                     (seq = _loop0_51_rule()) != null  // _loop0_51
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24360,14 +26922,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            type_param elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = type_param_rule()) != null  // type_param
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24396,7 +26963,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                type_param elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = type_param_rule()) != null  // type_param
@@ -24404,7 +26971,7 @@ public class GeneratedParser {
                     (seq = _loop0_53_rule()) != null  // _loop0_53
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24438,7 +27005,7 @@ public class GeneratedParser {
                 (_tmp_16_var = _tmp_16_rule()) != null  // ',' expression
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_16_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24476,7 +27043,7 @@ public class GeneratedParser {
                 (_tmp_162_var = _tmp_162_rule()) != null  // ',' star_expression
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_162_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24510,14 +27077,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = star_named_expression_rule()) != null  // star_named_expression
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24546,7 +27118,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = star_named_expression_rule()) != null  // star_named_expression
@@ -24554,7 +27126,7 @@ public class GeneratedParser {
                     (seq = _loop0_57_rule()) != null  // _loop0_57
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24584,14 +27156,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = star_named_expression_sequence_rule()) != null  // star_named_expression_sequence
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24620,7 +27197,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = star_named_expression_sequence_rule()) != null  // star_named_expression_sequence
@@ -24628,7 +27205,7 @@ public class GeneratedParser {
                     (seq = _loop0_59_rule()) != null  // _loop0_59
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24662,7 +27239,7 @@ public class GeneratedParser {
                 (_tmp_163_var = _tmp_163_rule()) != null  // 'or' conjunction
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_163_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24700,7 +27277,7 @@ public class GeneratedParser {
                 (_tmp_164_var = _tmp_164_rule()) != null  // 'and' inversion
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_164_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24733,12 +27310,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object compare_op_bitwise_or_pair_var = null;
+            CmpopExprPair compare_op_bitwise_or_pair_var = null;
             while (
                 (compare_op_bitwise_or_pair_var = compare_op_bitwise_or_pair_rule()) != null  // compare_op_bitwise_or_pair
             )
             {
-                _res = p.dummyName();
+                _res = compare_op_bitwise_or_pair_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24776,7 +27353,12 @@ public class GeneratedParser {
                     (tok = p.expectToken(28)) != null  // token='!='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_check_barry_as_flufl(p, tok) ? null : tok;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -24813,7 +27395,12 @@ public class GeneratedParser {
                 (elem = _tmp_165_rule()) != null  // slice | starred_expression
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -24850,7 +27437,7 @@ public class GeneratedParser {
                     (seq = _loop0_65_rule()) != null  // _loop0_65
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -24887,7 +27474,12 @@ public class GeneratedParser {
                     p.opt((d = expression_rule()))  // expression?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = d;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -24916,12 +27508,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object genexp_var = null;
+                expr genexp_var = null;
                 if (
                     (genexp_var = genexp_rule()) != null  // genexp
                 )
                 {
-                    _res = p.dummyName();
+                    _res = genexp_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24931,12 +27523,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object tuple_var = null;
+                expr tuple_var = null;
                 if (
                     (tuple_var = tuple_rule()) != null  // tuple
                 )
                 {
-                    _res = p.dummyName();
+                    _res = tuple_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24946,12 +27538,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object group_var = null;
+                expr group_var = null;
                 if (
                     (group_var = group_rule()) != null  // group
                 )
                 {
-                    _res = p.dummyName();
+                    _res = group_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24980,12 +27572,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object listcomp_var = null;
+                expr listcomp_var = null;
                 if (
                     (listcomp_var = listcomp_rule()) != null  // listcomp
                 )
                 {
-                    _res = p.dummyName();
+                    _res = listcomp_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -24995,12 +27587,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object list_var = null;
+                expr list_var = null;
                 if (
                     (list_var = list_rule()) != null  // list
                 )
                 {
-                    _res = p.dummyName();
+                    _res = list_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25029,12 +27621,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object dictcomp_var = null;
+                expr dictcomp_var = null;
                 if (
                     (dictcomp_var = dictcomp_rule()) != null  // dictcomp
                 )
                 {
-                    _res = p.dummyName();
+                    _res = dictcomp_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25044,12 +27636,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object setcomp_var = null;
+                expr setcomp_var = null;
                 if (
                     (setcomp_var = setcomp_rule()) != null  // setcomp
                 )
                 {
-                    _res = p.dummyName();
+                    _res = setcomp_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25059,12 +27651,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object dict_var = null;
+                expr dict_var = null;
                 if (
                     (dict_var = dict_rule()) != null  // dict
                 )
                 {
-                    _res = p.dummyName();
+                    _res = dict_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25074,12 +27666,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object set_var = null;
+                expr set_var = null;
                 if (
                     (set_var = set_rule()) != null  // set
                 )
                 {
-                    _res = p.dummyName();
+                    _res = set_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25108,12 +27700,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object yield_expr_var = null;
+                expr yield_expr_var = null;
                 if (
                     (yield_expr_var = yield_expr_rule()) != null  // yield_expr
                 )
                 {
-                    _res = p.dummyName();
+                    _res = yield_expr_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25123,12 +27715,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object named_expression_var = null;
+                expr named_expression_var = null;
                 if (
                     (named_expression_var = named_expression_rule()) != null  // named_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = named_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25157,12 +27749,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_no_default_var = null;
+            arg lambda_param_no_default_var = null;
             while (
                 (lambda_param_no_default_var = lambda_param_no_default_rule()) != null  // lambda_param_no_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_no_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25191,12 +27783,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_with_default_var = null;
+            NameDefaultPair lambda_param_with_default_var = null;
             while (
                 (lambda_param_with_default_var = lambda_param_with_default_rule()) != null  // lambda_param_with_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_with_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25225,12 +27817,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_no_default_var = null;
+            arg lambda_param_no_default_var = null;
             while (
                 (lambda_param_no_default_var = lambda_param_no_default_rule()) != null  // lambda_param_no_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_no_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25263,12 +27855,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_with_default_var = null;
+            NameDefaultPair lambda_param_with_default_var = null;
             while (
                 (lambda_param_with_default_var = lambda_param_with_default_rule()) != null  // lambda_param_with_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_with_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25301,12 +27893,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_maybe_default_var = null;
+            NameDefaultPair lambda_param_maybe_default_var = null;
             while (
                 (lambda_param_maybe_default_var = lambda_param_maybe_default_rule()) != null  // lambda_param_maybe_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_maybe_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25335,12 +27927,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object lambda_param_maybe_default_var = null;
+            NameDefaultPair lambda_param_maybe_default_var = null;
             while (
                 (lambda_param_maybe_default_var = lambda_param_maybe_default_rule()) != null  // lambda_param_maybe_default
             )
             {
-                _res = p.dummyName();
+                _res = lambda_param_maybe_default_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25373,12 +27965,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object fstring_format_spec_var = null;
+            expr fstring_format_spec_var = null;
             while (
                 (fstring_format_spec_var = fstring_format_spec_rule()) != null  // fstring_format_spec
             )
             {
-                _res = p.dummyName();
+                _res = fstring_format_spec_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25407,12 +27999,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object fstring_middle_var = null;
+            expr fstring_middle_var = null;
             while (
                 (fstring_middle_var = fstring_middle_rule()) != null  // fstring_middle
             )
             {
-                _res = p.dummyName();
+                _res = fstring_middle_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25441,12 +28033,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object tstring_format_spec_var = null;
+            expr tstring_format_spec_var = null;
             while (
                 (tstring_format_spec_var = tstring_format_spec_rule()) != null  // tstring_format_spec
             )
             {
-                _res = p.dummyName();
+                _res = tstring_format_spec_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25475,12 +28067,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object tstring_middle_var = null;
+            expr tstring_middle_var = null;
             while (
                 (tstring_middle_var = tstring_middle_rule()) != null  // tstring_middle
             )
             {
-                _res = p.dummyName();
+                _res = tstring_middle_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25514,7 +28106,7 @@ public class GeneratedParser {
                 (_tmp_156_var = _tmp_156_rule()) != null  // fstring | string
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_156_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25547,12 +28139,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object tstring_var = null;
+            expr tstring_var = null;
             while (
                 (tstring_var = tstring_rule()) != null  // tstring
             )
             {
-                _res = p.dummyName();
+                _res = tstring_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25586,7 +28178,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object y = null;
+                expr y = null;
                 Object z = null;
                 if (
                     (y = star_named_expression_sequence_rule()) != null  // star_named_expression_sequence
@@ -25596,7 +28188,12 @@ public class GeneratedParser {
                     p.opt((z = star_named_expressions_sequence_rule()))  // star_named_expressions_sequence?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, y, fromVoidPtr(z));
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -25626,14 +28223,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            KeyValuePair elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = double_starred_kvpair_rule()) != null  // double_starred_kvpair
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25662,7 +28264,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                KeyValuePair elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = double_starred_kvpair_rule()) != null  // double_starred_kvpair
@@ -25670,7 +28272,7 @@ public class GeneratedParser {
                     (seq = _loop0_85_rule()) != null  // _loop0_85
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -25699,12 +28301,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            Object for_if_clause_var = null;
+            comprehension for_if_clause_var = null;
             while (
                 (for_if_clause_var = for_if_clause_rule()) != null  // for_if_clause
             )
             {
-                _res = p.dummyName();
+                _res = for_if_clause_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25742,7 +28344,7 @@ public class GeneratedParser {
                 (_tmp_166_var = _tmp_166_rule()) != null  // 'if' disjunction
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_166_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25771,12 +28373,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object assignment_expression_var = null;
+                expr assignment_expression_var = null;
                 if (
                     (assignment_expression_var = assignment_expression_rule()) != null  // assignment_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = assignment_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25786,14 +28388,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     p.lookahead(false, p.mark, p.expectToken(53) != null)  // !':='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25803,12 +28405,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object starred_expression_var = null;
+                expr starred_expression_var = null;
                 if (
                     (starred_expression_var = starred_expression_rule()) != null  // starred_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = starred_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -25845,7 +28447,12 @@ public class GeneratedParser {
                 (elem = _tmp_167_rule()) != null  // starred_expression | (assignment_expression | expression !':=') !'='
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25883,7 +28490,7 @@ public class GeneratedParser {
                     (seq = _loop0_90_rule()) != null  // _loop0_90
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -25920,7 +28527,12 @@ public class GeneratedParser {
                     (k = kwargs_rule()) != null  // kwargs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = k;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -25950,14 +28562,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            KeywordOrStarred elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = kwarg_or_starred_rule()) != null  // kwarg_or_starred
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -25986,7 +28603,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                KeywordOrStarred elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = kwarg_or_starred_rule()) != null  // kwarg_or_starred
@@ -25994,7 +28611,7 @@ public class GeneratedParser {
                     (seq = _loop0_93_rule()) != null  // _loop0_93
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26024,14 +28641,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            KeywordOrStarred elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = kwarg_or_double_starred_rule()) != null  // kwarg_or_double_starred
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26060,7 +28682,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                KeywordOrStarred elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = kwarg_or_double_starred_rule()) != null  // kwarg_or_double_starred
@@ -26068,7 +28690,7 @@ public class GeneratedParser {
                     (seq = _loop0_95_rule()) != null  // _loop0_95
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26102,7 +28724,7 @@ public class GeneratedParser {
                 (_tmp_168_var = _tmp_168_rule()) != null  // ',' star_target
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_168_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26132,14 +28754,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = star_target_rule()) != null  // star_target
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26168,7 +28795,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = star_target_rule()) != null  // star_target
@@ -26176,7 +28803,7 @@ public class GeneratedParser {
                     (seq = _loop0_98_rule()) != null  // _loop0_98
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26210,7 +28837,7 @@ public class GeneratedParser {
                 (_tmp_168_var = _tmp_168_rule()) != null  // ',' star_target
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_168_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26243,14 +28870,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object star_target_var = null;
+                expr star_target_var = null;
                 if (
                     p.lookahead(false, p.mark, p.expectToken(16) != null)  // !'*'
                     &&
                     (star_target_var = star_target_rule()) != null  // star_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = star_target_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26280,14 +28907,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = del_target_rule()) != null  // del_target
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26316,7 +28948,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = del_target_rule()) != null  // del_target
@@ -26324,7 +28956,7 @@ public class GeneratedParser {
                     (seq = _loop0_102_rule()) != null  // _loop0_102
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26354,14 +28986,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = expression_rule()) != null  // expression
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26390,7 +29027,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = expression_rule()) != null  // expression
@@ -26398,7 +29035,7 @@ public class GeneratedParser {
                     (seq = _loop0_104_rule()) != null  // _loop0_104
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26435,7 +29072,7 @@ public class GeneratedParser {
                     (indent_var = p.expectToken(INDENT)) != null  // token='INDENT'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, newline_var, indent_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -26471,7 +29108,7 @@ public class GeneratedParser {
                     (_tmp_169_var = _tmp_169_rule()) != null  // ','.(starred_expression | (assignment_expression | expression !':=') !'=')+ ',' kwargs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _tmp_169_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26486,7 +29123,7 @@ public class GeneratedParser {
                     (kwargs_var = kwargs_rule()) != null  // kwargs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = kwargs_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26523,7 +29160,12 @@ public class GeneratedParser {
                 (elem = _tmp_170_rule()) != null  // starred_expression !'='
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26560,7 +29202,7 @@ public class GeneratedParser {
                     (seq = _loop0_108_rule()) != null  // _loop0_108
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -26589,12 +29231,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object args_var = null;
+                expr args_var = null;
                 if (
                     (args_var = args_rule()) != null  // args
                 )
                 {
-                    _res = p.dummyName();
+                    _res = args_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26604,15 +29246,15 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
-                List<Object> for_if_clauses_var = null;
+                expr expression_var = null;
+                List<comprehension> for_if_clauses_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     (for_if_clauses_var = for_if_clauses_rule()) != null  // for_if_clauses
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, expression_var, for_if_clauses_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -26642,14 +29284,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object args_var = null;
+                expr args_var = null;
                 if (
                     (args_var = args_rule()) != null  // args
                     &&
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, args_var, _literal);
                     break done;
                 }
                 p.mark = _mark;
@@ -26683,7 +29325,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -26698,7 +29340,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -26732,7 +29374,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(627)) != null  // token='True'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -26747,7 +29389,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(629)) != null  // token='False'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -26762,7 +29404,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(628)) != null  // token='None'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -26792,14 +29434,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                     &&
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, name_var, _literal);
                     break done;
                 }
                 p.mark = _mark;
@@ -26833,7 +29475,7 @@ public class GeneratedParser {
                 (_tmp_171_var = _tmp_171_rule()) != null  // !STRING expression_without_invalid
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_171_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -26866,7 +29508,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object name_var = null;
+                expr name_var = null;
                 Token string_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
@@ -26874,7 +29516,7 @@ public class GeneratedParser {
                     (string_var = p.stringToken()) != null  // STRING
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, name_var, string_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -26884,12 +29526,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object soft_keyword_var = null;
+                expr soft_keyword_var = null;
                 if (
                     (soft_keyword_var = p.softKeywordToken()) != null  // SOFT_KEYWORD
                 )
                 {
-                    _res = p.dummyName();
+                    _res = soft_keyword_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26923,7 +29565,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(704)) != null  // token='else'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -26938,7 +29580,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -26967,12 +29609,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object pass_stmt_var = null;
+                stmt pass_stmt_var = null;
                 if (
                     (pass_stmt_var = pass_stmt_rule()) != null  // pass_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = pass_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26982,12 +29624,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object break_stmt_var = null;
+                stmt break_stmt_var = null;
                 if (
                     (break_stmt_var = break_stmt_rule()) != null  // break_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = break_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -26997,12 +29639,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object continue_stmt_var = null;
+                stmt continue_stmt_var = null;
                 if (
                     (continue_stmt_var = continue_stmt_rule()) != null  // continue_stmt
                 )
                 {
-                    _res = p.dummyName();
+                    _res = continue_stmt_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27036,7 +29678,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27051,7 +29693,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(53)) != null  // token=':='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27080,12 +29722,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object list_var = null;
+                expr list_var = null;
                 if (
                     (list_var = list_rule()) != null  // list
                 )
                 {
-                    _res = p.dummyName();
+                    _res = list_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27095,12 +29737,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object tuple_var = null;
+                expr tuple_var = null;
                 if (
                     (tuple_var = tuple_rule()) != null  // tuple
                 )
                 {
-                    _res = p.dummyName();
+                    _res = tuple_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27110,12 +29752,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object genexp_var = null;
+                expr genexp_var = null;
                 if (
                     (genexp_var = genexp_rule()) != null  // genexp
                 )
                 {
-                    _res = p.dummyName();
+                    _res = genexp_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27130,7 +29772,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(627)) != null  // token='True'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -27145,7 +29787,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(628)) != null  // token='None'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -27160,7 +29802,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(629)) != null  // token='False'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -27189,12 +29831,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            List<Object> star_named_expressions_var = null;
+            List<expr> star_named_expressions_var = null;
             while (
                 (star_named_expressions_var = star_named_expressions_rule()) != null  // star_named_expressions
             )
             {
-                _res = p.dummyName();
+                _res = star_named_expressions_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -27228,7 +29870,7 @@ public class GeneratedParser {
                 (_tmp_159_var = _tmp_159_rule()) != null  // star_targets '='
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_159_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -27262,7 +29904,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(9)) != null  // token='['
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27277,7 +29919,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(25)) != null  // token='{'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27306,12 +29948,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> slash_no_default_var = null;
+                List<arg> slash_no_default_var = null;
                 if (
                     (slash_no_default_var = slash_no_default_rule()) != null  // slash_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = slash_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27321,12 +29963,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object slash_with_default_var = null;
+                SlashWithDefault slash_with_default_var = null;
                 if (
                     (slash_with_default_var = slash_with_default_rule()) != null  // slash_with_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = slash_with_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27360,7 +30002,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27370,12 +30012,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object param_no_default_var = null;
+                arg param_no_default_var = null;
                 if (
                     (param_no_default_var = param_no_default_rule()) != null  // param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = param_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27409,7 +30051,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27424,7 +30066,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27458,7 +30100,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27476,7 +30118,7 @@ public class GeneratedParser {
                     (_tmp_172_var = _tmp_172_rule()) != null  // ')' | '**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, _tmp_172_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -27505,12 +30147,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object param_no_default_var = null;
+                arg param_no_default_var = null;
                 if (
                     (param_no_default_var = param_no_default_rule()) != null  // param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = param_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27525,7 +30167,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27559,7 +30201,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27574,7 +30216,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(35)) != null  // token='**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27589,7 +30231,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27618,12 +30260,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                List<Object> lambda_slash_no_default_var = null;
+                List<arg> lambda_slash_no_default_var = null;
                 if (
                     (lambda_slash_no_default_var = lambda_slash_no_default_rule()) != null  // lambda_slash_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = lambda_slash_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27633,12 +30275,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambda_slash_with_default_var = null;
+                SlashWithDefault lambda_slash_with_default_var = null;
                 if (
                     (lambda_slash_with_default_var = lambda_slash_with_default_rule()) != null  // lambda_slash_with_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = lambda_slash_with_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27668,14 +30310,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            arg elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = lambda_param_rule()) != null  // lambda_param
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -27704,7 +30351,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                arg elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = lambda_param_rule()) != null  // lambda_param
@@ -27712,7 +30359,7 @@ public class GeneratedParser {
                     (seq = _loop0_131_rule()) != null  // _loop0_131
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -27746,7 +30393,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27756,12 +30403,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambda_param_no_default_var = null;
+                arg lambda_param_no_default_var = null;
                 if (
                     (lambda_param_no_default_var = lambda_param_no_default_rule()) != null  // lambda_param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = lambda_param_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27795,7 +30442,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27813,7 +30460,7 @@ public class GeneratedParser {
                     (_tmp_173_var = _tmp_173_rule()) != null  // ':' | '**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, _tmp_173_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -27842,12 +30489,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object lambda_param_no_default_var = null;
+                arg lambda_param_no_default_var = null;
                 if (
                     (lambda_param_no_default_var = lambda_param_no_default_rule()) != null  // lambda_param_no_default
                 )
                 {
-                    _res = p.dummyName();
+                    _res = lambda_param_no_default_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -27862,7 +30509,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -27893,7 +30540,7 @@ public class GeneratedParser {
                 }
                 List<Object> _loop0_174_var = null;
                 Object _opt_var = null;
-                Object bitwise_or_var = null;
+                expr bitwise_or_var = null;
                 if (
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                     &&
@@ -27902,7 +30549,7 @@ public class GeneratedParser {
                     p.opt((_opt_var = p.expectToken(12)))  // ','?
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, bitwise_or_var, _loop0_174_var, _opt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -27932,14 +30579,19 @@ public class GeneratedParser {
                 return null;
             }
             Token _literal = null;
-            Object elem = null;
+            expr elem = null;
             while (
                 (_literal = p.expectToken(12)) != null  // token=','
                 &&
                 (elem = dotted_name_rule()) != null  // dotted_name
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -27968,7 +30620,7 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object elem = null;
+                expr elem = null;
                 List<Object> seq = null;
                 if (
                     (elem = dotted_name_rule()) != null  // dotted_name
@@ -27976,7 +30628,7 @@ public class GeneratedParser {
                     (seq = _loop0_137_rule()) != null  // _loop0_137
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -28006,14 +30658,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _tmp_175_var = null;
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (name_var = p.nameToken()) != null  // NAME
                     &&
                     (_tmp_175_var = _tmp_175_rule()) != null  // ',' | ')' | ';' | NEWLINE
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, name_var, _tmp_175_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -28050,7 +30702,12 @@ public class GeneratedParser {
                 (elem = _tmp_176_rule()) != null  // expression ['as' star_target]
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -28087,7 +30744,7 @@ public class GeneratedParser {
                     (seq = _loop0_140_rule()) != null  // _loop0_140
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -28124,7 +30781,12 @@ public class GeneratedParser {
                 (elem = _tmp_177_rule()) != null  // expressions ['as' star_target]
             )
             {
-                _res = p.dummyName();
+                _res = elem;
+                if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                    p.error_indicator = true;
+                    p.level--;
+                    return null;
+                }
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -28161,7 +30823,7 @@ public class GeneratedParser {
                     (seq = _loop0_142_rule()) != null  // _loop0_142
                 )
                 {
-                    _res = (List<Object>) (List<?>) p.dummyName();
+                    _res = _PyPegen_seq_insert_in_front(p, elem, seq);
                     break done;
                 }
                 p.mark = _mark;
@@ -28195,7 +30857,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(695)) != null  // token='except'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -28210,7 +30872,7 @@ public class GeneratedParser {
                     (_keyword = p.expectToken(691)) != null  // token='finally'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _keyword;
                     break done;
                 }
                 p.mark = _mark;
@@ -28239,12 +30901,12 @@ public class GeneratedParser {
                 p.level--;
                 return null;
             }
-            List<Object> block_var = null;
+            List<stmt> block_var = null;
             while (
                 (block_var = block_rule()) != null  // block
             )
             {
-                _res = p.dummyName();
+                _res = block_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -28274,14 +30936,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     p.opt((_opt_var = _tmp_21_rule()))  // ['as' NAME]
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, expression_var, _opt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -28315,7 +30977,7 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = newline_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -28330,7 +30992,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28367,7 +31029,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, items_pattern_var, _literal);
                     break done;
                 }
                 p.mark = _mark;
@@ -28397,14 +31059,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                List<Object> positional_patterns_var = null;
+                List<pattern> positional_patterns_var = null;
                 if (
                     (positional_patterns_var = positional_patterns_rule()) != null  // positional_patterns
                     &&
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, positional_patterns_var, _literal);
                     break done;
                 }
                 p.mark = _mark;
@@ -28438,7 +31100,7 @@ public class GeneratedParser {
                     (invalid_kvpair_var = invalid_kvpair_rule()) != null  // invalid_kvpair
                 )
                 {
-                    _res = p.dummyName();
+                    _res = invalid_kvpair_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -28453,7 +31115,7 @@ public class GeneratedParser {
                     (invalid_kvpair_unpacking_var = invalid_kvpair_unpacking_rule()) != null  // invalid_kvpair_unpacking
                 )
                 {
-                    _res = p.dummyName();
+                    _res = invalid_kvpair_unpacking_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -28487,7 +31149,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28502,7 +31164,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28536,7 +31198,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28551,7 +31213,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(54)) != null  // token='!'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28566,7 +31228,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28581,7 +31243,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28615,7 +31277,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(54)) != null  // token='!'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28630,7 +31292,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28645,7 +31307,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28675,14 +31337,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object name_var = null;
+                expr name_var = null;
                 if (
                     (_literal = p.expectToken(54)) != null  // token='!'
                     &&
                     (name_var = p.nameToken()) != null  // NAME
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, name_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -28716,7 +31378,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28731,7 +31393,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(26)) != null  // token='}'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28760,12 +31422,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object fstring_var = null;
+                expr fstring_var = null;
                 if (
                     (fstring_var = fstring_rule()) != null  // fstring
                 )
                 {
-                    _res = p.dummyName();
+                    _res = fstring_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -28775,12 +31437,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object string_var = null;
+                expr string_var = null;
                 if (
                     (string_var = string_rule()) != null  // string
                 )
                 {
-                    _res = p.dummyName();
+                    _res = string_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -28814,7 +31476,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(14)) != null  // token='+'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28829,7 +31491,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(15)) != null  // token='-'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28844,7 +31506,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(16)) != null  // token='*'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28859,7 +31521,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(17)) != null  // token='/'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28874,7 +31536,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(24)) != null  // token='%'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28889,7 +31551,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(47)) != null  // token='//'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28904,7 +31566,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(49)) != null  // token='@'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28938,7 +31600,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(14)) != null  // token='+'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28953,7 +31615,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(15)) != null  // token='-'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28968,7 +31630,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(31)) != null  // token='~'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -28998,14 +31660,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object z = null;
+                expr z = null;
                 if (
                     (z = star_targets_rule()) != null  // star_targets
                     &&
                     (_literal = p.expectToken(22)) != null  // token='='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29039,7 +31706,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(23)) != null  // token='.'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29054,7 +31721,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(52)) != null  // token='...'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29084,7 +31751,7 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object f = null;
+                expr f = null;
                 Token newline_var = null;
                 if (
                     (_literal = p.expectToken(49)) != null  // token='@'
@@ -29094,7 +31761,12 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = f;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29124,14 +31796,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object c = null;
+                expr c = null;
                 if (
                     (_literal = p.expectToken(12)) != null  // token=','
                     &&
                     (c = star_expression_rule()) != null  // star_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = c;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29161,14 +31838,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object c = null;
+                expr c = null;
                 if (
                     (_keyword = p.expectToken(589)) != null  // token='or'
                     &&
                     (c = conjunction_rule()) != null  // conjunction
                 )
                 {
-                    _res = p.dummyName();
+                    _res = c;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29198,14 +31880,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object c = null;
+                expr c = null;
                 if (
                     (_keyword = p.expectToken(590)) != null  // token='and'
                     &&
                     (c = inversion_rule()) != null  // inversion
                 )
                 {
-                    _res = p.dummyName();
+                    _res = c;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29234,12 +31921,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object slice_var = null;
+                expr slice_var = null;
                 if (
                     (slice_var = slice_rule()) != null  // slice
                 )
                 {
-                    _res = p.dummyName();
+                    _res = slice_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29249,12 +31936,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object starred_expression_var = null;
+                expr starred_expression_var = null;
                 if (
                     (starred_expression_var = starred_expression_rule()) != null  // starred_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = starred_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29284,14 +31971,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object z = null;
+                expr z = null;
                 if (
                     (_keyword = p.expectToken(700)) != null  // token='if'
                     &&
                     (z = disjunction_rule()) != null  // disjunction
                 )
                 {
-                    _res = p.dummyName();
+                    _res = z;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29320,12 +32012,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object starred_expression_var = null;
+                expr starred_expression_var = null;
                 if (
                     (starred_expression_var = starred_expression_rule()) != null  // starred_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = starred_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29342,7 +32034,7 @@ public class GeneratedParser {
                     p.lookahead(false, p.mark, p.expectToken(22) != null)  // !'='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _tmp_178_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29372,14 +32064,19 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object c = null;
+                expr c = null;
                 if (
                     (_literal = p.expectToken(12)) != null  // token=','
                     &&
                     (c = star_target_rule()) != null  // star_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = c;
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
                     break done;
                 }
                 p.mark = _mark;
@@ -29420,7 +32117,7 @@ public class GeneratedParser {
                     (kwargs_var = kwargs_rule()) != null  // kwargs
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _gather_91_var, _literal, kwargs_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -29449,14 +32146,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object starred_expression_var = null;
+                expr starred_expression_var = null;
                 if (
                     (starred_expression_var = starred_expression_rule()) != null  // starred_expression
                     &&
                     p.lookahead(false, p.mark, p.expectToken(22) != null)  // !'='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = starred_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29485,14 +32182,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_without_invalid_var = null;
+                expr expression_without_invalid_var = null;
                 if (
                     p.lookahead(false, p.mark, p.stringToken() != null)  // !STRING
                     &&
                     (expression_without_invalid_var = expression_without_invalid_rule()) != null  // expression_without_invalid
                 )
                 {
-                    _res = p.dummyName();
+                    _res = expression_without_invalid_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29526,7 +32223,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29541,7 +32238,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(35)) != null  // token='**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29575,7 +32272,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(11)) != null  // token=':'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29590,7 +32287,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(35)) != null  // token='**'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29624,7 +32321,7 @@ public class GeneratedParser {
                 (_tmp_179_var = _tmp_179_rule()) != null  // ',' bitwise_or
             )
             {
-                _res = p.dummyName();
+                _res = _tmp_179_var;
                 _children.add(_res);
                 _mark = p.mark;
             }
@@ -29658,7 +32355,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(12)) != null  // token=','
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29673,7 +32370,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(8)) != null  // token=')'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29688,7 +32385,7 @@ public class GeneratedParser {
                     (_literal = p.expectToken(13)) != null  // token=';'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _literal;
                     break done;
                 }
                 p.mark = _mark;
@@ -29703,7 +32400,7 @@ public class GeneratedParser {
                     (newline_var = p.expectToken(NEWLINE)) != null  // token='NEWLINE'
                 )
                 {
-                    _res = p.dummyName();
+                    _res = newline_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29733,14 +32430,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     p.opt((_opt_var = _tmp_180_rule()))  // ['as' star_target]
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, expression_var, _opt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -29770,14 +32467,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Object _opt_var = null;
-                Object expressions_var = null;
+                expr expressions_var = null;
                 if (
                     (expressions_var = expressions_rule()) != null  // expressions
                     &&
                     p.opt((_opt_var = _tmp_180_rule()))  // ['as' star_target]
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, expressions_var, _opt_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -29806,12 +32503,12 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object assignment_expression_var = null;
+                expr assignment_expression_var = null;
                 if (
                     (assignment_expression_var = assignment_expression_rule()) != null  // assignment_expression
                 )
                 {
-                    _res = p.dummyName();
+                    _res = assignment_expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29821,14 +32518,14 @@ public class GeneratedParser {
                     p.level--;
                     return null;
                 }
-                Object expression_var = null;
+                expr expression_var = null;
                 if (
                     (expression_var = expression_rule()) != null  // expression
                     &&
                     p.lookahead(false, p.mark, p.expectToken(53) != null)  // !':='
                 )
                 {
-                    _res = p.dummyName();
+                    _res = expression_var;
                     break done;
                 }
                 p.mark = _mark;
@@ -29858,14 +32555,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _literal = null;
-                Object bitwise_or_var = null;
+                expr bitwise_or_var = null;
                 if (
                     (_literal = p.expectToken(12)) != null  // token=','
                     &&
                     (bitwise_or_var = bitwise_or_rule()) != null  // bitwise_or
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _literal, bitwise_or_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -29895,14 +32592,14 @@ public class GeneratedParser {
                     return null;
                 }
                 Token _keyword = null;
-                Object star_target_var = null;
+                expr star_target_var = null;
                 if (
                     (_keyword = p.expectToken(698)) != null  // token='as'
                     &&
                     (star_target_var = star_target_rule()) != null  // star_target
                 )
                 {
-                    _res = p.dummyName();
+                    _res = _PyPegen_dummy_name(p, _keyword, star_target_var);
                     break done;
                 }
                 p.mark = _mark;

@@ -1,0 +1,25 @@
+# Expected differences for compare_ast.py --known (run by smoke.sh).
+# MODE SHA1 description; SHA1 is the first 12 hex digits of the file's SHA-1,
+# as compare_ast.py prints it. Remove an entry once it matches.
+
+# \N{RS}: a Unicode name alias; Jython's ucnhash has no aliases.
+file c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
+
+# Errors CPython raises in the compiler (future.c), not the parser.
+file 40417bfd4f1d "from __future__ import doesnt_exist" (future.c)
+single 40417bfd4f1d "from __future__ import doesnt_exist" (future.c)
+file 14df484a3c78 "from __future__ import braces" (future.c)
+single 14df484a3c78 "from __future__ import braces" (future.c)
+
+# Single input ending in a whitespace-only line with no newline, after a def
+# or class header: C's non-exec tokenizer handles that line differently from
+# the exec-mode tokens dump_tokens.py starts from. Needs the Java tokenizer.
+single 8b1859e471ed "def foo():\n " (tokens of an unterminated last line)
+single a087a6f45efd "def f():\n  " (tokens of an unterminated last line)
+single ab2e1495cc52 "class X:\n " (tokens of an unterminated last line)
+single 1c634ed16cce def + whitespace-only last line (tokens)
+single 9d95540b0e00 def + whitespace-only last line (tokens)
+single 8d8222af63d8 def + whitespace-only last line (tokens)
+single 3f5e5f946295 class + whitespace-only last line (tokens)
+single 6075b2fe4bae def + whitespace-only last line (tokens)
+single 319dbb827aec def + whitespace-only last line (tokens)

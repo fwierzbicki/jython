@@ -1,11 +1,12 @@
 """Compare the Java PEG parser's output with CPython's ast.parse(), file by file.
 
-Usage: compare_ast.py [--mode file|single|eval] [--show N] [--no-build] PATH...
+Usage: compare_ast.py [--mode file|single|eval] [--show N] [--no-build]
+                      [--known FILE] PATH...
 
 PATH is a .py file or a directory (searched for *.py). Each file that
-CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by a Java
-parser generated with actions (tests/java/org/python/pegen/AstCompare.java),
-and compared with what CPython's compile(..., "<unknown>", mode,
+CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by the
+checked-in parser (build/classes; driven by
+tests/java/org/python/pegen/AstCompare.java), and compared with what CPython's compile(..., "<unknown>", mode,
 ast.PyCF_ONLY_AST) gives for the same source:
 
 - the tree, every node, field and location, when both accept the file;
@@ -16,17 +17,22 @@ ast.PyCF_ONLY_AST) gives for the same source:
 
 Both sides write the same canonical text (see AstCompare.java), so a
 difference is a real one; the first differing line of each file is shown.
-Exits 0 if every file matches.
+
+--known names a file of expected differences (tests/pegen/compare_known.txt):
+lines "MODE SHA1 description", where SHA1 is the first 12 hex digits of the
+file's SHA-1 (shown with each difference). Those are reported but don't
+fail; one that now matches is reported so the entry can be removed. Exits 0
+if every other file matches.
 
 Needs Python 3.15 (run it with the CPython build the parser follows, e.g.
-../cpython/python.exe), `ant compile` already run, and ../cpython (or
-CPYTHON=...) for the generator. Output goes to build/pegen-compare/.
+../cpython/python.exe) and `ant compile` already run. Output goes to
+build/pegen-compare/.
 """
 
 import argparse
 import ast
+import hashlib
 import io
-import os
 import pathlib
 import struct
 import subprocess
@@ -143,16 +149,26 @@ def run(cmd, **kw):
     subprocess.run([str(c) for c in cmd], check=True, **kw)
 
 
-def build(cpython_dir):
-    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-    actions = OUT / "actions"
-    run([sys.executable, ROOT / "src/pegen/tools/generate.py", "--cpython", cpython_dir,
-         "--actions", "--output-dir", actions], env=env, stdout=subprocess.DEVNULL)
-    run(["javac", "-nowarn", "-cp", ROOT / "build/classes", "-d", actions / "classes",
-         actions / "GeneratedParser.java"])
+def build():
     tests = ROOT / "tests/java/org/python/pegen"
-    run(["javac", "-nowarn", "-cp", f"{actions / 'classes'}:{ROOT / 'build/classes'}",
+    run(["javac", "-nowarn", "-cp", ROOT / "build/classes",
          "-d", OUT / "classes", tests / "AstCompare.java", tests / "TokenDump.java"])
+
+
+def sha(path):
+    return hashlib.sha1(pathlib.Path(path).read_bytes()).hexdigest()[:12]
+
+
+def read_known(path):
+    """{(mode, sha): description} from a known-differences file."""
+    known = {}
+    if path:
+        for line in open(path, encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#"):
+                mode, digest, description = (line.split(None, 2) + [""])[:3]
+                known[(mode, digest)] = description
+    return known
 
 
 def blocks(path):
@@ -182,15 +198,16 @@ def main():
     ap.add_argument("--mode", choices=["file", "single", "eval"], default="file")
     ap.add_argument("--show", type=int, default=20, help="differences to show in full")
     ap.add_argument("--no-build", action="store_true",
-                    help="reuse the parser and drivers built by an earlier run")
+                    help="reuse the drivers compiled by an earlier run")
+    ap.add_argument("--known", help="file of expected differences")
     ap.add_argument("paths", nargs="+")
     args = ap.parse_args()
-    cpython_dir = os.environ.get("CPYTHON", ROOT.parent / "cpython")
     compile_mode = {"file": "exec", "single": "single", "eval": "eval"}[args.mode]
+    known = read_known(args.known)
 
     OUT.mkdir(parents=True, exist_ok=True)
     if not args.no_build:
-        build(cpython_dir)
+        build()
 
     dump = OUT / "tokens"
     with open(dump, "w", encoding="utf-8") as out:
@@ -202,16 +219,24 @@ def main():
 
     java_out = OUT / "java.out"
     run(["java", "-Xss16m", "-cp",
-         f"{OUT / 'actions/classes'}:{ROOT / 'build/classes'}:{OUT / 'classes'}",
+         f"{ROOT / 'build/classes'}:{OUT / 'classes'}",
          "org.python.pegen.AstCompare", "--mode", args.mode, dump, java_out])
 
     files = same = 0
     differ = {"tree": [], "error": [], "accept/reject": [], "warnings": [], "crash": []}
+    expected = []
+    fixed = []
     for name, java in blocks(java_out):
         files += 1
         python = cpython(name, compile_mode)
+        key = (args.mode, sha(name))
         if java == python:
             same += 1
+            if key in known:
+                fixed.append((name, known[key]))
+            continue
+        if key in known:
+            expected.append((name, known[key]))
             continue
         i = first_difference(java, python)
         j = java[i] if i < len(java) else "(end)\n"
@@ -237,14 +262,18 @@ def main():
             if shown == args.show:
                 break
             shown += 1
-            print(f"{kind}: {name} (line {i + 1} of its dump)")
+            print(f"{kind}: {name} ({args.mode} {sha(name)}; line {i + 1} of its dump)")
             if context:
                 print("  " + context.rstrip("\n").replace("\n", "\n  "))
             print("  java:    " + j.rstrip("\n"))
             print("  cpython: " + p.rstrip("\n"))
+    for name, description in fixed:
+        print(f"known difference now matches, remove it from {args.known}: {name} "
+              f"({description})")
     print(f"{files} files, {same} identical"
+          + (f", {len(expected)} known differences" if expected else "")
           + "".join(f", {len(v)} {k}" for k, v in differ.items() if v))
-    sys.exit(0 if files and same == files else 1)
+    sys.exit(0 if files and same + len(expected) == files else 1)
 
 
 if __name__ == "__main__":

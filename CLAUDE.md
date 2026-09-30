@@ -45,11 +45,13 @@ checkboxes at each checkpoint.
   \N{...} name lookup (unicodedata.c _getcode over Jython's ucnhash).
 - src/org/python/pegen/ActionHelpers.java: helpers actions call, C names kept;
   ports of the pegen.h macros, action_helpers.c and pegen_errors.c.
-- tests/pegen/smoke.sh: recognizer smoke test (dump_tokens.py + sample dirs;
-  pending/ holds known gaps that are reported but don't fail).
+- tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
+  dirs and the error corpus (compare_known.txt lists expected differences);
+  pending/ holds known gaps that are reported but don't fail.
 - tests/pegen/dump_tokens.py: dumps CPython's C tokens (and source, metadata);
   tests/java/org/python/pegen/TokenDump.java reads them as a TokenSource.
-- tests/java/org/python/pegen/RecognizerSmoke.java: smoke.sh's Java driver.
+- tests/java/org/python/pegen/RecognizerSmoke.java: accept/reject driver
+  (smoke.sh's small-stack and pending/ checks).
 - tests/pegen/compare_ast.py + tests/java/org/python/pegen/AstCompare.java:
   the correctness oracle; trees, errors and warnings vs CPython's, file by
   file. tests/pegen/extract_samples.py: the syntax-error corpus for it.
@@ -69,7 +71,7 @@ ant regrtest
 
 ## Regenerate the parser
 ant pegen-gen   (or python3 src/pegen/tools/generate.py; needs ../cpython;
-skips actions by default, --actions translates them)
+translates actions by default, --skip-actions gives a recognizer)
 
 ## Compare with CPython (after ant compile)
 ../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...
