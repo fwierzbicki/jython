@@ -746,7 +746,7 @@ The text for an official release would continue like ...
          Needs Python >= 3.10 and a CPython checkout:
              ant pegen-gen [-Dpegen.python=python3] [-Dpegen.cpython=../cpython]
          pegen.args passes further options to generate.py (see its help), such as
-         the one that translates grammar actions instead of skipping them. -->
+         the skip-actions option, for a recognizer that builds no AST. -->
     <target name="pegen-gen">
         <property name="pegen.python" value="python3" />
         <property name="pegen.cpython" value="${basedir}/../cpython" />
