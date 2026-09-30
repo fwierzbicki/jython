@@ -83,6 +83,9 @@ ext.cpythonExecutable = findProperty('cpython') ?: {
     sibling.canExecute() ? sibling.path : 'python'
 }()
 
+// The REPL tests compile with CPython (see ReplCompiler)
+test.systemProperty 'jython.cpython', cpythonExecutable
+
 class PythonExec extends Exec {
 
     PythonExec() {
@@ -120,6 +123,17 @@ task generateOpcodes(type: PythonExec,
     args genOpcodeJavaDir
 }
 compileJava.dependsOn(generateOpcodes)
+
+
+// Run the interactive REPL (compiling with CPython)
+// ./gradlew -q --console=plain core:repl
+
+task repl(type: JavaExec, description: 'Run the interactive REPL') {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.python.core.Repl'
+    standardInput = System.in
+    systemProperty 'jython.cpython', cpythonExecutable
+}
 
 
 // Report the version of Python available

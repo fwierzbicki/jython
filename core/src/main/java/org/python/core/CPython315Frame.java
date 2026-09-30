@@ -277,10 +277,39 @@ class CPython315Frame extends PyFrame<CPython315Code> {
                         s[top] = switch (oparg) {
                             case Opcode315.NB_ADD -> PyNumber.add(v, w);
                             case Opcode315.NB_AND -> PyNumber.and(v, w);
+                            // case Opcode315.NB_FLOOR_DIVIDE -> PyNumber.FloorDivide(v, w);
+                            // case Opcode315.NB_LSHIFT -> PyNumber.Lshift(v, w);
+                            // case Opcode315.NB_MATRIX_MULTIPLY
+                            // -> PyNumber.MatrixMultiply(v, w);
                             case Opcode315.NB_MULTIPLY -> PyNumber.multiply(v, w);
+                            // case Opcode315.NB_REMAINDER -> PyNumber.Remainder(v, w);
                             case Opcode315.NB_OR -> PyNumber.or(v, w);
+                            // case Opcode315.NB_POWER -> PyNumber.PowerNoMod(v, w);
+                            // case Opcode315.NB_RSHIFT -> PyNumber.Rshift(v, w);
                             case Opcode315.NB_SUBTRACT -> PyNumber.subtract(v, w);
+                            // case Opcode315.NB_TRUE_DIVIDE -> PyNumber.TrueDivide(v, w);
                             case Opcode315.NB_XOR -> PyNumber.xor(v, w);
+                            // case Opcode315.NB_INPLACE_ADD -> PyNumber.InPlaceAdd(v, w);
+                            // case Opcode315.NB_INPLACE_AND -> PyNumber.InPlaceAnd(v, w);
+                            // case Opcode315.NB_INPLACE_FLOOR_DIVIDE
+                            // -> PyNumber.InPlaceFloorDivide(v, w);
+                            // case Opcode315.NB_INPLACE_LSHIFT -> PyNumber.InPlaceLshift(v, w);
+                            // case Opcode315.NB_INPLACE_MATRIX_MULTIPLY
+                            // -> PyNumber.InPlaceMatrixMultiply(v, w);
+                            // case Opcode315.NB_INPLACE_MULTIPLY
+                            // -> PyNumber.InPlaceMultiply(v, w);
+                            // case Opcode315.NB_INPLACE_REMAINDER
+                            // -> PyNumber.InPlaceRemainder(v, w);
+                            // case Opcode315.NB_INPLACE_OR -> PyNumber.InPlaceOr(v, w);
+                            // case Opcode315.NB_INPLACE_POWER
+                            // -> PyNumber.InPlacePowerNoMod(v, w);
+                            // case Opcode315.NB_INPLACE_RSHIFT -> PyNumber.InPlaceRshift(v, w);
+                            // case Opcode315.NB_INPLACE_SUBTRACT
+                            // -> PyNumber.InPlaceSubtract(v, w);
+                            // case Opcode315.NB_INPLACE_TRUE_DIVIDE -> //
+                            // PyNumber.InPlaceTrueDivide(v, w);
+                            // case Opcode315.NB_INPLACE_XOR -> PyNumber.InPlaceXor(v, w);
+                            // w | v | -> | w[v] | (was BINARY_SUBSCR before 3.14)
                             case Opcode315.NB_SUBSCR -> PySequence.getItem(v, w);
                             default -> throw new MissingFeature("BINARY_OP %d (%s)", oparg,
                                     CPython315Code.binaryOpName(oparg));
@@ -493,6 +522,7 @@ class CPython315Frame extends PyFrame<CPython315Code> {
                         break;
 
                     case Opcode315.JUMP_BACKWARD_NO_INTERRUPT:
+                        // Same as plain JUMP_BACKWARD for us (but no cache)
                         ip -= oparg;
                         break;
 
@@ -581,7 +611,7 @@ class CPython315Frame extends PyFrame<CPython315Code> {
                  * with ip at the handler code, or in a Python finally clause.
                  */
                 // Should handle within Python, but for now, stop.
-                System.err.println(pye);
+                // (The caller reports the exception.)
                 throw pye;
             } catch (InterpreterError | AssertionError ie) {
                 /*
@@ -669,6 +699,17 @@ class CPython315Frame extends PyFrame<CPython315Code> {
      * @throws Throwable from the call
      */
     private int call(int sp, int oparg, PyTuple kwnames) throws Throwable {
+        /*
+         * CPython gains from recognising that a callable is actually a bound
+         * method, and so each call includes a slot (self_or_null) that is
+         * NULL unless LOAD_ATTR found an unbound method. CALL uses that
+         * space to un-bundle (if it can) a bound method into an unbound
+         * callable and its 'self' argument (_MAYBE_EXPAND_METHOD, which was
+         * PRECALL in 3.11).
+         *
+         * There is no proof this would help in Jython. It might, but we can
+         * safely skip it and the call will still do the right thing.
+         */
         final Object[] s = valuestack;
         int base = sp - oparg - 2;
         Object callable = s[base];
