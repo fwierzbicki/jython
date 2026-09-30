@@ -60,13 +60,7 @@ public class RecognizerSmoke {
                 toks.add(new Token(type, unescape(f[5]), Integer.parseInt(f[1]), Integer.parseInt(f[2]),
                         Integer.parseInt(f[3]), Integer.parseInt(f[4])));
             }
-            final Iterator<Token> it = toks.iterator();
-            Parser p = new Parser(new TokenSource() {
-                @Override
-                public Token next() {
-                    return it.hasNext() ? it.next() : null;
-                }
-            }, startRule);
+            Parser p = new Parser(new DumpTokenSource(toks.iterator()), startRule);
             boolean accepted = p.runParser(new GeneratedParser(p)) != null;
             files++;
             if (accepted != expectAccept) {
@@ -80,6 +74,57 @@ public class RecognizerSmoke {
         System.out.printf("%d files, %d not %s as expected, %.1fs%n", files, unexpected,
                 expectAccept ? "accepted" : "rejected", (System.nanoTime() - t0) / 1e9);
         System.exit(unexpected == 0 && files > 0 ? 0 : 1);
+    }
+
+    /**
+     * Replays dumped tokens, keeping the f/t-string mode stack that C's
+     * tokenizer keeps (TokenSource's tokenizer-state methods): a mode is
+     * pushed by FSTRING_START or TSTRING_START and popped by the matching END.
+     */
+    static final class DumpTokenSource implements TokenSource {
+        private final Iterator<Token> it;
+        /** Innermost last: 't' or 'f', upper case if raw. */
+        private final StringBuilder modes = new StringBuilder();
+
+        DumpTokenSource(Iterator<Token> it) {
+            this.it = it;
+        }
+
+        @Override
+        public Token next() {
+            if (!it.hasNext()) {
+                return null;
+            }
+            Token t = it.next();
+            if (t.type == TokenTypes.FSTRING_START || t.type == TokenTypes.TSTRING_START) {
+                char kind = t.type == TokenTypes.TSTRING_START ? 't' : 'f';
+                boolean raw = t.string.indexOf('r') >= 0 || t.string.indexOf('R') >= 0;
+                modes.append(raw ? Character.toUpperCase(kind) : kind);
+            } else if ((t.type == TokenTypes.FSTRING_END || t.type == TokenTypes.TSTRING_END)
+                    && modes.length() > 0) {
+                modes.setLength(modes.length() - 1);
+            }
+            return t;
+        }
+
+        private char mode() {
+            return modes.charAt(modes.length() - 1);
+        }
+
+        @Override
+        public boolean insideFstring() {
+            return modes.length() > 0;
+        }
+
+        @Override
+        public boolean insideTstring() {
+            return insideFstring() && Character.toLowerCase(mode()) == 't';
+        }
+
+        @Override
+        public boolean fstringRaw() {
+            return insideFstring() && Character.isUpperCase(mode());
+        }
     }
 
     /** Reverses dump_tokens.py's escaping of backslash, newline and carriage return. */
