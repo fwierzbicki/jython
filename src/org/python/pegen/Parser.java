@@ -68,7 +68,8 @@ public class Parser {
     private static final List<Object> DUMMY = Collections.emptyList();
     private static final Token DUMMY_TOKEN = new Token(NAME, "", 1, 0, 1, 0);
 
-    private final TokenSource tok;
+    /** C: p->tok; also read through the tokenizer-state macros in ActionHelpers. */
+    final TokenSource tok;
     public Token[] tokens = new Token[1];
     public int mark;
     public int fill;
@@ -83,6 +84,41 @@ public class Parser {
      * accepted; CHECK_VERSION rejects newer constructs below it.
      */
     public int feature_version = 15;
+    /** C: p->flags, the PyPARSE_* flags (e.g. ActionHelpers.PyPARSE_BARRY_AS_BDFL). */
+    public int flags;
+
+    /**
+     * C: *p->errcode, the error code for the caller; E_EOF when interactive
+     * input ends (see _PyPegen_interactive_exit).
+     */
+    public int errcode;
+
+    /** One "# type: ignore" comment (C: an item of growable_comment_array). */
+    public static final class TypeIgnoreComment {
+        public final int lineno;
+        /** The " <tag>" in "# type: ignore <tag>" */
+        public final String comment;
+
+        TypeIgnoreComment(int lineno, String comment) {
+            this.lineno = lineno;
+            this.comment = comment;
+        }
+    }
+
+    /** C: p->type_ignore_comments, recorded by fillToken from TYPE_IGNORE tokens. */
+    public final List<TypeIgnoreComment> type_ignore_comments = new ArrayList<>();
+
+    /** A source range (C: pegen.h location). */
+    public static final class Location {
+        public int lineno;
+        public int col_offset;
+        public int end_lineno;
+        public int end_col_offset;
+    }
+
+    /** C: p->last_stmt_location, kept by _PyPegen_register_stmts in the second pass. */
+    public final Location last_stmt_location = new Location();
+
     /** CPython's PyArena; unused on the JVM, kept so helper signatures match. */
     public final Object arena = null;
 
@@ -145,6 +181,11 @@ public class Parser {
     /** _PyPegen_fill_token: append the next token, mapping keyword names. */
     public int fillToken() {
         Token t = nextFromSource();
+        // Record and skip '# type: ignore' comments
+        while (t != null && t.type == TYPE_IGNORE) {
+            type_ignore_comments.add(new TypeIgnoreComment(t.lineno, t.string));
+            t = nextFromSource();
+        }
         if (t == null) {
             return -1;
         }
@@ -551,6 +592,26 @@ public class Parser {
         errorType = null;
         error = null;
         errorLocation = "";
+    }
+
+    /**
+     * _PyErr_EmitSyntaxWarning: issues a SyntaxWarning; one raised as an
+     * error becomes a SyntaxError at the given location (1-based columns).
+     */
+    public int emitSyntaxWarning(String msg, int lineno, int col_offset, int end_lineno,
+            int end_col_offset) {
+        if (warnExplicit("SyntaxWarning", msg, lineno) < 0) {
+            if (errorMatches("SyntaxWarning")) {
+                /* Replace the SyntaxWarning exception with a SyntaxError
+                   to get a more accurate error report */
+                clearError();
+                // C: _PyErr_RaiseSyntaxError, which leaves error_indicator alone.
+                setError("SyntaxError", msg);
+                errorLocation = " at " + lineno + ":" + col_offset;
+            }
+            return -1;
+        }
+        return 0;
     }
 
     /**
