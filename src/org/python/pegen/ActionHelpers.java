@@ -39,6 +39,10 @@ public final class ActionHelpers {
     /** Exception types, by name. TODO: Jython's exception types once errors are real. */
     public static final String PyExc_SyntaxError = "SyntaxError";
     public static final String PyExc_IndentationError = "IndentationError";
+    public static final String PyExc_ValueError = "ValueError";
+    public static final String PyExc_UnicodeError = "UnicodeError";
+    public static final String PyExc_SyntaxWarning = "SyntaxWarning";
+    public static final String PyExc_DeprecationWarning = "DeprecationWarning";
 
     /** CPython's singletons, as Constant values. */
     public static final Singleton Py_None = Singleton.None;
@@ -272,22 +276,72 @@ public final class ActionHelpers {
         return null;
     }
 
-    /** Expands the PyUnicode_FromFormat directives the grammar's messages use (%s %U %i %d %c %%). */
+    /**
+     * _Pypegen_raise_decode_error: turns a pending UnicodeError or ValueError
+     * from decoding a literal into a SyntaxError, "(unicode error) ..." or
+     * "(value error) ...". Any other pending error is left as it is.
+     */
+    public static int _Pypegen_raise_decode_error(Parser p) {
+        assert p.errorOccurred();
+        String errtype = null;
+        if (p.errorMatches(PyExc_UnicodeError)) {
+            errtype = "unicode error";
+        } else if (p.errorMatches(PyExc_ValueError)) {
+            errtype = "value error";
+        }
+        if (errtype != null) {
+            String errstr = p.errorMessage();
+            p.clearError();
+            RAISE_SYNTAX_ERROR(p, "(%s) %U", errtype, errstr);
+        }
+        return -1;
+    }
+
+    /**
+     * Expands the PyUnicode_FromFormat directives the C messages use: %s %U
+     * %S %i %d %zd, %c (a character code) and %% , with an optional precision
+     * (%.3s).
+     */
     static String formatMessage(String format, Object... args) {
         StringBuilder out = new StringBuilder();
         int arg = 0;
         for (int i = 0; i < format.length(); i++) {
             char c = format.charAt(i);
-            if (c == '%' && i + 1 < format.length()) {
-                char d = format.charAt(++i);
-                if (d == '%') {
-                    out.append('%');
-                } else {
-                    out.append(arg < args.length ? String.valueOf(args[arg++]) : "%" + d);
-                }
-            } else {
+            if (c != '%' || i + 1 == format.length()) {
                 out.append(c);
+                continue;
             }
+            int start = i;
+            char d = format.charAt(++i);
+            if (d == '%') {
+                out.append('%');
+                continue;
+            }
+            int precision = -1;
+            if (d == '.') {
+                precision = 0;
+                while (i + 1 < format.length() && Character.isDigit(d = format.charAt(++i))) {
+                    precision = precision * 10 + (d - '0');
+                }
+            }
+            if (d == 'z' && i + 1 < format.length()) {
+                d = format.charAt(++i);
+            }
+            if (arg == args.length) {
+                out.append(format, start, i + 1);
+                continue;
+            }
+            Object value = args[arg++];
+            String text;
+            if (d == 'c' && value instanceof Number) {
+                text = new String(Character.toChars(((Number) value).intValue()));
+            } else {
+                text = String.valueOf(value);
+            }
+            if (precision >= 0 && text.length() > precision) {
+                text = text.substring(0, precision);
+            }
+            out.append(text);
         }
         return out.toString();
     }
