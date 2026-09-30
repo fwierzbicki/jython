@@ -33,9 +33,44 @@ public class StringParserTest {
 
     private Parser p;
 
+    /**
+     * A TokenSource with no tokens that knows the source lines, for error text
+     * and offsets. Like C's tokenizer after reading the literal, it is on the
+     * literal's last line.
+     */
+    private static final class LinesSource implements TokenSource {
+        private final String[] lines;
+
+        LinesSource(String source) {
+            lines = source.split("\n", -1);
+        }
+
+        @Override
+        public Token next() {
+            return null;
+        }
+
+        @Override
+        public int lineno() {
+            return lines.length;
+        }
+
+        @Override
+        public String currentLine() {
+            return lines[lines.length - 1] + "\n";
+        }
+
+        @Override
+        public String getLine(int lineno) {
+            return lines[Math.max(1, Math.min(lineno, lines.length)) - 1];
+        }
+    }
+
     private Object parse(String source, boolean warningsAsErrors) {
-        p = new Parser(() -> null, Parser.FILE_INPUT);
-        p.warnings_as_errors = warningsAsErrors;
+        p = new Parser(new LinesSource(source), Parser.FILE_INPUT);
+        if (warningsAsErrors) {
+            p.warning_handler = w -> false;
+        }
         Token t = new Token(TokenTypes.STRING, source, 1, 0, 1, source.length());
         return StringParser._PyPegen_parse_string(p, t);
     }
@@ -63,7 +98,7 @@ public class StringParserTest {
         assertNull(source, parse(source, false));
         assertTrue(source, p.errorOccurred());
         ActionHelpers._Pypegen_raise_decode_error(p);
-        assertTrue(source, p.getError().startsWith("SyntaxError: "));
+        assertEquals(source, "SyntaxError", p.getError().type);
         assertEquals(source, expected, p.errorMessage());
     }
 
@@ -87,8 +122,11 @@ public class StringParserTest {
         assertEquals(source, lineno, warnings.get(0).lineno);
 
         assertNull(source, parse(source, true));
-        assertEquals(source, "SyntaxError: " + errorMessage + " at " + lineno + ":" + offset,
-                p.getError());
+        PythonSyntaxError e = p.getError();
+        assertEquals(source, "SyntaxError", e.type);
+        assertEquals(source, errorMessage, e.msg);
+        assertEquals(source, lineno, e.lineno);
+        assertEquals(source, offset, e.offset);
         assertTrue(source, p.error_indicator);
     }
 
@@ -211,6 +249,9 @@ public class StringParserTest {
         assertInvalidEscape("x\\q", "q", 2, 1, "'x\\\n\\q'");
         assertInvalidEscape("line1\n\\q", "q", 2, 1, "\"\"\"line1\n\\q\"\"\"");
         assertInvalidEscape("line1\nline2 \\d", "d", 2, 7, "\"\"\"line1\nline2 \\d\"\"\"");
+        // C's column counts the 10-byte escape of \u00e9 in the buffer it
+        // decodes; converting it to characters against the line clamps it.
+        assertInvalidEscape("\u00e9\\q", "q", 1, 7, "'\u00e9\\q'");
     }
 
     @Test
@@ -244,7 +285,7 @@ public class StringParserTest {
 
     @Test
     public void noWarningsInSecondPass() {
-        p = new Parser(() -> null, Parser.FILE_INPUT);
+        p = new Parser(new LinesSource("'\\q'"), Parser.FILE_INPUT);
         p.call_invalid_rules = true;
         Token t = new Token(TokenTypes.STRING, "'\\q'", 1, 0, 1, 4);
         assertEquals("\\q", StringParser._PyPegen_parse_string(p, t));

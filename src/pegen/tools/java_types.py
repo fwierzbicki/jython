@@ -130,6 +130,17 @@ class JavaTypeMap:
         return cast(java_type, "p.dummyName()")
 
 
+def void_cast(java_type: str, expr: str) -> str:
+    """A C void * value used as java_type in a default action. It may be
+    _PyPegen_dummy_name's Name, which C reinterprets as any type; the
+    ActionHelpers.voidAs* helpers substitute a placeholder of the right type."""
+    if java_type == "Object":
+        return expr
+    if java_type.startswith("List<"):
+        return f"({java_type}) (List<?>) voidAsList({expr})"
+    return f"voidAs({java_type}.class, {expr})"
+
+
 def cast(java_type: str, expr: str) -> str:
     if java_type == "Object":
         return expr

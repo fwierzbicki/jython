@@ -5,7 +5,7 @@ next. **Current work** is the approved plan with progress ticked off.
 **Working notes** has the decisions, traps and commands that the code doesn't
 show. The finished generator design is kept at the end for reference.
 
-## Status (2026-09-29)
+## Status (2026-09-30)
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
@@ -16,13 +16,24 @@ show. The finished generator design is kept at the end for reference.
   - **Phase 1 (Python 3 AST) is done.**
   - **Phase 2 is done:** the value classes, the token dump's text and byte
     columns, the NAME/NUMBER token functions, `StringParser.java` and its
-    JUnit tests. `StringParser` and its tests are not committed yet.
-  - **Next:** Phase 3, group 1 (sequences and structs).
+    JUnit tests.
+  - **Phase 3 is done:** all of `action_helpers.c` is ported into
+    `ActionHelpers`.
+  - **Phase 4 is done:** `pegen_errors.c`, the retry pass, `PythonSyntaxError`,
+    and the warnings channel. The comparison with CPython (`compare_ast.py`,
+    built in this phase) passes for all of Lib except one file, and for the
+    error corpus except two files, with errors matching in type, message,
+    positions and text. The remaining differences are listed in Phase 4's
+    results.
+  - **Not committed:** Phase 4. Phase 3 is in commit 13fdf834c.
+  - **Next:** Phase 5 (check in the parser with actions; smoke.sh runs the
+    comparison).
 - **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, with all
   2,020 Lib files accepted), `tests/pegen/test_action_translator.py`
-  (15 tests) and the pegen JUnit tests (16 tests; see Commands).
-- **Committed:** Phase 1 and the Phase 2 work so far are in commit f59b322e1
-  ("Generate a real AST"). Check `git status` for anything newer.
+  (15 tests), the pegen JUnit tests (16 tests) and `compare_ast.py` as in
+  Phase 4's results (see Commands).
+- **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
+  13fdf834c. Check `git status` for anything newer.
 
 ## Current work: port the _PyPegen_* helpers
 
@@ -115,72 +126,151 @@ Replace each stub in `ActionHelpers.java` with a straight port. Keep the C
 names (the static `_set_*_context` and `_make_*` helpers become private static
 methods) and the C file's order, so the two diff side by side. Do the groups in
 this order, each compiling before the next:
-1. [ ] **Sequences and structs:** `singleton_seq`, `seq_insert_in_front`,
+All four groups are done, ported in one pass in C's order (plus
+`_PyPegen_interactive_exit` from pegen.c).
+1. [x] **Sequences and structs:** `singleton_seq`, `seq_insert_in_front`,
    `seq_append_to_end`, `seq_flatten`, `seq_count_dots`, `map_names_to_ids`,
    the `*_pair` builders and `get_*` accessors, `slash_with_default`,
    `star_etc`, `join_sequences`, `augoperator`, `keyword_or_starred`, the
    `seq_*_starred_exprs` pair, `get_last_comprehension_item`,
    `register_stmts`, `interactive_exit`.
    (`dummy_name` is already done.)
-2. [ ] **Nodes:** `set_expr_context`, `make_arguments`, `empty_arguments`, the
+2. [x] **Nodes:** `set_expr_context`, `make_arguments`, `empty_arguments`, the
    `*_def_decorators` pair, `collect_call_seqs`, `join_names_with_dot`,
    `alias_for_star`, `make_module`, `new_type_comment`,
    `add_type_comment_to_arg`, `ensure_real`/`ensure_imaginary`,
    `check_legacy_stmt`, `check_barry_as_flufl`, `checked_from_import`. For the
    barry checks, `Parser` gets a `flags` field; `checked_from_import` sets
    BARRY_AS_BDFL.
-3. [ ] **Constants and f/t-strings:** the `constant_from_*` functions,
+3. [x] **Constants and f/t-strings:** the `constant_from_*` functions,
    `decoded_constant_from_token`, `decode_fstring_part`,
    `_get_resized_exprs`, `joined_str`, `template_str`, `formatted_value`,
    `interpolation`, `setup_full_format_spec`, `check_fstring_conversion`,
    `concatenate_strings` (with `_build_concatenated_*`),
    `concatenate_tstrings`.
-4. [ ] **Error helpers:** `get_expr_name`, `get_invalid_target`,
+4. [x] **Error helpers:** `get_expr_name`, `get_invalid_target`,
    `arguments_parsing_error`, `nonparen_genexp_in_call`,
    `raise_error_for_missing_comma`.
 
-### Phase 4: errors and warnings
-- [ ] **Port `pegen_errors.c`,** replacing the minimal `_PyPegen_raise_error*`
-      in `ActionHelpers`:
-  - `known_err_token`;
-  - byte-to-character offset conversion (`_PyPegen_byte_offset_to_character_offset*`
-    in pegen.c);
-  - the error's source line;
-  - `_Pypegen_set_syntax_error`, for the generic "invalid syntax" and
-    unclosed-bracket errors.
-- [ ] **`PythonSyntaxError`,** a Java exception with type, msg, lineno, offset,
-      end_lineno, end_offset and text. `Parser.getError()` returns it.
-- [ ] **`TokenSource.getLine(int lineno)`,** standing in for C's `p->tok`
-      buffer.
-- [ ] **The retry pass in `Parser.runParser()`:** after a failure, clear the
-      memos, set `call_invalid_rules`, parse again, then call
-      `_Pypegen_set_syntax_error`. Also catch `AstValueError` and report it as
-      ValueError, with no second pass, as C does.
-- [ ] **Warnings channel in `Parser`:** category, message and location. This
-      covers the SyntaxWarnings for string escapes and for
-      `_warn_relative_import_of_lazy`. A minimal version exists
-      (`Parser.warnExplicit`, used by `StringParser`). Still to do: the
-      filename and module, and a real warnings filter in place of
-      `warnings_as_errors`.
-- [ ] **Byte-to-character offsets in error locations:** C computes an escape
-      error's column over the rewritten buffer, where `é` is 10 bytes, and
-      `_PyPegen_raise_error_known_location` converts and clamps it against the
-      source line. For example, `'é\q'` as an error is at 1:12 before
-      conversion and 1:7 in CPython. Covered by the pegen_errors.c item above.
+**What the port added outside ActionHelpers:**
+- `Parser` has the pegen.h fields the helpers use: `flags`, `errcode`,
+  `type_ignore_comments` (filled by `fillToken` from TYPE_IGNORE tokens) and
+  `last_stmt_location`. It also has `emitSyntaxWarning`
+  (`_PyErr_EmitSyntaxWarning`).
+- `TokenSource` has default methods for the tokenizer state that actions read:
+  `insideFstring`, `insideTstring` and `fstringRaw` (C: `INSIDE_FSTRING`,
+  `TOK_GET_MODE(tok)->string_kind`, `->raw`). `RecognizerSmoke.DumpTokenSource`
+  implements them by tracking `*_START`/`*_END` tokens.
 
-### Phase 5: check in the parser with actions; ast.dump oracle
+**How it was checked:** a scratch run of the full-actions parser over Lib,
+with Java and CPython each printing every tree in the same canonical text
+form, diffed file by file. Results:
+- **1,968 files are identical.**
+- **12 files differ,** each only in the end column of an f-string text part
+  containing `{{` or `}}`. Python's `tokenize` unescapes those in FSTRING_MIDDLE
+  and shortens the end column (and splits `{{b` into two tokens); C's tokenizer
+  doesn't. This is a dump limitation.
+- **39 files fail** on f/t-string debug expressions (`f"{x=}"`): C's tokenizer
+  puts the expression text in `Token.metadata`, and `tokenize` doesn't expose
+  it. This is also a dump limitation.
+- **1 file fails** (`test_configparser.py`) on `\N{RS}`, a name alias
+  `ucnhash` lacks.
+
+With actions, all 16 `pending/actions/` samples are rejected. Their messages
+and start positions match CPython's, except `ltgt_without_barry.py`: CPython's
+"invalid syntax" there comes from the Phase 4 retry pass.
+
+The token-dump limitations behind the 12 and 39 files were fixed in Phase 4
+(`dump_tokens.py` now dumps C's tokens), and those files match now.
+
+### Phase 4: errors and warnings (done)
+- [x] **Port `pegen_errors.c`** into `ActionHelpers`, in C's order:
+      `_Pypegen_tokenizer_error`, `raise_unclosed_parentheses_error`,
+      `_PyPegen_tokenize_full_source_to_check_for_errors`, `_PyPegen_raise_error`
+      (with `known_err_token`), `_PyPegen_raise_error_known_location` (with the
+      error's source line), `_Pypegen_set_syntax_error` and
+      `_Pypegen_stack_overflow`. The byte-to-character offset conversion
+      (`_PyPegen_byte_offset_to_character_offset*`, pegen.c) is there too.
+- [x] **`PythonSyntaxError`:** type, msg, lineno, offset, end_lineno,
+      end_offset and text, plus `_metadata`. `Parser` keeps the pending
+      exception as one (`getError()`, `setError`, `errorMatches`,
+      `clearError`). An exception with no location (ValueError, MemoryError,
+      ...) has `hasLocation()` false.
+- [x] **`TokenSource` has the tokenizer state errors read,** as default
+      methods named after the `tok_state` fields: `done`, `error`, `lineno`,
+      `cursorColumn`, `currentLine`, `getLine`, `rest`, `source`,
+      `interactive`, `level` and the paren stacks. It also has `implyDedents`
+      (single input's `pendin`). A TokenSource must keep returning ENDMARKER at
+      the end, as C's tokenizer does; `Parser` no longer replays it.
+- [x] **`Parser.fillToken` handles ERRORTOKEN** as `initialize_token` does. A
+      tokenizer's own exception comes through `TokenSource.error()`.
+- [x] **The retry pass in `Parser.runParser()`,** as `_PyPegen_run_parser`
+      does, with `reset_parser_state_for_error_pass`, IncompleteInputError
+      and `_PyPegen_set_syntax_error_metadata`. An `AstValueError` thrown by
+      AstFactory becomes the pending ValueError.
+- [x] **Warnings channel:** `Parser.warning_handler` receives each
+      `ParserWarning` (category, message, filename, lineno, module). It
+      returns false to raise the warning as an error; the default records it
+      in `warnings`. It replaces `warnings_as_errors`.
+- [x] **`bad_single_statement`** is ported as C scans the text after the
+      cursor (`TokenSource.rest()`). The old read-ahead over tokens remains
+      only as the fallback for a TokenSource without the source.
+- [x] **Generator fix found by the comparison:** a default action returning
+      an untyped (`void *`) value from a typed rule goes through
+      `ActionHelpers.voidAs`/`voidAsList` (`java_types.void_cast`). C
+      reinterprets `_PyPegen_dummy_name`'s Name as any type there. That only
+      happens in the second pass, whose result is discarded, so a placeholder
+      of the expected type stands in. Before this fix,
+      `invalid_def_raw`'s dummy crashed with a ClassCastException.
+
+**Comparison tooling** (see Commands):
+- `tests/pegen/compare_ast.py` builds the full-actions parser and runs
+  `AstCompare.java` over the token dumps. It compares every tree, error
+  (type, msg, lineno, offset, end_lineno, end_offset, text) and parser warning
+  with CPython's `compile(..., "<unknown>", mode, PyCF_ONLY_AST)`, using a
+  canonical text form both sides write.
+- `tests/pegen/extract_samples.py` writes the error corpus: the
+  `test_syntax.py` doctests and every string constant in Lib/test that
+  CPython rejects.
+- `dump_tokens.py` now dumps C's own tokens (`_tokenize.TokenizerIter` with
+  `extra_tokens=False`), plus the source, the f/t-string metadata, and the
+  end-column fixes for NEWLINE and escaped braces. Its docstring has the
+  details. `TokenDump.java` reads the dumps for RecognizerSmoke and
+  AstCompare.
+
+**Results (2026-09-30):**
+
+| Input | Mode | Identical |
+|---|---|---|
+| Lib | file | 2,020 of 2,021 |
+| samples | file, single | 29 of 29 |
+| error corpus | file | 29,010 of 29,012 |
+| error corpus | single | 29,001 of 29,012 |
+
+The remaining differences:
+- **`\N{RS}` in test_configparser.py:** a name alias, which `ucnhash` lacks.
+- **`from __future__ import braces` and an unknown future feature:** CPython
+  raises these in the compiler (`future.c`), not the parser. They're out of
+  scope.
+- **9 single-mode inputs** that end with a whitespace-only line and no
+  newline, after a `def` or `class` header. C's non-exec tokenizer handles
+  that last line differently from the exec-mode tokens the dump starts from,
+  and the dump only approximates it. The Java tokenizer will fix this.
+
+**Not covered yet:** tokenizer errors. `_Pypegen_tokenizer_error`, the
+unclosed-bracket checks and `TokenSource.error()` are ported but untested,
+because a file that fails C's tokenizer can't be dumped. For the same reason,
+`pending/tokenizer/reject` now dumps 0 files. They need the Java tokenizer.
+
+### Phase 5: check in the parser with actions; smoke.sh runs the comparison
 - [ ] `generate.py` translates actions by default, and the checked-in
       `GeneratedParser.java` becomes the full-actions version.
-- [ ] **`tests/java/org/python/pegen/AstJson.java`:** writes the tree as JSON
-      with explicitly typed values, so Python's `repr()` never has to be
-      reimplemented in Java.
-- [ ] **`tests/pegen/compare_ast.py`** (run with Python 3.15):
-  - Rebuilds `ast` nodes from the JSON and compares
-    `ast.dump(include_attributes=True)` with CPython's result.
-  - For rejected input, compares error type, msg and positions.
-  - Compares warnings, using `warnings.catch_warnings`.
-- [ ] **`smoke.sh` runs the oracle** over `../cpython/Lib` and the sample
-      directories. Samples in `pending/actions/` move out as they pass.
+- [x] **The comparison with CPython,** built in Phase 4 as
+      `compare_ast.py` + `AstCompare.java` (a canonical text form written by
+      both sides) in place of the planned `AstJson.java`.
+- [ ] **`smoke.sh` runs the comparison** over `../cpython/Lib` and the sample
+      directories, plus the extracted error corpus. Samples in
+      `pending/actions/` move out: they all match CPython now.
 
 ### Verification
 - **Every phase:** `ant compile`, `tests/pegen/smoke.sh` (including its
@@ -206,6 +296,13 @@ this order, each compiling before the next:
   then
   `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
+- **Compare with CPython** (after `ant compile`; run with the 3.15 build):
+  `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...`.
+  It builds the full-actions parser into `build/pegen-compare/`; add
+  `--no-build` to reuse it. For the error corpus, first run
+  `../cpython/python.exe tests/pegen/extract_samples.py build/pegen-samples`,
+  then compare `build/pegen-samples/doctests build/pegen-samples/strings`.
+  Lib takes about a minute.
 - **Compiling the full-actions parser** by hand into a scratch directory:
   generate with `--actions --output-dir $D`, then
   `javac --release 8 -d $OUT $D/*.java $D/ast/*.java $D/ast/base/*.java src/org/python/pegen/{Parser,Token,TokenSource,ActionHelpers}.java src/org/python/pegen/ast/*.java`.
@@ -222,6 +319,20 @@ this order, each compiling before the next:
   `git mv` stages; use plain `mv`).
 
 ### Traps already hit
+- **Tokens from Python's `tokenize` aren't the parser's tokens.** Use
+  `_tokenize.TokenizerIter(..., extra_tokens=False)`, and even then its end
+  columns come from the token text, while C's come from the tokenizer's
+  column count. That count includes a NEWLINE's newline and an escaped
+  brace's second brace. `tokenize` also doesn't expose `Token.metadata`.
+  `dump_tokens.py` corrects all of this.
+- **Exec vs single input:** C adds an implicit newline to an unterminated last
+  line only for exec input. For single input, the dump drops that NEWLINE and
+  orders ENDMARKER, DEDENT..., ENDMARKER as C does (`implyDedents`). The
+  quoted error line (`SyntaxError.text`) also only has a newline then.
+- **An error's text:** it's the tokenizer's current line, with its newline,
+  when the tokenizer is still on the error's line. Otherwise it's the source
+  line without the newline. Offsets are clamped against it, so a wrong line
+  shows up as a wrong offset.
 - **Java 8 target:** Jython builds with `-source/-target 1.8`, so no `var` and no
   `Character.codePointOf`. Check with `javac --release 8`.
 - **Case-insensitive file systems (macOS):** ASDL names that differ only in case

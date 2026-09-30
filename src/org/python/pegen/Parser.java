@@ -125,53 +125,59 @@ public class Parser {
     /** C: whether a token has been read yet, for single_input's implied NEWLINE. */
     public boolean parsing_started;
 
-    /**
-     * The ENDMARKER held back when single_input turns it into NEWLINE. C's
-     * tokenizer keeps returning ENDMARKER at end of input; a TokenSource
-     * need not, so it is replayed from here.
-     */
-    private Token pendingEndmarker;
-
-    /**
-     * C: p->known_err_token, the token an error is reported at when set.
-     * TODO: used by _PyPegen_raise_error once pegen_errors.c is ported.
-     */
+    /** C: p->known_err_token, the token _PyPegen_raise_error reports at when set. */
     public Token known_err_token;
 
-    /**
-     * Pending error (C: the exception set with PyErr_*): its type, message and,
-     * for errors raised with a location, that location as " at line:col".
-     */
-    private String errorType;
-    private String error;
-    private String errorLocation = "";
+    /** C: p->tok->filename, for warnings. */
+    public String filename = "<unknown>";
+
+    /** C: p->tok->module, for warnings; may be null. */
+    public String module;
+
+    /** The pending exception (C: the one set with PyErr_*), or null. */
+    private PythonSyntaxError error;
 
     /** A warning issued while parsing: the arguments of C's PyErr_WarnExplicitObject. */
     public static final class ParserWarning {
         public final String category;
         public final String message;
+        public final String filename;
         public final int lineno;
+        public final String module;
 
-        ParserWarning(String category, String message, int lineno) {
+        ParserWarning(String category, String message, String filename, int lineno,
+                String module) {
             this.category = category;
             this.message = message;
+            this.filename = filename;
             this.lineno = lineno;
+            this.module = module;
         }
 
         @Override
         public String toString() {
-            return category + ": " + message + " (line " + lineno + ")";
+            return filename + ":" + lineno + ": " + category + ": " + message;
         }
     }
 
-    /** Warnings issued so far, in order. TODO: the full warnings channel (plan.md, Phase 4). */
+    /**
+     * Where warnings go: the part of Python's warnings machinery that
+     * PyErr_WarnExplicitObject runs. warn returns false when the warnings
+     * filters turn the warning into an error ("error" action); the parser then
+     * raises it as an exception of the warning's category.
+     */
+    public interface WarningHandler {
+        boolean warn(ParserWarning w);
+    }
+
+    /** Warnings recorded by the default handler, in order. */
     public final List<ParserWarning> warnings = new ArrayList<>();
 
-    /**
-     * Stands in for an "error" warnings filter: warnExplicit raises the warning
-     * as the pending exception instead of recording it.
-     */
-    public boolean warnings_as_errors;
+    /** The warning handler; by default it records each warning in warnings. */
+    public WarningHandler warning_handler = w -> {
+        warnings.add(w);
+        return true;
+    };
 
     public Parser(TokenSource tok, int start_rule) {
         this.tok = tok;
@@ -189,14 +195,16 @@ public class Parser {
         if (t == null) {
             return -1;
         }
-        // If we have reached the end and we are in single input mode we need
-        // to insert a newline and reset the parsing. (C also sets the
-        // tokenizer's pending DEDENTs here; a TokenSource emits those before
-        // ENDMARKER itself.)
+        // If we have reached the end and we are in single input mode we need to insert a newline and reset the parsing
         if (start_rule == SINGLE_INPUT && t.type == ENDMARKER && parsing_started) {
-            pendingEndmarker = t;
-            t = new Token(NEWLINE, "", t.lineno, t.col_offset, t.end_lineno, t.end_col_offset);
+            t = new Token(NEWLINE, "", t.lineno, t.col_offset, t.end_lineno, t.end_col_offset); /* Add an extra newline */
             parsing_started = false;
+
+            // C: if (p->tok->indent && !(p->flags & PyPARSE_DONT_IMPLY_DEDENT))
+            //        { p->tok->pendin = -p->tok->indent; p->tok->indent = 0; }
+            if ((flags & ActionHelpers.PyPARSE_DONT_IMPLY_DEDENT) == 0) {
+                tok.implyDedents();
+            }
         } else {
             parsing_started = true;
         }
@@ -209,51 +217,165 @@ public class Parser {
         if (fill == tokens.length) {
             tokens = Arrays.copyOf(tokens, tokens.length * 2);
         }
+        // initialize_token
         tokens[fill++] = t;
+
+        if (t.type == ERRORTOKEN && tok.done() == ActionHelpers.E_DECODE) {
+            adoptTokenizerError();
+            return ActionHelpers._Pypegen_raise_decode_error(this);
+        }
+
+        if (t.type == ERRORTOKEN) {
+            adoptTokenizerError();
+            return ActionHelpers._Pypegen_tokenizer_error(this);
+        }
         return 0;
     }
 
-    private Token nextFromSource() {
-        if (pendingEndmarker != null) {
-            Token t = pendingEndmarker;
-            pendingEndmarker = null;
-            return t;
+    /**
+     * C's tokenizer sets its exceptions directly (PyErr_*); a TokenSource
+     * hands its exception over through error(), which becomes the pending one.
+     */
+    private void adoptTokenizerError() {
+        PythonSyntaxError e = tok.error();
+        if (e != null && error == null) {
+            error = e;
         }
+    }
+
+    private Token nextFromSource() {
         return tok.next();
     }
 
     /**
-     * _PyPegen_run_parser: parse, then apply the checks made after a
-     * successful parse. Returns null on failure, with the error (if any)
-     * available from {@link #getError()}.
-     *
-     * <p>Not yet ported: the second pass with invalid_* rules enabled and the
-     * syntax-error reporting after it (_Pypegen_set_syntax_error). Both only
-     * change which error is reported, and need grammar actions.
+     * _PyPegen_run_parser: parse, and on failure parse again with the invalid_*
+     * rules enabled to find the best error. Returns null on failure, with the
+     * exception (if any) available from {@link #getError()}.
      */
     public Object runParser(GeneratedParser parser) {
-        Object res = parser.parse();
+        Object res = parse(parser);
+        assert level == 0 || errorMatches("MemoryError") || errorMatches("ValueError");
         if (res != null && errorOccurred()) {
-            // Discard a result returned with an exception still pending.
+            // Discard a result returned with an exception still pending
+            // (e.g. a MemoryError from a recovered-from allocation failure).
             return null;
         }
         if (res == null) {
+            if ((flags & ActionHelpers.PyPARSE_ALLOW_INCOMPLETE_INPUT) != 0 && _is_end_of_source()) {
+                clearError();
+                return ActionHelpers._PyPegen_raise_error(this, "IncompleteInputError", 0,
+                        "incomplete input");
+            }
+            if (errorOccurred() && !errorMatches("SyntaxError")) {
+                return null;
+            }
+            // Make a second parser pass. In this pass we activate heavier and slower checks
+            // to produce better error messages and more complete diagnostics. Extra "invalid_*"
+            // rules will be active during parsing.
+            Token last_token = tokens[fill - 1];
+            reset_parser_state_for_error_pass();
+            parse(parser);
+
+            // Set SyntaxErrors accordingly depending on the parser/tokenizer status at the failure
+            // point.
+            ActionHelpers._Pypegen_set_syntax_error(this, last_token);
+
+            // Set the metadata in the exception from p->last_stmt_location
+            if (errorMatches("SyntaxError")) {
+                _PyPegen_set_syntax_error_metadata();
+            }
             return null;
         }
+
         if (start_rule == SINGLE_INPUT && badSingleStatement()) {
-            raiseSyntaxError(null, "multiple statements found while compiling a single statement");
-            return null;
+            return ActionHelpers.RAISE_SYNTAX_ERROR(this,
+                    "multiple statements found while compiling a single statement");
         }
         return res;
     }
 
     /**
-     * bad_single_statement: whether input remains after a single_input
-     * statement. C scans the source text after the last token read for
-     * anything but whitespace and comments; the equivalent here is any unread
-     * token other than NEWLINE, DEDENT or ENDMARKER.
+     * _PyPegen_parse (GeneratedParser.parse). An AstFactory constructor
+     * throws AstValueError where C's sets a ValueError and returns NULL; it
+     * becomes the pending ValueError here, which ends the parse as in C.
+     */
+    private Object parse(GeneratedParser parser) {
+        try {
+            return parser.parse();
+        } catch (org.python.pegen.ast.AstValueError e) {
+            error_indicator = true;
+            setError("ValueError", e.getMessage());
+            return null;
+        }
+    }
+
+    /** reset_parser_state_for_error_pass */
+    private void reset_parser_state_for_error_pass() {
+        last_stmt_location.lineno = 0;
+        last_stmt_location.col_offset = 0;
+        last_stmt_location.end_lineno = 0;
+        last_stmt_location.end_col_offset = 0;
+        for (int i = 0; i < fill; i++) {
+            tokens[i].memo = null;
+        }
+        mark = 0;
+        call_invalid_rules = true;
+        // (C also stops an interactive tokenizer asking for more input here:
+        // tok->interactive_underflow = IUNDERFLOW_STOP.)
+    }
+
+    /** _is_end_of_source */
+    private boolean _is_end_of_source() {
+        int err = tok.done();
+        return err == ActionHelpers.E_EOF || err == ActionHelpers.E_EOFS
+                || err == ActionHelpers.E_EOLS;
+    }
+
+    /** _PyPegen_set_syntax_error_metadata: SyntaxError._metadata, from last_stmt_location. */
+    private void _PyPegen_set_syntax_error_metadata() {
+        error.metadata_location =
+                new int[] {last_stmt_location.lineno, last_stmt_location.col_offset};
+        error.metadata_source = tok.source();
+    }
+
+    /**
+     * bad_single_statement: whether anything but whitespace and comments
+     * follows a single_input statement in the source.
      */
     private boolean badSingleStatement() {
+        String rest = tok.rest();
+        if (rest == null) {
+            return badSingleStatementTokens();
+        }
+        int cur = 0;
+        char c = cur < rest.length() ? rest.charAt(cur) : 0;
+
+        for (;;) {
+            while (c == ' ' || c == '\t' || c == '\n' || c == '\014') {
+                c = ++cur < rest.length() ? rest.charAt(cur) : 0;
+            }
+
+            if (c == 0) {
+                return false;
+            }
+
+            if (c != '#') {
+                return true;
+            }
+
+            /* Suck up comment. */
+            while (c != 0 && c != '\n') {
+                c = ++cur < rest.length() ? rest.charAt(cur) : 0;
+            }
+        }
+    }
+
+    /**
+     * bad_single_statement for a TokenSource without the source text: any
+     * unread token other than NEWLINE, DEDENT or ENDMARKER. (This reads
+     * ahead, which C's scan of the text doesn't.)
+     */
+    private boolean badSingleStatementTokens() {
         for (;;) {
             Token t = nextFromSource();
             if (t == null || t.type == ENDMARKER) {
@@ -335,7 +457,7 @@ public class Parser {
         }
         Token t = tokens[mark];
         if (t.type != type) {
-            raiseSyntaxError(t, "expected '" + expected + "'");
+            ActionHelpers.RAISE_SYNTAX_ERROR_KNOWN_LOCATION(this, t, "expected '%s'", expected);
             return null;
         }
         mark += 1;
@@ -348,7 +470,7 @@ public class Parser {
             return null;
         }
         if (result == null) {
-            raiseSyntaxError(null, "expected (" + expected + ")");
+            ActionHelpers.RAISE_SYNTAX_ERROR(this, "expected (%s)", expected);
             return null;
         }
         return result;
@@ -544,16 +666,19 @@ public class Parser {
         return error != null;
     }
 
-    /** The pending error as "Type: message", or null. */
-    public String getError() {
-        return error == null ? null : errorType + ": " + error + errorLocation;
+    /** The pending exception, or null. */
+    public PythonSyntaxError getError() {
+        return error;
     }
 
     /** PyErr_SetString: sets the pending exception; unlike raiseError, leaves error_indicator alone. */
     public void setError(String errtype, String msg) {
-        errorType = errtype;
-        error = msg;
-        errorLocation = "";
+        error = new PythonSyntaxError(errtype, msg);
+    }
+
+    /** PyErr_SetObject / PyErr_Restore: makes e (which may be null) the pending exception. */
+    public void setError(PythonSyntaxError e) {
+        error = e;
     }
 
     /** The superclass of each exception type used here, standing in for Python's class hierarchy. */
@@ -562,11 +687,15 @@ public class Parser {
         EXCEPTION_BASES.put("UnicodeDecodeError", "UnicodeError");
         EXCEPTION_BASES.put("UnicodeError", "ValueError");
         EXCEPTION_BASES.put("ValueError", "Exception");
+        EXCEPTION_BASES.put("IncompleteInputError", "SyntaxError");
+        EXCEPTION_BASES.put("TabError", "IndentationError");
         EXCEPTION_BASES.put("IndentationError", "SyntaxError");
         EXCEPTION_BASES.put("SyntaxError", "Exception");
         EXCEPTION_BASES.put("SystemError", "Exception");
         EXCEPTION_BASES.put("OverflowError", "Exception");
         EXCEPTION_BASES.put("MemoryError", "Exception");
+        EXCEPTION_BASES.put("KeyboardInterrupt", "BaseException");
+        EXCEPTION_BASES.put("Exception", "BaseException");
         EXCEPTION_BASES.put("SyntaxWarning", "Warning");
         EXCEPTION_BASES.put("DeprecationWarning", "Warning");
         EXCEPTION_BASES.put("Warning", "Exception");
@@ -574,7 +703,7 @@ public class Parser {
 
     /** PyErr_ExceptionMatches: whether the pending exception is errtype or a subclass of it. */
     public boolean errorMatches(String errtype) {
-        for (String t = errorType; error != null && t != null; t = EXCEPTION_BASES.get(t)) {
+        for (String t = error == null ? null : error.type; t != null; t = EXCEPTION_BASES.get(t)) {
             if (t.equals(errtype)) {
                 return true;
             }
@@ -582,16 +711,14 @@ public class Parser {
         return false;
     }
 
-    /** str() of the pending exception, or null. */
+    /** str() of the pending exception's message, or null. */
     public String errorMessage() {
-        return error;
+        return error == null ? null : error.msg;
     }
 
     /** PyErr_Clear */
     public void clearError() {
-        errorType = null;
         error = null;
-        errorLocation = "";
     }
 
     /**
@@ -606,8 +733,9 @@ public class Parser {
                    to get a more accurate error report */
                 clearError();
                 // C: _PyErr_RaiseSyntaxError, which leaves error_indicator alone.
-                setError("SyntaxError", msg);
-                errorLocation = " at " + lineno + ":" + col_offset;
+                // Its text is read from the file named filename, if any.
+                setError(new PythonSyntaxError("SyntaxError", msg, lineno, col_offset, null,
+                        end_lineno, end_col_offset));
             }
             return -1;
         }
@@ -616,50 +744,25 @@ public class Parser {
 
     /**
      * PyErr_WarnExplicitObject(category, message, filename, lineno, module,
-     * NULL): records the warning, or with warnings_as_errors sets it as the
-     * pending exception and returns -1.
+     * NULL): passes the warning to warning_handler; if that makes it an error,
+     * sets it as the pending exception and returns -1.
      */
     public int warnExplicit(String category, String message, int lineno) {
-        if (warnings_as_errors) {
+        if (!warning_handler.warn(new ParserWarning(category, message, filename, lineno, module))) {
             setError(category, message);
             return -1;
         }
-        warnings.add(new ParserWarning(category, message, lineno));
         return 0;
     }
 
-    /** _Pypegen_stack_overflow */
+    /** _Pypegen_stack_overflow (pegen_errors.c) */
     public void stackOverflow() {
-        error_indicator = true;
-        setError("MemoryError", "Parser stack overflowed - Python source too complex to parse");
+        ActionHelpers._Pypegen_stack_overflow(this);
     }
 
-    /** RAISE_SYNTAX_ERROR_KNOWN_LOCATION; t may be null for "no location". */
-    public void raiseSyntaxError(Token t, String msg) {
-        error_indicator = true;
-        if (error == null) {
-            errorType = "SyntaxError";
-            error = msg;
-            errorLocation = t == null ? "" : " at " + t.lineno + ":" + t.col_offset;
-        }
-    }
-
-    /** Records an error with no location, e.g. a ValueError. */
+    /** Records an error with no location, e.g. a ValueError, and sets error_indicator. */
     public void raiseError(String errtype, String msg) {
         error_indicator = true;
         setError(errtype, msg);
-    }
-
-    /**
-     * Records an error of the given type (e.g. "IndentationError") at a
-     * location; the counterpart of _PyPegen_raise_error_known_location.
-     * Columns are 1-based as in C; CURRENT_POS and -1 mean "unknown".
-     * TODO: build a real exception, with the source line, when errors are ported.
-     */
-    public void raiseError(String errtype, String msg, int lineno, int col_offset,
-            int end_lineno, int end_col_offset) {
-        error_indicator = true;
-        setError(errtype, msg);
-        errorLocation = " at " + lineno + ":" + col_offset;
     }
 }

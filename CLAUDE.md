@@ -38,15 +38,21 @@ checkboxes at each checkpoint.
   Complex.java, Bytes.java, Singleton.java: hand-written AST support and
   Constant value classes (str=String, int=BigInteger, float=Double).
 - src/org/python/pegen/Parser.java, Token.java, TokenSource.java: hand-written
-  runtime (port of Parser/pegen.c).
+  runtime (port of Parser/pegen.c); TokenSource also stands in for the
+  tokenizer state the parser reads. PythonSyntaxError.java: the exception.
 - src/org/python/pegen/StringParser.java: port of Parser/string_parser.c (str
   and bytes literal decoding, on UTF-8 bytes as in C); UnicodeNames.java: the
   \N{...} name lookup (unicodedata.c _getcode over Jython's ucnhash).
 - src/org/python/pegen/ActionHelpers.java: helpers actions call, C names kept;
-  pegen.h macros ported, most _PyPegen_* functions still stubs (port in place).
+  ports of the pegen.h macros, action_helpers.c and pegen_errors.c.
 - tests/pegen/smoke.sh: recognizer smoke test (dump_tokens.py + sample dirs;
   pending/ holds known gaps that are reported but don't fail).
-- tests/java/org/python/pegen/RecognizerSmoke.java: its Java driver.
+- tests/pegen/dump_tokens.py: dumps CPython's C tokens (and source, metadata);
+  tests/java/org/python/pegen/TokenDump.java reads them as a TokenSource.
+- tests/java/org/python/pegen/RecognizerSmoke.java: smoke.sh's Java driver.
+- tests/pegen/compare_ast.py + tests/java/org/python/pegen/AstCompare.java:
+  the correctness oracle; trees, errors and warnings vs CPython's, file by
+  file. tests/pegen/extract_samples.py: the syntax-error corpus for it.
 - tests/pegen/test_action_translator.py: translator unit tests
   (python3 tests/pegen/test_action_translator.py).
 
@@ -64,6 +70,10 @@ ant regrtest
 ## Regenerate the parser
 ant pegen-gen   (or python3 src/pegen/tools/generate.py; needs ../cpython;
 skips actions by default, --actions translates them)
+
+## Compare with CPython (after ant compile)
+../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...
+(see plan.md, Commands)
 
 ## Smoke test (after ant compile)
 tests/pegen/smoke.sh   (needs Python 3.15: uses ../cpython/python.exe if built,
