@@ -5,10 +5,13 @@ import marshal, py_compile, dis
 
 # Normally you don't get a .pyc file if you just run a program.
 # You do get a .pyc file from compiling a module.
-# It is written in ./__pycache__ and called NAME.cpython-311.pyc
+# It is written in ./__pycache__ and called NAME.cpython-315.pyc
 
 CACHE = '__pycache__'
-COMPILER = 'cpython-311'
+COMPILER = sys.implementation.cache_tag  # e.g. 'cpython-315'
+
+# The version of CPython whose byte code the Jython interpreter executes
+SUPPORTED_VERSION = (3, 15)
 
 
 HELP =  """Command: compile_examples srcdir dstdir
@@ -154,6 +157,12 @@ def show_help():
 
 # --------------------------------------------------------------------
 
+if sys.version_info[:2] != SUPPORTED_VERSION:
+    print(f"compile_examples requires CPython "
+          f"{'.'.join(map(str, SUPPORTED_VERSION))}, not {sys.version.split()[0]}"
+          f" ({sys.executable})", file=sys.stderr)
+    sys.exit(1)
+
 if len(sys.argv) == 3:
     source, generated = sys.argv[1:]
     if ensure_dir(source) and ensure_dir(generated):
@@ -165,5 +174,3 @@ if len(sys.argv) == 3:
         show_help()
 else:
     show_help()
-
-

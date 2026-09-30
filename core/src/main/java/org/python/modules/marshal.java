@@ -19,8 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.python.base.MissingFeature;
 import org.python.core.Abstract;
-import org.python.core.CPython311Code;
+import org.python.core.CPython315Code;
 import org.python.core.EOFError;
 import org.python.core.Exposed.Default;
 import org.python.core.Exposed.Member;
@@ -39,6 +40,7 @@ import org.python.core.PyLong;
 import org.python.core.PyObjectUtil;
 import org.python.core.PyObjectUtil.NoConversion;
 import org.python.core.PySequence;
+import org.python.core.PySlice;
 import org.python.core.PySequence.OfInt;
 import org.python.core.PyTuple;
 import org.python.core.PyType;
@@ -109,6 +111,10 @@ public class marshal /* extends JavaModule */ {
     private final static int TYPE_LIST = '[';
     /** The record encodes a {@code dict} (key-value pairs follow) */
     private final static int TYPE_DICT = '{';
+    /** The record encodes a {@code frozendict} (key-value pairs follow) */
+    private final static int TYPE_FROZENDICT = '}';
+    /** The record encodes a {@code slice} (start, stop, step follow) */
+    private final static int TYPE_SLICE = ':';
     private final static int TYPE_CODE = 'c';
     /** The record encodes a {@code str} (counted code points follow) */
     private final static int TYPE_UNICODE = 'u'; // str
@@ -253,6 +259,7 @@ public class marshal /* extends JavaModule */ {
         register(new TupleCodec());
         register(new ListCodec());
         register(new DictCodec());
+        register(new SliceCodec());
 
         register(new CodeCodec());
 
@@ -1484,7 +1491,12 @@ public class marshal /* extends JavaModule */ {
 
         @Override
         public Map<Integer, Decoder> decoders() {
-            return Map.of(TYPE_DICT, DictCodec::read);
+            return Map.of(TYPE_DICT, DictCodec::read, //
+                    TYPE_FROZENDICT, DictCodec::readFrozen);
+        }
+
+        private static PyDict readFrozen(Reader r, boolean ref) {
+            throw new MissingFeature("marshal: frozendict");
         }
 
         private static PyDict read(Reader r, boolean ref) {
@@ -1505,6 +1517,39 @@ public class marshal /* extends JavaModule */ {
         }
     }
 
+    /** {@link Codec} for Python {@code slice}. */
+    private static class SliceCodec implements Codec {
+
+        /** The type {@code slice}, which is not public in the core. */
+        private static final PyType SLICE_TYPE = PyType.of(new PySlice(null, null));
+
+        @Override
+        public PyType type() { return SLICE_TYPE; }
+
+        @Override
+        public void write(Writer w, Object v) throws IOException, Throwable {
+            // XXX Needs public access to the start, stop and step
+            throw new MissingFeature("marshal: writing slice");
+        }
+
+        @Override
+        public Map<Integer, Decoder> decoders() {
+            return Map.of(TYPE_SLICE, SliceCodec::read);
+        }
+
+        private static PySlice read(Reader r, boolean ref) {
+            // Get an index now to ensure encounter-order numbering
+            int idx = ref ? r.reserveRef() : -1;
+            Object start = r.readObject();
+            Object stop = r.readObject();
+            Object step = r.readObject();
+            if (start == null || stop == null || step == null) {
+                throw Reader.nullObject("slice");
+            }
+            return r.defineRef(new PySlice(start, stop, step), idx);
+        }
+    }
+
     /**
      * {@link Codec} for Python {@code code}.
      */
@@ -1520,7 +1565,7 @@ public class marshal /* extends JavaModule */ {
              * We intend different concrete sub-classes of PyCode, that
              * create different frame types, but at the moment only one.
              */
-            CPython311Code code = (CPython311Code)v;
+            CPython315Code code = (CPython315Code)v;
             w.writeByte(TYPE_CODE);
             // XXX Write the fields (quite complicated)
         }
@@ -1530,7 +1575,7 @@ public class marshal /* extends JavaModule */ {
             return Map.of(TYPE_CODE, CodeCodec::read);
         }
 
-        private static CPython311Code read(Reader r, boolean ref) {
+        private static CPython315Code read(Reader r, boolean ref) {
 
             // Get an index now to ensure encounter-order numbering
             int idx = ref ? r.reserveRef() : -1;
@@ -1558,7 +1603,7 @@ public class marshal /* extends JavaModule */ {
 
             // PySys_Audit("code.__new__", blah ...);
 
-            CPython311Code v = CPython311Code.create( //
+            CPython315Code v = CPython315Code.create( //
                     filename, name, qualname, flags, //
                     code, firstlineno, linetable, //
                     consts, names, //

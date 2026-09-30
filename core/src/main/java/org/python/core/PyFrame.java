@@ -9,7 +9,7 @@ import java.util.Map;
  * A {@code PyFrame} is the context for the execution of code.
  * Different concrete sub-classes of {@code PyFrame} exist to
  * execute different compiled representations of Python code. For
- * example, there is one for CPython 3.11 byte code and (we expect)
+ * example, there is one for CPython 3.15 byte code and (we expect)
  * another for Java byte code. The type of code object supported is
  * the parameter {@code C} to the class.
  * <p>

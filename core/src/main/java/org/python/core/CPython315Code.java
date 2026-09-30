@@ -10,13 +10,14 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.python.base.MissingFeature;
 import org.python.core.stringlib.ByteArrayBuilder;
 
 /**
  * Our equivalent to the Python code object ({@code PyCodeObject} in
  * CPython's C API).
  */
-public class CPython311Code extends PyCode {
+public class CPython315Code extends PyCode {
 
     /**
      * Describe the layout of the frame local variables (including
@@ -91,7 +92,7 @@ public class CPython311Code extends PyCode {
      * @param stacksize {@code co_stacksize}
      * @param exceptiontable supports exception processing
      */
-    public CPython311Code( //
+    public CPython315Code( //
             // Grouped as _PyCodeConstructor in pycore_code.h
             // Metadata
             String filename, String name, String qualname, //
@@ -161,7 +162,7 @@ public class CPython311Code extends PyCode {
      * @return a new code object
      */
     // Compare CPython _PyCode_New in codeobject.c
-    public static CPython311Code create( //
+    public static CPython315Code create( //
             // Grouped as _PyCodeConstructor in pycore_code.h
             // Metadata
             Object filename, Object name, Object qualname, int flags,
@@ -199,7 +200,7 @@ public class CPython311Code extends PyCode {
         PyBytes _exceptiontable = castBytes(exceptiontable, "exceptiontable");
 
         // Everything is the right type and size
-        return new CPython311Code(//
+        return new CPython315Code(//
                 _filename, _name, _qualname, flags, //
                 wordcode(_bytecode), firstlineno, _linetable.asByteArray(), //
                 _consts.toArray(), _names, //
@@ -236,21 +237,21 @@ public class CPython311Code extends PyCode {
     // Compare CPython PyFunction_NewWithQualName in funcobject.c
     // ... with the interpreter required by architecture
     @Override
-    CPython311Function createFunction(Interpreter interpreter, PyDict globals) {
-        return new CPython311Function(interpreter, this, globals);
+    CPython315Function createFunction(Interpreter interpreter, PyDict globals) {
+        return new CPython315Function(interpreter, this, globals);
     }
 
     @Override
-    CPython311Function createFunction(Interpreter interpreter, PyDict globals, Object[] defaults,
+    CPython315Function createFunction(Interpreter interpreter, PyDict globals, Object[] defaults,
             PyDict kwdefaults, Object annotations, PyCell[] closure) {
-        return new CPython311Function(interpreter, this, globals, defaults, kwdefaults, annotations,
+        return new CPython315Function(interpreter, this, globals, defaults, kwdefaults, annotations,
                 closure);
     }
 
     /**
      * Build an {@link ArgParser} to match the code object and given
      * defaults. This is a call-back when constructing a
-     * {@code CPython311Function} from this {@code code} object and also
+     * {@code CPython315Function} from this {@code code} object and also
      * when the code object of a function is replaced. The method
      * ensures the parser reflects the variable names and the frame
      * layout implied by the code object. The caller (the function
@@ -269,7 +270,7 @@ public class CPython311Code extends PyCode {
 
     /**
      * Store information about the variables required by a
-     * {@link CPython311Code} object and where they will be stored in
+     * {@link CPython315Code} object and where they will be stored in
      * the frame it creates.
      */
     final static class CPythonLayout implements Layout {
@@ -457,6 +458,60 @@ public class CPython311Code extends PyCode {
         }
     }
 
+    // Support for the eval-loop -------------------------------------
+
+    /**
+     * The objects loaded by {@code LOAD_COMMON_CONSTANT}, indexed by
+     * its argument, in the order of CPython's
+     * {@code opcode._common_constants}. A {@code null} entry is one this
+     * implementation does not yet provide.
+     */
+    private static final Object[] COMMON_CONSTANTS = new Object[Opcode315.COMMON_CONSTANT_COUNT];
+    static {
+        Object[] c = COMMON_CONSTANTS;
+        c[Opcode315.COMMON_ASSERTION_ERROR] = null; // No AssertionError yet
+        c[Opcode315.COMMON_NOT_IMPLEMENTED_ERROR] = null; // No NotImplementedError yet
+        c[Opcode315.COMMON_TUPLE] = PyTuple.TYPE;
+        c[Opcode315.COMMON_ALL] = null; // No builtins.all yet
+        c[Opcode315.COMMON_ANY] = null; // No builtins.any yet
+        c[Opcode315.COMMON_LIST] = PyList.TYPE;
+        c[Opcode315.COMMON_SET] = null; // No set yet
+        c[Opcode315.COMMON_NONE] = Py.None;
+        c[Opcode315.COMMON_EMPTY_STR] = "";
+        c[Opcode315.COMMON_TRUE] = Py.True;
+        c[Opcode315.COMMON_FALSE] = Py.False;
+        c[Opcode315.COMMON_MINUS_ONE] = -1;
+    }
+
+    /**
+     * Return the object {@code LOAD_COMMON_CONSTANT} loads for a given
+     * argument.
+     *
+     * @param oparg argument to {@code LOAD_COMMON_CONSTANT}
+     * @return the constant
+     * @throws MissingFeature if the constant is not yet implemented
+     */
+    static Object commonConstant(int oparg) throws MissingFeature {
+        Object v = COMMON_CONSTANTS[oparg];
+        if (v == null) { throw new MissingFeature("LOAD_COMMON_CONSTANT %d", oparg); }
+        return v;
+    }
+
+    /** Names of the {@code BINARY_OP} operations (for messages). */
+    private static final String[] BINARY_OP_NAMES = {"+", "&", "//", "<<", "@", "*", "%", "|",
+            "**", ">>", "-", "/", "^", "+=", "&=", "//=", "<<=", "@=", "*=", "%=", "|=", "**=",
+            ">>=", "-=", "/=", "^=", "[]"};
+
+    /**
+     * Name the operation encoded as the argument of {@code BINARY_OP}.
+     *
+     * @param oparg argument to {@code BINARY_OP}
+     * @return operation symbol (e.g. "+")
+     */
+    static String binaryOpName(int oparg) {
+        return oparg >= 0 && oparg < BINARY_OP_NAMES.length ? BINARY_OP_NAMES[oparg] : "?";
+    }
+
     // Plumbing -------------------------------------------------------
 
     private static final String NAME_TUPLES_STRING =
@@ -468,7 +523,7 @@ public class CPython311Code extends PyCode {
 
     /**
      * Convert the contents of a Python {@code bytes} to 16-bit word
-     * code as expected by the eval-loop in {@link CPython311Frame}.
+     * code as expected by the eval-loop in {@link CPython315Frame}.
      *
      * @param bytecode as compiled by Python as bytes
      * @return 16-bit word code

@@ -35,8 +35,8 @@ import org.python.modules.marshal;
  * .\gradlew --console=plain core:compileTestPythonExamples
  * </pre>
  */
-@DisplayName("Given programs compiled by CPython 3.11 ...")
-class CPython311CodeTest extends UnitTestSupport {
+@DisplayName("Given programs compiled by CPython 3.15 ...")
+class CPython315CodeTest extends UnitTestSupport {
 
     @SuppressWarnings("static-method")
     @DisplayName("marshal can read a code object")
@@ -135,8 +135,11 @@ class CPython311CodeTest extends UnitTestSupport {
 
         @Test
         void co_consts() {
-            // Fairly reliably 3 consts and a None to return
-            assertEquals(4, code.co_consts().size());
+            /*
+             * CPython 3.15 loads small ints with LOAD_SMALL_INT and None
+             * with LOAD_COMMON_CONSTANT, so only one constant remains.
+             */
+            assertEquals(1, code.co_consts().size());
         }
     }
 
@@ -151,9 +154,9 @@ class CPython311CodeTest extends UnitTestSupport {
     @ParameterizedTest(name = "{0}.py")
     @ValueSource(strings = {"load_store_name", "unary_op", "binary_op", "bool_left_arith",
             "bool_right_arith", "comparison", "tuple_index", "list_index", "call_method_builtin",
-            "builtins_module"})
+            "builtins_module", "not_op", "subscr_slice", "call_kw"})
     void executeSimple(String name) {
-        CPython311Code code = readCode(name);
+        CPython315Code code = readCode(name);
         PyDict globals = new PyDict();
         Interpreter interp = new Interpreter();
         Object r = interp.eval(code, globals);
@@ -170,9 +173,9 @@ class CPython311CodeTest extends UnitTestSupport {
     @DisplayName("We can execute branches and while loops ...")
     @ParameterizedTest(name = "{0}.py")
     @ValueSource(strings = {"simple_if", "multi_if", "simple_loop", "tuple_dot_product",
-            "list_dot_product"})
+            "list_dot_product", "and_or"})
     void executeBranchAndLoop(String name) {
-        CPython311Code code = readCode(name);
+        CPython315Code code = readCode(name);
         PyDict globals = new PyDict();
         Interpreter interp = new Interpreter();
         Object r = interp.eval(code, globals);
@@ -200,14 +203,14 @@ class CPython311CodeTest extends UnitTestSupport {
 
     /**
      * The name fragment used by the compiler in the supported version
-     * of CPython, e.g. {@code "cpython-311"}.
+     * of CPython, e.g. {@code "cpython-315"}.
      */
-    private static final String CPYTHON_VER = "cpython-311";
+    private static final String CPYTHON_VER = "cpython-315";
     /**
      * The magic number placed by the supported version of CPython, in
      * the header of compiled files.
      */
-    private static final int MAGIC_NUMBER = 3495;
+    private static final int MAGIC_NUMBER = 3666;
 
     private static final String PYC_SUFFIX = "pyc";
     private static final String VAR_SUFFIX = "var";
@@ -218,13 +221,13 @@ class CPython311CodeTest extends UnitTestSupport {
      * for compiled examples in the customary directory
      * ({@link #PYC_DIR}}, being provided only the base name of the
      * program. So for example, {@code "unary_op"} will retrieve a code
-     * object from {@code unary_op.cpython-311.pyc} in
+     * object from {@code unary_op.cpython-315.pyc} in
      * {@code generated/sources/pythonExample/test/__pycache__}.
      *
      * @param progName base name of program
      * @return {@code code} object read in
      */
-    static CPython311Code readCode(String progName) {
+    static CPython315Code readCode(String progName) {
         String name = progName + "." + CPYTHON_VER + "." + PYC_SUFFIX;
         File f = PYC_DIR.resolve(name).toFile();
         try (FileInputStream fs = new FileInputStream(f);
@@ -244,7 +247,7 @@ class CPython311CodeTest extends UnitTestSupport {
             // Next should be a code object
             if (good) {
                 Object o = reader.readObject();
-                if (o instanceof PyCode) { return (CPython311Code)o; }
+                if (o instanceof PyCode) { return (CPython315Code)o; }
             }
 
             // Didn't return a code object
@@ -260,7 +263,7 @@ class CPython311CodeTest extends UnitTestSupport {
      * for the saved results of compiled examples in the customary
      * directory ({@link #PYC_DIR}}, being provided only the base name
      * of the program. So for example, {@code "unary_op"} will retrieve
-     * a code object from {@code unary_op.cpython-311.var} in
+     * a code object from {@code unary_op.cpython-315.var} in
      * {@code generated/sources/pythonExample/test/vsj3/evo1/__pycache__}.
      *
      * @param progName base name of program

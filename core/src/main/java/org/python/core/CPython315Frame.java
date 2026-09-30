@@ -7,12 +7,13 @@ import java.util.EnumSet;
 import java.util.Map;
 
 import org.python.base.InterpreterError;
+import org.python.base.MissingFeature;
 import org.python.core.PyCode.Layout;
 import org.python.core.PyCode.Trait;
 import org.python.core.PyDict.MergeMode;
 
-/** A {@link PyFrame} for executing CPython 3.11 byte code. */
-class CPython311Frame extends PyFrame<CPython311Code> {
+/** A {@link PyFrame} for executing CPython 3.15 byte code. */
+class CPython315Frame extends PyFrame<CPython315Code> {
 
     /**
      * All local variables, named in {@link Layout#localnames()
@@ -37,9 +38,9 @@ class CPython311Frame extends PyFrame<CPython311Code> {
     private final Map<Object, Object> builtins;
 
     /**
-     * Create a {@code CPython38Frame}, which is a {@code PyFrame} with
+     * Create a {@code CPython315Frame}, which is a {@code PyFrame} with
      * the storage and mechanism to execute a module or isolated code
-     * object (compiled to a {@link CPython311Code}.
+     * object (compiled to a {@link CPython315Code}.
      * <p>
      * This will set the {@link #func} and (sometimes) {@link #locals}
      * fields of the frame. The {@code globals} and {@code builtins}
@@ -76,12 +77,12 @@ class CPython311Frame extends PyFrame<CPython311Code> {
      * @param locals local name space (may be {@code null})
      */
     // Compare CPython _PyFrame_New_NoTrack in frameobject.c
-    protected CPython311Frame(CPython311Function func, Object locals) {
+    protected CPython315Frame(CPython315Function func, Object locals) {
 
         // Initialise the basics.
         super(func);
 
-        CPython311Code code = func.code;
+        CPython315Code code = func.code;
         this.valuestack = new Object[code.stacksize];
         int nfast = 0;
 
@@ -137,7 +138,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
          * (The oparg after an EXTENDED_ARG gets special treatment to
          * produce the chaining of argument values.)
          */
-        final CPython311Code code = this.code;
+        final CPython315Code code = this.code;
         int opword = code.wordcode[ip++] & 0xffff;
 
         // Opcode argument (where needed).
@@ -147,12 +148,12 @@ class CPython311Frame extends PyFrame<CPython311Code> {
         // The structure of the interpreter loop is:
         // while (ip <= END) {
         //     switch (opword >> 8) {
-        //     case Opcode311.LOAD_CONST:
+        //     case Opcode315.LOAD_CONST:
         //         s[sp++] = consts[oparg]; break;
         //     // other cases
-        //     case Opcode311.RETURN_VALUE:
+        //     case Opcode315.RETURN_VALUE:
         //         returnValue = s[--sp]; break loop;
-        //     case Opcode311.EXTENDED_ARG:
+        //     case Opcode315.EXTENDED_ARG:
         //         opword = wordcode[ip++] & 0xffff;
         //         oparg = (oparg << 8) | opword & 0xff;
         //         continue;
@@ -176,9 +177,6 @@ class CPython311Frame extends PyFrame<CPython311Code> {
         // Wrap locals (any type) as a minimal kind of Java map
         Map<Object, Object> locals = localsMapOrNull();
 
-        // Holds keyword names argument between KW_NAMES and CALL
-        PyTuple kwnames = null;
-
         loop: while (ip <= END) {
             /*
              * Here every so often, or maybe inside the try, and conditional on
@@ -200,52 +198,107 @@ class CPython311Frame extends PyFrame<CPython311Code> {
             try {
                 // Interpret opcode
                 switch (opword >> 8) {
-                    // Cases ordered as CPython to aid comparison
+                    // Cases ordered as CPython Python/bytecodes.c where possible
 
-                    case Opcode311.NOP:
-                    case Opcode311.RESUME:
+                    case Opcode315.NOP:
+                    case Opcode315.NOT_TAKEN:
                         break;
 
-                    case Opcode311.LOAD_CONST:
+                    case Opcode315.RESUME:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_RESUME;
+                        break;
+
+                    case Opcode315.LOAD_CONST:
                         s[sp++] = consts[oparg];
                         break;
 
-                    case Opcode311.PUSH_NULL:
+                    case Opcode315.LOAD_SMALL_INT:
+                        s[sp++] = oparg;
+                        break;
+
+                    case Opcode315.LOAD_COMMON_CONSTANT:
+                        s[sp++] = CPython315Code.commonConstant(oparg);
+                        break;
+
+                    case Opcode315.POP_TOP:
+                        s[--sp] = null;
+                        break;
+
+                    case Opcode315.PUSH_NULL:
                         s[sp++] = null;
                         break;
 
-                    case Opcode311.UNARY_NEGATIVE: {
+                    case Opcode315.COPY:
+                        // v | ... | -> | v | ... | v |
+                        // (v is oparg-th from top)
+                        s[sp] = s[sp - oparg];
+                        sp += 1;
+                        break;
+
+                    case Opcode315.SWAP: {
+                        // exchange top with oparg-th from top
+                        int top = sp - 1, other = sp - oparg;
+                        Object t = s[top];
+                        s[top] = s[other];
+                        s[other] = t;
+                        break;
+                    }
+
+                    case Opcode315.UNARY_NEGATIVE: {
                         int top = sp - 1;
                         s[top] = PyNumber.negative(s[top]);
                         break;
                     }
 
-                    case Opcode311.UNARY_INVERT: {
+                    case Opcode315.UNARY_NOT: {
+                        // The compiler guarantees a bool (after TO_BOOL)
+                        int top = sp - 1;
+                        s[top] = Abstract.isTrue(s[top]) ? Py.False : Py.True;
+                        break;
+                    }
+
+                    case Opcode315.TO_BOOL: {
+                        int top = sp - 1;
+                        s[top] = Abstract.isTrue(s[top]) ? Py.True : Py.False;
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_TO_BOOL;
+                        break;
+                    }
+
+                    case Opcode315.UNARY_INVERT: {
                         int top = sp - 1;
                         s[top] = PyNumber.invert(s[top]);
                         break;
                     }
 
-                    case Opcode311.BINARY_SUBSCR: {
-                        // w | v | -> | w[v] |
-                        // -------^sp --------^sp
-                        Object v = s[--sp];
+                    case Opcode315.BINARY_OP: {
+                        Object w = s[--sp]; // POP
                         int top = sp - 1;
-                        s[top] = PySequence.getItem(s[top], v);
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_BINARY_SUBSCR;
+                        Object v = s[top]; // TOP
+                        s[top] = switch (oparg) {
+                            case Opcode315.NB_ADD -> PyNumber.add(v, w);
+                            case Opcode315.NB_AND -> PyNumber.and(v, w);
+                            case Opcode315.NB_MULTIPLY -> PyNumber.multiply(v, w);
+                            case Opcode315.NB_OR -> PyNumber.or(v, w);
+                            case Opcode315.NB_SUBTRACT -> PyNumber.subtract(v, w);
+                            case Opcode315.NB_XOR -> PyNumber.xor(v, w);
+                            case Opcode315.NB_SUBSCR -> PySequence.getItem(v, w);
+                            default -> throw new MissingFeature("BINARY_OP %d (%s)", oparg,
+                                    CPython315Code.binaryOpName(oparg));
+                        };
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_BINARY_OP;
                         break;
                     }
 
-                    case Opcode311.STORE_SUBSCR: // w[v] = u
+                    case Opcode315.STORE_SUBSCR: // w[v] = u
                         // u | w | v | -> |
                         // -----------^sp -^sp
                         sp -= 3;
                         // setItem(w, v, u)
                         PySequence.setItem(s[sp + 1], s[sp + 2], s[sp]);
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_STORE_SUBSCR;
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_STORE_SUBSCR;
                         break;
 
-                    case Opcode311.DELETE_SUBSCR: // del w[v]
+                    case Opcode315.DELETE_SUBSCR: // del w[v]
                         // w | v | -> |
                         // -------^sp -^sp
                         sp -= 2;
@@ -253,11 +306,20 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         PySequence.delItem(s[sp], s[sp + 1]);
                         break;
 
-                    case Opcode311.RETURN_VALUE:
+                    case Opcode315.CALL_INTRINSIC_1: {
+                        int top = sp - 1;
+                        s[top] = switch (oparg) {
+                            case Opcode315.INTRINSIC_PRINT -> displayHook(s[top]);
+                            default -> throw new MissingFeature("CALL_INTRINSIC_1 %d", oparg);
+                        };
+                        break;
+                    }
+
+                    case Opcode315.RETURN_VALUE:
                         returnValue = s[--sp]; // POP
                         break loop;
 
-                    case Opcode311.STORE_NAME: {
+                    case Opcode315.STORE_NAME: {
                         String name = names[oparg];
                         try {
                             locals.put(name, s[--sp]);
@@ -267,7 +329,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         break;
                     }
 
-                    case Opcode311.DELETE_NAME: {
+                    case Opcode315.DELETE_NAME: {
                         String name = names[oparg];
                         try {
                             locals.remove(name);
@@ -277,7 +339,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         break;
                     }
 
-                    case Opcode311.LOAD_NAME: {
+                    case Opcode315.LOAD_NAME: {
                         // Resolve against locals, globals and builtins
                         String name = names[oparg];
                         Object v;
@@ -296,7 +358,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         break;
                     }
 
-                    case Opcode311.BUILD_TUPLE:
+                    case Opcode315.BUILD_TUPLE:
                         // w[0] | ... | w[oparg-1] | -> | tpl |
                         // -------------------------^sp -------^sp
                         // Group the N=oparg elements on the stack
@@ -305,7 +367,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         s[sp] = new PyTuple(s, sp++, oparg);
                         break;
 
-                    case Opcode311.BUILD_LIST:
+                    case Opcode315.BUILD_LIST:
                         // w[0] | ... | w[oparg-1] | -> | lst |
                         // -------------------------^sp -------^sp
                         /*
@@ -315,7 +377,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         s[sp] = new PyList(s, sp++, oparg);
                         break;
 
-                    case Opcode311.LIST_EXTEND: {
+                    case Opcode315.LIST_EXTEND: {
                         Object iterable = s[--sp];
                         PyList list = (PyList)s[sp - oparg];
                         list.list_extend(iterable,
@@ -323,7 +385,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         break;
                     }
 
-                    case Opcode311.BUILD_MAP:
+                    case Opcode315.BUILD_MAP:
                         // k1 | v1 | ... | kN | vN | -> | map |
                         // -------------------------^sp -------^sp
                         /*
@@ -334,9 +396,9 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         s[sp] = PyDict.fromKeyValuePairs(s, sp++, oparg);
                         break;
 
-                    case Opcode311.DICT_MERGE: {
-                        // f | map | ... | v | -> | f | map | ... |
-                        // -------------------^sp -----------------^sp
+                    case Opcode315.DICT_MERGE: {
+                        // f | null | args | map | ... | v | -> f | null | args | map | ... |
+                        // --------------------------------^sp ------------------------------^sp
                         /*
                          * Update a dictionary from another map v on the stack. There are
                          * N=oparg arguments including v on the stack, but only v is merged.
@@ -348,34 +410,53 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         try {
                             dict.merge(map, MergeMode.UNIQUE);
                         } catch (AttributeError ae) {
-                            throw kwargsTypeError(s[sp - (oparg + 2)], map);
+                            throw kwargsTypeError(s[sp - (oparg + 3)], map);
                         } catch (KeyError.Duplicate ke) {
-                            throw kwargsKeyError(ke, s[sp - (oparg + 2)]);
+                            throw kwargsKeyError(ke, s[sp - (oparg + 3)]);
                         }
                         break;
                     }
 
-                    case Opcode311.LOAD_ATTR: {
-                        // v | -> | v.name |
-                        // ---^sp ----------^sp
-                        int top = sp - 1;
-                        s[top] = Abstract.getAttr(s[top], names[oparg]);
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_LOAD_ATTR;
+                    case Opcode315.LOAD_ATTR: {
+                        String name = names[oparg >> 1];
+                        if ((oparg & 1) == 0) {
+                            // v | -> | v.name |
+                            // ---^sp ----------^sp
+                            int top = sp - 1;
+                            s[top] = Abstract.getAttr(s[top], name);
+                        } else {
+                            /*
+                             * Emitted when compiling obj.meth(...). Works in tandem with
+                             * CALL. If we can bypass temporary bound method:
+                             */
+                            // obj | -> | desc | self |
+                            // -----^sp ---------------^sp
+                            // Otherwise almost conventional LOAD_ATTR:
+                            // obj | -> | meth | null |
+                            // -----^sp ---------------^sp
+                            getMethod(s[--sp], name, sp);
+                            sp += 2;
+                        }
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_LOAD_ATTR;
                         break;
                     }
 
-                    case Opcode311.COMPARE_OP: {
+                    case Opcode315.COMPARE_OP: {
                         // v | w | -> | op(v,w) |
                         // -------^sp -----------^sp
                         Object w = s[--sp]; // POP
                         int top = sp - 1;
                         Object v = s[top]; // TOP
-                        s[top] = Comparison.from(oparg).apply(v, w);
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_COMPARE_OP;
+                        Object r = Comparison.from(oparg >> Opcode315.CMP_SHIFT).apply(v, w);
+                        if ((oparg & Opcode315.CMP_TO_BOOL) != 0) {
+                            r = Abstract.isTrue(r) ? Py.True : Py.False;
+                        }
+                        s[top] = r;
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_COMPARE_OP;
                         break;
                     }
 
-                    case Opcode311.IS_OP: {
+                    case Opcode315.IS_OP: {
                         // v | w | -> | (v is w) ^ oparg |
                         // -------^sp --------------------^sp
                         Object w = s[--sp]; // POP
@@ -386,7 +467,7 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         break;
                     }
 
-                    case Opcode311.CONTAINS_OP: {
+                    case Opcode315.CONTAINS_OP: {
                         // v | w | -> | (v in w) ^ oparg |
                         // -------^sp --------------------^sp
                         Object w = s[--sp]; // POP
@@ -394,212 +475,82 @@ class CPython311Frame extends PyFrame<CPython311Code> {
                         Object v = s[top]; // TOP
                         Comparison op = oparg == 0 ? Comparison.IN : Comparison.NOT_IN;
                         s[top] = op.apply(v, w);
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_CONTAINS_OP;
                         break;
                     }
 
-                    case Opcode311.JUMP_FORWARD:
+                    /*
+                     * Jumps are relative to the instruction following the in-line
+                     * cache (if any), so we skip the cache before jumping.
+                     */
+
+                    case Opcode315.JUMP_FORWARD:
                         ip += oparg;
                         break;
 
-                    case Opcode311.JUMP_BACKWARD: {
+                    case Opcode315.JUMP_BACKWARD:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_JUMP_BACKWARD - oparg;
+                        break;
+
+                    case Opcode315.JUMP_BACKWARD_NO_INTERRUPT:
                         ip -= oparg;
                         break;
-                    }
 
-                    case Opcode311.POP_JUMP_BACKWARD_IF_FALSE: {
-                        if (!Abstract.isTrue(s[--sp])) { ip -= oparg; }
-                        break;
-                    }
-                    case Opcode311.POP_JUMP_FORWARD_IF_FALSE: {
+                    // The compiler guarantees a bool (after TO_BOOL)
+                    case Opcode315.POP_JUMP_IF_FALSE:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_POP_JUMP_IF_FALSE;
                         if (!Abstract.isTrue(s[--sp])) { ip += oparg; }
                         break;
-                    }
 
-                    case Opcode311.POP_JUMP_BACKWARD_IF_TRUE: {
-                        if (Abstract.isTrue(s[--sp])) { ip -= oparg; }
-                        break;
-
-                    }
-
-                    case Opcode311.POP_JUMP_FORWARD_IF_TRUE: {
+                    case Opcode315.POP_JUMP_IF_TRUE:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_POP_JUMP_IF_TRUE;
                         if (Abstract.isTrue(s[--sp])) { ip += oparg; }
                         break;
 
-                    }
-
-                    case Opcode311.POP_JUMP_BACKWARD_IF_NOT_NONE: {
-                        if (s[--sp] != Py.None) { ip -= oparg; }
-                        break;
-                    }
-
-                    case Opcode311.POP_JUMP_FORWARD_IF_NOT_NONE: {
-                        if (s[--sp] != Py.None) { ip += oparg; }
-                        break;
-                    }
-
-                    case Opcode311.POP_JUMP_BACKWARD_IF_NONE: {
-                        if (s[--sp] == Py.None) { ip -= oparg; }
-                        break;
-                    }
-
-                    case Opcode311.POP_JUMP_FORWARD_IF_NONE: {
+                    case Opcode315.POP_JUMP_IF_NONE:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_POP_JUMP_IF_NONE;
                         if (s[--sp] == Py.None) { ip += oparg; }
                         break;
-                    }
 
-                    case Opcode311.JUMP_IF_FALSE_OR_POP: {
-                        Object v = s[--sp]; // POP
-                        if (!Abstract.isTrue(v)) {
-                            sp += 1;    // UNPOP
-                            ip += oparg;
-                        }
-                        break;
-                    }
-
-                    case Opcode311.JUMP_IF_TRUE_OR_POP: {
-                        Object v = s[--sp]; // POP
-                        if (Abstract.isTrue(v)) {
-                            sp += 1;    // UNPOP
-                            ip += oparg;
-                        }
-                        break;
-                    }
-
-                    case Opcode311.JUMP_BACKWARD_NO_INTERRUPT: {
-                        // Same as plain JUMP_BACKWARD for us
-                        ip -= oparg;
-                        break;
-                    }
-
-                    case Opcode311.JUMP_BACKWARD_QUICK: {
-                        // Same as plain JUMP_BACKWARD for us
-                        ip -= oparg;
-                        break;
-                    }
-
-                    case Opcode311.LOAD_METHOD:
-                        /*
-                         * Emitted when compiling obj.meth(...). Works in tandem with CALL.
-                         * If we can bypass temporary bound method:
-                         */
-                        // obj | -> | desc | self |
-                        // -----^sp ---------------^sp
-                        // Otherwise almost conventional LOAD_ATTR:
-                        // obj | -> | null | meth |
-                        // -----^sp ---------------^sp
-                        getMethod(s[--sp], names[oparg], sp);
-                        sp += 2;
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_LOAD_METHOD;
+                    case Opcode315.POP_JUMP_IF_NOT_NONE:
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_POP_JUMP_IF_NOT_NONE;
+                        if (s[--sp] != Py.None) { ip += oparg; }
                         break;
 
-                    case Opcode311.PRECALL:
-                        /*
-                         * CPython gains from recognising that a callable is actually a
-                         * bound method, and so each call is includes a PUSH_NULL
-                         * beforehand. PRECALL uses that space to un-bundle (if it can) the
-                         * callable into an unbound callable and its 'self' argument.
-                         *
-                         * There is no proof this would help in Jython. It might, but we can
-                         * safely make this a no-op and CALL will still do the right thing.
-                         */
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_PRECALL;
-                        break;
-
-                    case Opcode311.KW_NAMES:
-                        assert (kwnames == null);
-                        assert PyTuple.TYPE.checkExact(consts[oparg]);
-                        kwnames = (PyTuple)consts[oparg];
-                        break;
-
-                    case Opcode311.CALL: {
-                        /*
-                         * Works in tandem with LOAD_METHOD or PRECALL. If LOAD_METHOD
-                         * bypassed the method binding or PRECALL un-bundled a bound object:
-                         */
-                        // desc | self | arg[n] | -> | res |
-                        // ----------------------^sp -------^sp
-                        // Otherwise:
-                        // null | meth | arg[n] | -> | res |
-                        // ----------------------^sp -------^sp
+                    case Opcode315.CALL:
+                        // Works in tandem with LOAD_ATTR (method form) or PUSH_NULL.
+                        // callable | self_or_null | arg[n] | -> | res |
+                        // ---------------------------------^sp -------^sp
                         // oparg = n
-                        sp -= oparg + 2;
-                        if (s[sp] != null) {
-                            // We bypassed the method binding. Stack:
-                            // desc | self | arg[n] |
-                            // ^sp
-                            // call desc(self, arg1 ... argN)
-                            s[sp] = Callables.vectorcall(s[sp++], s, sp, oparg + 1, kwnames);
-                        } else {
-                            // meth is the bound method self.name
-                            // null | meth | arg[n] |
-                            // ^sp
-                            // call meth(arg1 ... argN)
-                            s[sp++] = Callables.vectorcall(s[sp], s, sp + 1, oparg, kwnames);
-                        }
-                        kwnames = null;
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_CALL;
+                        sp = call(sp, oparg, null);
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_CALL;
+                        break;
+
+                    case Opcode315.CALL_KW: {
+                        // As CALL but the last kwnames.size() args are keywords.
+                        // callable | self_or_null | arg[n] | kwnames | -> | res |
+                        // -------------------------------------------^sp -------^sp
+                        PyTuple kwnames = (PyTuple)s[--sp];
+                        sp = call(sp, oparg, kwnames);
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_CALL_KW;
                         break;
                     }
 
-                    case Opcode311.CALL_FUNCTION_EX: {
+                    case Opcode315.CALL_FUNCTION_EX: {
                         // Call with positional & kw args. Stack:
-                        // f | args | kwdict? | -> res |
-                        // --------------------^sp -----^sp
-                        // oparg is 0 (no kwdict) or 1 (kwdict present)
-                        Object w = (oparg & 0x1) == 0 ? null : s[--sp];
-                        Object v = s[--sp]; // args tuple
-                        sp -= 1;
-                        assert s[sp - 1] == null; // from PUSH_NULL
-                        s[sp - 1] = Callables.callEx(s[sp], v, w);
+                        // f | null | args | kwdict | -> | res |
+                        // --------------------------^sp -------^sp
+                        // kwdict is null if there are no keyword args.
+                        Object kwargs = s[--sp];
+                        Object args = s[--sp];
+                        sp -= 2; // f is at s[sp], null above it
+                        Object f = s[sp];
+                        s[sp++] = Callables.callEx(f, callArgsAsTuple(f, args), kwargs);
+                        ip += Opcode315.INLINE_CACHE_ENTRIES_CALL_FUNCTION_EX;
                         break;
                     }
 
-                    case Opcode311.BINARY_OP: {
-                        Object w = s[--sp]; // POP
-                        int top = sp - 1;
-                        Object v = s[top]; // TOP
-                        s[top] = switch (oparg) {
-                            default -> Py.NotImplemented;
-                            case Opcode311.NB_ADD -> PyNumber.add(v, w);
-                            case Opcode311.NB_AND -> PyNumber.and(v, w);
-                            // case Opcode311.NB_FLOOR_DIVIDE -> PyNumber.FloorDivide(v, w);
-                            // case Opcode311.NB_LSHIFT -> PyNumber.Lshift(v, w);
-                            // case Opcode311.NB_MATRIX_MULTIPLY
-                            // -> PyNumber.MatrixMultiply(v, w);
-                            case Opcode311.NB_MULTIPLY -> PyNumber.multiply(v, w);
-                            // case Opcode311.NB_REMAINDER -> PyNumber.Remainder(v, w);
-                            case Opcode311.NB_OR -> PyNumber.or(v, w);
-                            // case Opcode311.NB_POWER -> PyNumber.PowerNoMod(v, w);
-                            // case Opcode311.NB_RSHIFT -> PyNumber.Rshift(v, w);
-                            case Opcode311.NB_SUBTRACT -> PyNumber.subtract(v, w);
-                            // case Opcode311.NB_TRUE_DIVIDE -> PyNumber.TrueDivide(v, w);
-                            case Opcode311.NB_XOR -> PyNumber.xor(v, w);
-                            // case Opcode311.NB_INPLACE_ADD -> PyNumber.InPlaceAdd(v, w);
-                            // case Opcode311.NB_INPLACE_AND -> PyNumber.InPlaceAnd(v, w);
-                            // case Opcode311.NB_INPLACE_FLOOR_DIVIDE
-                            // -> PyNumber.InPlaceFloorDivide(v, w);
-                            // case Opcode311.NB_INPLACE_LSHIFT -> PyNumber.InPlaceLshift(v, w);
-                            // case Opcode311.NB_INPLACE_MATRIX_MULTIPLY
-                            // -> PyNumber.InPlaceMatrixMultiply(v, w);
-                            // case Opcode311.NB_INPLACE_MULTIPLY
-                            // -> PyNumber.InPlaceMultiply(v, w);
-                            // case Opcode311.NB_INPLACE_REMAINDER
-                            // -> PyNumber.InPlaceRemainder(v, w);
-                            // case Opcode311.NB_INPLACE_OR -> PyNumber.InPlaceOr(v, w);
-                            // case Opcode311.NB_INPLACE_POWER
-                            // -> PyNumber.InPlacePowerNoMod(v, w);
-                            // case Opcode311.NB_INPLACE_RSHIFT -> PyNumber.InPlaceRshift(v, w);
-                            // case Opcode311.NB_INPLACE_SUBTRACT
-                            // -> PyNumber.InPlaceSubtract(v, w);
-                            // case Opcode311.NB_INPLACE_TRUE_DIVIDE -> //
-                            // PyNumber.InPlaceTrueDivide(v, w);
-                            // case Opcode311.NB_INPLACE_XOR -> PyNumber.InPlaceXor(v, w);
-                        };
-                        ip += Opcode311.INLINE_CACHE_ENTRIES_BINARY_OP;
-                        break;
-                    }
-
-                    case Opcode311.EXTENDED_ARG:
+                    case Opcode315.EXTENDED_ARG:
                         // Pick up the next instruction.
                         opword = wordcode[ip++] & 0xffff;
                         // The current oparg *prefixes* the next oparg,
@@ -663,15 +614,85 @@ class CPython311Frame extends PyFrame<CPython311Code> {
     private static final String VALUE_AFTER_STAR = "Value after * must be an iterable, not %.200s";
 
     /**
+     * Push the value that {@code DISPLAYHOOK} would print, as for the
+     * {@code INTRINSIC_PRINT} operation in interactive code. Pending a
+     * {@code sys.displayhook}, this prints {@code repr(value)} to
+     * standard output, unless it is {@code None}, and binds
+     * {@code builtins._} to the value.
+     *
+     * @param value to display
+     * @return {@code None}
+     * @throws Throwable from {@code repr()}
+     */
+    // Compare CPython sys_displayhook in sysmodule.c
+    private Object displayHook(Object value) throws Throwable {
+        if (value != Py.None) {
+            builtins.put("_", Py.None);
+            System.out.println(Abstract.repr(value));
+            builtins.put("_", value);
+        }
+        return Py.None;
+    }
+
+    /**
+     * Convert the positional arguments to {@code CALL_FUNCTION_EX} to a
+     * {@code tuple}, if they are not one already.
+     *
+     * @param func the function (for context in error messages)
+     * @param args iterable of arguments
+     * @return {@code args} as a {@code tuple}
+     * @throws TypeError if {@code args} is not iterable
+     */
+    // Compare CPython _MAKE_CALLARGS_A_TUPLE in bytecodes.c
+    private static PyTuple callArgsAsTuple(Object func, Object args) throws TypeError {
+        if (args instanceof PyTuple t) {
+            return t;
+        } else if (args instanceof PyList list) {
+            return new PyTuple(list);
+        } else {
+            // TODO: accept any iterable (needs PyTuple.fromIterable)
+            throw new MissingFeature("%s argument after * of type %s",
+                    PyObjectUtil.functionStr(func), PyType.of(args).getName());
+        }
+    }
+
+    /**
+     * Implement the {@code CALL} and {@code CALL_KW} opcodes on the
+     * value stack. The stack holds {@code callable | self_or_null |
+     * arg[n]}, with {@code n = oparg} (including keyword arguments,
+     * which come last). These are replaced by the result.
+     *
+     * @param sp stack pointer (first free slot)
+     * @param oparg number of arguments (not counting {@code self})
+     * @param kwnames names of keyword arguments or {@code null}
+     * @return stack pointer after the call
+     * @throws Throwable from the call
+     */
+    private int call(int sp, int oparg, PyTuple kwnames) throws Throwable {
+        final Object[] s = valuestack;
+        int base = sp - oparg - 2;
+        Object callable = s[base];
+        if (s[base + 1] != null) {
+            // LOAD_ATTR bypassed the method binding: call desc(self, args...)
+            s[base] = Callables.vectorcall(callable, s, base + 1, oparg + 1, kwnames);
+        } else {
+            // callable is (for example) the bound method self.name
+            s[base] = Callables.vectorcall(callable, s, base + 2, oparg, kwnames);
+        }
+        return base + 1;
+    }
+
+    /**
      * A specialised version of {@code object.__getattribute__}
-     * specifically to support the {@code LOAD_METHOD} and
-     * {@code CALL_METHOD} opcode pair generated by the CPython byte
-     * code compiler. This method will place two entries in the stack at
-     * the offset given that are either:
+     * specifically to support the {@code LOAD_ATTR} (method form) and
+     * {@code CALL} opcode pair generated by the CPython byte code
+     * compiler. This method will place two entries in the stack at the
+     * offset given that are either:
      * <ol>
      * <li>an unbound method and the object passed ({@code obj}),
      * or</li>
-     * <li>{@code null} and a bound method object.</li>
+     * <li>a bound method object (or other callable) and
+     * {@code null}.</li>
      * </ol>
      * <p>
      * The normal behaviour of {@code object.__getattribute__} is
@@ -680,8 +701,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
      * Case 1 supports an optimisation that is possible when the type of
      * the self object {@code obj} has not overridden
      * {@code __getattribute__}, and the {@code name} resolves to a
-     * regular method in it. {@code CALL_METHOD} will detect and use
-     * this optimised form if the first element is not {@code null}.
+     * regular method in it. {@code CALL} will detect and use this
+     * optimised form if the second element is not {@code null}.
      *
      * @param obj of which the callable is an attribute
      * @param name of callable attribute
@@ -696,8 +717,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
 
         // If type(obj) defines its own __getattribute__ use that.
         if (!objType.hasGenericGetAttr()) {
-            valuestack[offset] = null;
-            valuestack[offset + 1] = Abstract.getAttr(obj, name);
+            valuestack[offset] = Abstract.getAttr(obj, name);
+            valuestack[offset + 1] = null;
             return;
         }
 
@@ -726,8 +747,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
             } else if (typeAttrOps.isDataDescr()) {
                 // typeAttr is a data descriptor so call its __get__.
                 try {
-                    valuestack[offset] = null;
-                    valuestack[offset + 1] = descrGet.invokeExact(typeAttr, obj, objType);
+                    valuestack[offset] = descrGet.invokeExact(typeAttr, obj, objType);
+                    valuestack[offset + 1] = null;
                     return;
                 } catch (Slot.EmptyException e) {
                     /*
@@ -749,8 +770,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
             Object instanceAttr = d.get(name);
             if (instanceAttr != null) {
                 // Found the callable in the instance dictionary.
-                valuestack[offset] = null;
-                valuestack[offset + 1] = instanceAttr;
+                valuestack[offset] = instanceAttr;
+                valuestack[offset + 1] = null;
                 return;
             }
         }
@@ -772,8 +793,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
         } else if (descrGet != null) {
             // typeAttr may be a non-data descriptor: call __get__.
             try {
-                valuestack[offset] = null;
-                valuestack[offset + 1] = descrGet.invokeExact(typeAttr, obj, objType);
+                valuestack[offset] = descrGet.invokeExact(typeAttr, obj, objType);
+                valuestack[offset + 1] = null;
                 return;
             } catch (Slot.EmptyException e) {}
         }
@@ -783,8 +804,8 @@ class CPython311Frame extends PyFrame<CPython311Code> {
              * The attribute obtained from the type, and that turned out not to
              * be a descriptor, is the callable.
              */
-            valuestack[offset] = null;
-            valuestack[offset + 1] = typeAttr;
+            valuestack[offset] = typeAttr;
+            valuestack[offset + 1] = null;
             return;
         }
 

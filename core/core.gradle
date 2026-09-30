@@ -34,6 +34,9 @@ def genJavaDir = "$genOutputDir/java/main"
 def genTestJavaDir = "$genOutputDir/java/test"
 
 def genInputDir = getProject().file('src/main/javaTemplate')
+
+// Destination of opcode constants generated from the supported CPython
+def genOpcodeJavaDir = "$genSourcesDir/opcodes/java/main"
 def genTestInputDir = getProject().file('src/test/javaTemplate')
 
 
@@ -51,6 +54,7 @@ sourceSets {
     main {
         java {
             srcDir genJavaDir
+            srcDir genOpcodeJavaDir
         }
     }
 
@@ -68,10 +72,21 @@ sourceSets {
 
 // A task that runs Python with the tools library on the path
 
+/*
+ * The CPython that compiles the test examples must be the version whose
+ * byte code we execute (3.15). Specify it with -Pcpython=<executable>,
+ * otherwise we use a sibling CPython build (../cpython) if present, and
+ * finally "python" from the path.
+ */
+ext.cpythonExecutable = findProperty('cpython') ?: {
+    def sibling = rootProject.file('../cpython/python.exe')
+    sibling.canExecute() ? sibling.path : 'python'
+}()
+
 class PythonExec extends Exec {
 
     PythonExec() {
-        executable 'python'
+        executable getProject().cpythonExecutable
         environment('PYTHONPATH', getProject().getRootProject().file(
                 'build-tools/python/lib'))
     }
@@ -91,12 +106,29 @@ task generateObjectDefinitions(type: PythonExec,
 compileJava.dependsOn(generateObjectDefinitions)
 
 
+// Generate opcode constants (OpcodeNNN.java) from the supported CPython
+
+task generateOpcodes(type: PythonExec,
+        description: 'Generate opcode constants from CPython') {
+    def tool = getProject().getRootProject().file(
+            'build-tools/python/tool/opcode_gen.py')
+    // Clues for the incremental build
+    inputs.file(tool)
+    inputs.property('cpython', cpythonExecutable)
+    outputs.dir(genOpcodeJavaDir)
+    args tool
+    args genOpcodeJavaDir
+}
+compileJava.dependsOn(generateOpcodes)
+
+
 // Report the version of Python available
 
 task pythonVersion(type: PythonExec) {
     args '-V'
 }
 generateObjectDefinitions.dependsOn(pythonVersion)
+generateOpcodes.dependsOn(pythonVersion)
 
 
 // Copy and compile Python source examples to the build tree
@@ -108,6 +140,7 @@ task compileTestPythonExamples(type: PythonExec,
         fileTree(testPythonExampleInputDir) {
             include '**/*.py'
         })
+    inputs.property('cpython', cpythonExecutable)
     outputs.dir(testPythonExampleOutputDir)
     // Exec task is python -m compile_examples <src> <dst>
     args '-m'
