@@ -1,19 +1,20 @@
 #!/bin/sh
-# Recognizer smoke test for the PEG parser (src/org/python/pegen).
+# Smoke test for the PEG parser (src/org/python/pegen).
 #
-# Tokenizes CPython's Lib/ with Python 3.15 (the oracle) and checks that
-# GeneratedParser accepts every file that Python can parse, then runs the
-# sample directories under tests/pegen/ (accept/, reject/, single/...).
+# Compares the parser's output with CPython 3.15's (compare_ast.py: trees,
+# errors and warnings, file by file) over CPython's Lib/, the sample
+# directories under tests/pegen/ (accept/, reject/, single/), and the
+# syntax-error corpus extract_samples.py takes from CPython's tests.
+# Differences listed in compare_known.txt are reported but don't fail.
 #
 # Samples under pending/ record known gaps; they are run and reported but do
-# not fail the script. pending/actions/ needs grammar actions,
-# pending/tokenizer/ needs the Java tokenizer, and pending/stack/ is the
-# stack-depth TODO in Parser.MAXSTACK. Move a sample out once it passes.
+# not fail the script. pending/tokenizer/ needs the Java tokenizer, and
+# pending/stack/ is the stack-depth TODO in Parser.MAXSTACK. Move a sample out
+# once it passes.
 #
 # Needs: `ant compile` already run and a CPython checkout (default ../cpython;
 # override with CPYTHON=...). PYTHON must be Python >= 3.15; by default an
 # in-tree build in $CPYTHON is used if present, else python3.
-# The recognizer checks assume the checked-in parser skips actions (the default).
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -68,29 +69,48 @@ pending() {
 
 SMOKE=org.python.pegen.RecognizerSmoke
 
-check lib "" "$CPYTHON/Lib" -Xss16m $SMOKE --expect accept
-check reject --all "$HERE/reject" -Xss16m $SMOKE --expect reject
+# compare NAME COMPARE_ARGS...
+# Runs compare_ast.py; a failure sets status=1.
+compare() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_ast.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
+# compare_ast.py's Java driver, compiled once for all the runs below.
+mkdir -p "$ROOT/build/pegen-compare/classes"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-compare/classes" \
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java" \
+    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
+
+compare lib "$CPYTHON/Lib"
+compare samples "$HERE/accept" "$HERE/reject"
+# Samples parsed as single_input (compile(..., "single")).
+compare single-samples --mode single "$HERE/single"
+
+# The syntax-error corpus from CPython's tests, as file and as single input.
+"$PYTHON" "$HERE/extract_samples.py" --cpython "$CPYTHON" "$OUT/samples" >/dev/null
+compare corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+compare single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
+
 # Run with a 1 MB stack (the Linux x64 default) so a JVM StackOverflowError
 # can't be hidden by a large -Xss.
-check accept "" "$HERE/accept" -Xss1m $SMOKE --expect accept
-# Samples parsed as single_input (compile(..., "single")).
-check single-accept "--mode single" "$HERE/single/accept" -Xss16m $SMOKE --mode single --expect accept
-check single-reject "--all --mode single" "$HERE/single/reject" -Xss16m $SMOKE --mode single --expect reject
+check accept-small-stack "" "$HERE/accept" -Xss1m $SMOKE --expect accept
 
-pending actions-reject --all "$HERE/pending/actions/reject" -Xss16m $SMOKE --expect reject
-pending actions-single-reject "--all --mode single" "$HERE/pending/actions/single/reject" -Xss16m $SMOKE --mode single --expect reject
 pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
 pending stack-accept "" "$HERE/pending/stack/accept" -Xss1m $SMOKE --expect accept
 
-# The parser with actions translated must keep compiling against the runtime,
-# ActionHelpers and AstFactory (whose unported stubs return null).
-echo "== actions-compile"
+# The recognizer (the parser generated with --skip-actions) must keep
+# compiling against the runtime.
+echo "== recognizer-compile"
 if PYTHONDONTWRITEBYTECODE=1 "$PYTHON" "$ROOT/src/pegen/tools/generate.py" \
-        --cpython "$CPYTHON" --actions --output-dir "$OUT/actions" >/dev/null &&
-    mkdir -p "$OUT/actions/classes" &&
-    javac -nowarn -cp "$ROOT/build/classes" -d "$OUT/actions/classes" \
-        "$OUT/actions/GeneratedParser.java"; then
-    echo "parser with actions compiles"
+        --cpython "$CPYTHON" --skip-actions --output-dir "$OUT/recognizer" >/dev/null &&
+    mkdir -p "$OUT/recognizer/classes" &&
+    javac -nowarn -cp "$ROOT/build/classes" -d "$OUT/recognizer/classes" \
+        "$OUT/recognizer/GeneratedParser.java"; then
+    echo "recognizer compiles"
 else
     status=1
 fi

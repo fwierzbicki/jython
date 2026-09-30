@@ -9,33 +9,34 @@ show. The finished generator design is kept at the end for reference.
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
-  at v3.15.0rc2. Actions are skipped by default, so the checked-in
-  `GeneratedParser.java` is a recognizer. `generate.py --actions` translates
-  all 538 grammar actions, and that version compiles.
-- **In progress: porting the `_PyPegen_*` helpers** (plan below).
-  - **Phase 1 (Python 3 AST) is done.**
-  - **Phase 2 is done:** the value classes, the token dump's text and byte
-    columns, the NAME/NUMBER token functions, `StringParser.java` and its
-    JUnit tests.
-  - **Phase 3 is done:** all of `action_helpers.c` is ported into
-    `ActionHelpers`.
-  - **Phase 4 is done:** `pegen_errors.c`, the retry pass, `PythonSyntaxError`,
-    and the warnings channel. The comparison with CPython (`compare_ast.py`,
-    built in this phase) passes for all of Lib except one file, and for the
-    error corpus except two files, with errors matching in type, message,
-    positions and text. The remaining differences are listed in Phase 4's
-    results.
-  - **Not committed:** Phase 4. Phase 3 is in commit 13fdf834c.
-  - **Next:** Phase 5 (check in the parser with actions; smoke.sh runs the
-    comparison).
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, with all
-  2,020 Lib files accepted), `tests/pegen/test_action_translator.py`
-  (15 tests), the pegen JUnit tests (16 tests) and `compare_ast.py` as in
-  Phase 4's results (see Commands).
+  at v3.15.0rc2. It translates all 538 grammar actions by default, so the
+  checked-in `GeneratedParser.java` builds the Python 3 AST; `--skip-actions`
+  gives a recognizer instead.
+- **Done: porting the `_PyPegen_*` helpers** (Phases 1–5 below). The parser's
+  output matches CPython's `ast.parse()`: trees, errors and warnings. The
+  exceptions are listed in `tests/pegen/compare_known.txt`, and Phase 4's
+  results explain them.
+  - **Not committed:** Phase 5. Phase 4 is in commit 2c17a33f7.
+- **Checks passing:** `ant compile`, `ant compile-test`,
+  `tests/pegen/smoke.sh` (exit 0; it runs the comparison with CPython over
+  Lib, the samples and the error corpus, in about a minute),
+  `tests/pegen/test_action_translator.py` (15 tests) and the pegen JUnit
+  tests (16 tests).
+- **Before calling it done:** run `/adversarial-parser-review` (see
+  Verification).
+- **What's left, beyond this plan:**
+  - **The Java tokenizer,** a port of Parser/lexer/. It replaces
+    `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
+    tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
+    single-input entries in `compare_known.txt`.
+  - **Stack depth:** `Parser.MAXSTACK` (`pending/stack/`). With actions, all 3
+    of its samples now overflow a 1 MB stack.
+  - **Name aliases for `\N{...}`** (`ucnhash`).
+  - **Connecting the parser to Jython's compiler.**
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
-  13fdf834c. Check `git status` for anything newer.
+  13fdf834c, Phase 4 in 2c17a33f7. Check `git status` for anything newer.
 
-## Current work: port the _PyPegen_* helpers
+## Completed: port the _PyPegen_* helpers
 
 **Goal:** parsing with actions produces a Python 3 AST identical to CPython's
 `ast.parse()`, error messages and locations included. The checked-in parser can
@@ -221,7 +222,12 @@ The token-dump limitations behind the 12 and 39 files were fixed in Phase 4
       reinterprets `_PyPegen_dummy_name`'s Name as any type there. That only
       happens in the second pass, whose result is discarded, so a placeholder
       of the expected type stands in. Before this fix,
-      `invalid_def_raw`'s dummy crashed with a ClassCastException.
+      `invalid_def_raw`'s dummy crashed with a ClassCastException. The
+      placeholder statement can then reach `_PyPegen_function_def_decorators`
+      (a decorated def, then a later error), which returns it unchanged
+      instead of casting it. `/adversarial-parser-review` found that case; its
+      regression samples are the `decorated_*` files in `reject/` and
+      `single/reject/`.
 
 **Comparison tooling** (see Commands):
 - `tests/pegen/compare_ast.py` builds the full-actions parser and runs
@@ -262,34 +268,42 @@ unclosed-bracket checks and `TokenSource.error()` are ported but untested,
 because a file that fails C's tokenizer can't be dumped. For the same reason,
 `pending/tokenizer/reject` now dumps 0 files. They need the Java tokenizer.
 
-### Phase 5: check in the parser with actions; smoke.sh runs the comparison
-- [ ] `generate.py` translates actions by default, and the checked-in
-      `GeneratedParser.java` becomes the full-actions version.
+### Phase 5: check in the parser with actions; smoke.sh runs the comparison (done)
+- [x] `generate.py` translates actions by default (`--skip-actions` for the
+      recognizer), and the checked-in `GeneratedParser.java` is the
+      full-actions version.
 - [x] **The comparison with CPython,** built in Phase 4 as
       `compare_ast.py` + `AstCompare.java` (a canonical text form written by
-      both sides) in place of the planned `AstJson.java`.
-- [ ] **`smoke.sh` runs the comparison** over `../cpython/Lib` and the sample
-      directories, plus the extracted error corpus. Samples in
-      `pending/actions/` move out: they all match CPython now.
+      both sides) in place of the planned `AstJson.java`. It now tests the
+      checked-in parser in `build/classes`.
+- [x] **`smoke.sh` runs the comparison** over `../cpython/Lib`, `accept/`,
+      `reject/` and `single/`, and over the error corpus in file and single
+      mode. Expected differences are in `tests/pegen/compare_known.txt`,
+      keyed by mode and content hash, and are reported without failing.
+      `smoke.sh` still uses RecognizerSmoke for the 1 MB-stack check of
+      `accept/` and for `pending/`. It also checks that the `--skip-actions`
+      recognizer compiles, replacing the old actions-compile step.
+- [x] The `pending/actions/` samples moved to `reject/` and `single/reject/`.
 
 ### Verification
-- **Every phase:** `ant compile`, `tests/pegen/smoke.sh` (including its
-  actions-compile step), and `python3 tests/pegen/test_action_translator.py`.
-- **Phases 3–5:** the oracle over all of Lib, with identical trees, positions
-  included, and CPython's exact errors for the `reject/` and
-  `pending/actions/` samples.
+- **Every phase:** `ant compile`, `tests/pegen/smoke.sh`, and
+  `python3 tests/pegen/test_action_translator.py`.
+- **Phases 3–5:** the comparison over all of Lib, with identical trees,
+  positions included, and CPython's exact errors for the `reject/` samples and
+  the error corpus. `smoke.sh` runs it.
 - **Before calling it done:** `/adversarial-parser-review`.
 
 ## Working notes (for a new session)
 
 ### Commands
 - **Regenerate:** `ant pegen-gen`, or `python3 src/pegen/tools/generate.py`.
-  Add `--actions --output-dir <dir>` for the full-actions parser, which should
-  never be written into `src/` until Phase 5. Setting
-  `PYTHONDONTWRITEBYTECODE=1` keeps `__pycache__` out of `src/pegen/tools/`.
+  Add `--skip-actions --output-dir <dir>` for the recognizer, which should
+  not be written into `src/`. Setting `PYTHONDONTWRITEBYTECODE=1` keeps
+  `__pycache__` out of `src/pegen/tools/`.
 - **Smoke test:** `ant compile && tests/pegen/smoke.sh`. It needs Python 3.15
   and uses `../cpython/python.exe` (an in-tree 3.15.0rc2 build) by default.
-  Override with `PYTHON=`.
+  Override with `PYTHON=`. It extracts the error corpus into
+  `build/pegen-smoke/samples` on every run.
 - **Translator tests:** `python3 tests/pegen/test_action_translator.py`.
 - **pegen JUnit tests** (after `ant compile`):
   `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java`,
@@ -298,13 +312,17 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
   `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...`.
-  It builds the full-actions parser into `build/pegen-compare/`; add
-  `--no-build` to reuse it. For the error corpus, first run
+  It tests the parser in `build/classes`, and compiles its Java driver into
+  `build/pegen-compare/` (`--no-build` reuses it). `--known
+  tests/pegen/compare_known.txt` lets the listed differences pass; each
+  difference printed shows the mode and hash for an entry. For the error
+  corpus, first run
   `../cpython/python.exe tests/pegen/extract_samples.py build/pegen-samples`,
   then compare `build/pegen-samples/doctests build/pegen-samples/strings`.
   Lib takes about a minute.
-- **Compiling the full-actions parser** by hand into a scratch directory:
-  generate with `--actions --output-dir $D`, then
+- **Compiling a generated parser** by hand into a scratch directory:
+  generate with `--output-dir $D` (and `--skip-actions` for the recognizer),
+  then
   `javac --release 8 -d $OUT $D/*.java $D/ast/*.java $D/ast/base/*.java src/org/python/pegen/{Parser,Token,TokenSource,ActionHelpers}.java src/org/python/pegen/ast/*.java`.
 
 ### Conventions

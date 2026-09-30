@@ -1215,6 +1215,12 @@ public final class ActionHelpers {
     public static stmt _PyPegen_function_def_decorators(Parser p, List<expr> decorators,
             stmt function_def) {
         assert function_def != null;
+        if (function_def == DUMMY_STMT) {
+            // voidAs's placeholder for the dummy name that invalid_def_raw
+            // returns in the second pass. C reads that Name as a FunctionDef
+            // regardless; the result is discarded either way.
+            return function_def;
+        }
         if (function_def.kind() == stmt.Kind.AsyncFunctionDef) {
             AsyncFunctionDef f = (AsyncFunctionDef) function_def;
             return _PyAST_AsyncFunctionDef(

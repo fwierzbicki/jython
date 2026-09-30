@@ -22,9 +22,8 @@ import static org.python.pegen.TokenTypes.*;
  * translated mechanically) can refer to them. Methods are Java-named; each
  * one's comment gives the pegen.c function it ports.
  *
- * <p>This is an early skeleton: AST-producing functions return tokens or a
- * dummy value until the Python 3 AST exists, and errors are recorded only as
- * a message.
+ * <p>Errors are reported as in pegen_errors.c (ported in ActionHelpers): the
+ * pending exception is a {@link PythonSyntaxError}, from {@link #getError()}.
  */
 public class Parser {
 
@@ -62,8 +61,9 @@ public class Parser {
     }
 
     /**
-     * Stand-in for _PyPegen_dummy_name's result. It is a List so the value can
-     * flow into variables of sequence type while actions are skipped.
+     * The recognizer's stand-in for _PyPegen_dummy_name's result (generate.py
+     * --skip-actions). It is a List so the value can flow into variables of
+     * sequence type.
      */
     private static final List<Object> DUMMY = Collections.emptyList();
     private static final Token DUMMY_TOKEN = new Token(NAME, "", 1, 0, 1, 0);
@@ -651,12 +651,12 @@ public class Parser {
         return token;
     }
 
-    /** _PyPegen_dummy_name */
+    /** _PyPegen_dummy_name, for the recognizer (generate.py --skip-actions). */
     public Object dummyName(Object... ignored) {
         return DUMMY;
     }
 
-    /** _PyPegen_dummy_name, where a Token is expected. */
+    /** _PyPegen_dummy_name where a Token is expected, for the recognizer. */
     public Token dummyToken() {
         return DUMMY_TOKEN;
     }
