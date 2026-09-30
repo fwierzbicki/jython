@@ -17,7 +17,7 @@ import org.python.modules.marshal;
 /**
  * Compile interactive input to code objects for the {@link Repl}.
  * <p>
- * Jython does not yet have its own compiler, so we delegate
+ * Jython main branch does not yet have its own compiler, so we delegate
  * compilation to a CPython subprocess of the version whose byte code
  * {@link CPython315Frame} executes. The subprocess runs the script
  * {@code repl_compiler.py} (a resource alongside this class), which

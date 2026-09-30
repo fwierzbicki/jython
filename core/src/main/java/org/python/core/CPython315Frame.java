@@ -199,6 +199,7 @@ class CPython315Frame extends PyFrame<CPython315Code> {
                 // Interpret opcode
                 switch (opword >> 8) {
                     // Cases ordered as CPython Python/bytecodes.c where possible
+		    // to aid comparison
 
                     case Opcode315.NOP:
                     case Opcode315.NOT_TAKEN:
