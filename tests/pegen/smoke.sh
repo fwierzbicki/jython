@@ -36,7 +36,8 @@ fi
 
 mkdir -p "$OUT/classes"
 javac -nowarn -cp "$ROOT/build/classes" -d "$OUT/classes" \
-    "$ROOT/tests/java/org/python/pegen/RecognizerSmoke.java"
+    "$ROOT/tests/java/org/python/pegen/RecognizerSmoke.java" \
+    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
 CLASSPATH="$ROOT/build/classes:$OUT/classes"
 
 status=0
@@ -73,11 +74,11 @@ check reject --all "$HERE/reject" -Xss16m $SMOKE --expect reject
 # can't be hidden by a large -Xss.
 check accept "" "$HERE/accept" -Xss1m $SMOKE --expect accept
 # Samples parsed as single_input (compile(..., "single")).
-check single-accept "" "$HERE/single/accept" -Xss16m $SMOKE --mode single --expect accept
-check single-reject --all "$HERE/single/reject" -Xss16m $SMOKE --mode single --expect reject
+check single-accept "--mode single" "$HERE/single/accept" -Xss16m $SMOKE --mode single --expect accept
+check single-reject "--all --mode single" "$HERE/single/reject" -Xss16m $SMOKE --mode single --expect reject
 
 pending actions-reject --all "$HERE/pending/actions/reject" -Xss16m $SMOKE --expect reject
-pending actions-single-reject --all "$HERE/pending/actions/single/reject" -Xss16m $SMOKE --mode single --expect reject
+pending actions-single-reject "--all --mode single" "$HERE/pending/actions/single/reject" -Xss16m $SMOKE --mode single --expect reject
 pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
 pending stack-accept "" "$HERE/pending/stack/accept" -Xss1m $SMOKE --expect accept
 

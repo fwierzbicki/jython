@@ -17,8 +17,8 @@ import static org.python.pegen.TokenTypes.*;
  * inline functions of CPython's Parser/pegen.h, and the _PyPegen_* functions
  * of Parser/action_helpers.c, pegen.c and pegen_errors.c.
  *
- * <p>The pegen.h part and action_helpers.c are ported, in C's order;
- * pegen_errors.c only minimally so far. Signatures were derived from the C
+ * <p>The pegen.h part, action_helpers.c and pegen_errors.c are ported, each
+ * in C's order. Signatures were derived from the C
  * prototypes (C types mapped as in src/pegen/tools/java_types.py).
  *
  * <p>GeneratedParser imports all of this statically.
@@ -32,11 +32,33 @@ public final class ActionHelpers {
     /** pegen.h CURRENT_POS: "the position of the current token" in error locations. */
     public static final int CURRENT_POS = -5;
 
-    /** pegen.h PyPARSE_BARRY_AS_BDFL, a bit of Parser.flags. */
+    /** pegen.h PyPARSE_* flags: bits of Parser.flags. */
+    public static final int PyPARSE_DONT_IMPLY_DEDENT = 0x0002;
+    public static final int PyPARSE_IGNORE_COOKIE = 0x0010;
     public static final int PyPARSE_BARRY_AS_BDFL = 0x0020;
+    public static final int PyPARSE_TYPE_COMMENTS = 0x0040;
+    public static final int PyPARSE_ALLOW_INCOMPLETE_INPUT = 0x0100;
 
-    /** errcode.h E_EOF: end of file (Parser.errcode). */
+    /** errcode.h: tokenizer and parser error codes (TokenSource.done(), Parser.errcode). */
+    public static final int E_OK = 10;
     public static final int E_EOF = 11;
+    public static final int E_INTR = 12;
+    public static final int E_TOKEN = 13;
+    public static final int E_SYNTAX = 14;
+    public static final int E_NOMEM = 15;
+    public static final int E_DONE = 16;
+    public static final int E_ERROR = 17;
+    public static final int E_TABSPACE = 18;
+    public static final int E_OVERFLOW = 19;
+    public static final int E_TOODEEP = 20;
+    public static final int E_DEDENT = 21;
+    public static final int E_DECODE = 22;
+    public static final int E_EOFS = 23;
+    public static final int E_EOLS = 24;
+    public static final int E_LINECONT = 25;
+    public static final int E_BADSINGLE = 27;
+    public static final int E_INTERACT_STOP = 28;
+    public static final int E_COLUMNOVERFLOW = 29;
 
     /** pegen.h TARGETS_TYPE */
     public enum TARGETS_TYPE {
@@ -260,41 +282,77 @@ public final class ActionHelpers {
         return new int[] {a.lineno(), a.col_offset(), a.end_lineno(), a.end_col_offset()};
     }
 
-    // ---- pegen_errors.c (minimal) ----
+    // ---- pegen_errors.c ----
+    // In C's order. What C reads from p->tok comes from the TokenSource.
 
-    /**
-     * _PyPegen_raise_error: an error at the current token (use_mark) or the
-     * last token read. TODO: port fully (known_err_token, tokenizer position
-     * for col_offset -1) with the rest of pegen_errors.c.
-     */
-    public static Object _PyPegen_raise_error(Parser p, Object errtype, int use_mark, String errmsg,
-            Object... args) {
-        // Bail out if we already have an error set.
-        if (p.error_indicator && p.errorOccurred()) {
-            return null;
-        }
-        if (p.fill == 0) {
-            _PyPegen_raise_error_known_location(p, errtype, 0, 0, 0, -1, errmsg, args);
-            return null;
-        }
-        if (use_mark != 0 && p.mark == p.fill && p.fillToken() < 0) {
-            p.error_indicator = true;
-            return null;
-        }
-        Token t = p.tokens[use_mark != 0 ? p.mark : p.fill - 1];
-        int col_offset = t.col_offset == -1 ? 0 : t.col_offset + 1;
-        int end_col_offset = t.end_col_offset == -1 ? -1 : t.end_col_offset + 1;
-        _PyPegen_raise_error_known_location(p, errtype, t.lineno, col_offset, t.end_lineno,
-                end_col_offset, errmsg, args);
-        return null;
+    // TOKENIZER ERRORS
+
+    private static void raise_unclosed_parentheses_error(Parser p) {
+        int error_lineno = p.tok.parenlinenostack(p.tok.level() - 1);
+        int error_col = p.tok.parencolstack(p.tok.level() - 1);
+        RAISE_ERROR_KNOWN_LOCATION(p, PyExc_SyntaxError,
+                                   error_lineno, error_col, error_lineno, -1,
+                                   "'%c' was never closed",
+                                   p.tok.parenstack(p.tok.level() - 1));
     }
 
-    /** _PyPegen_raise_error_known_location; columns are 1-based. */
-    public static Object _PyPegen_raise_error_known_location(Parser p, Object errtype, int lineno,
-            int col_offset, int end_lineno, int end_col_offset, String errmsg, Object... args) {
-        p.raiseError(String.valueOf(errtype), formatMessage(errmsg, args), lineno, col_offset,
-                end_lineno, end_col_offset);
-        return null;
+    public static int _Pypegen_tokenizer_error(Parser p) {
+        if (p.errorOccurred()) {
+            return -1;
+        }
+
+        String msg = null;
+        String errtype = PyExc_SyntaxError;
+        int col_offset = -1;
+        p.error_indicator = true;
+        switch (p.tok.done()) {
+            case E_TOKEN:
+                msg = "invalid token";
+                break;
+            case E_EOF:
+                if (p.tok.level() != 0) {
+                    raise_unclosed_parentheses_error(p);
+                } else {
+                    RAISE_SYNTAX_ERROR(p, "unexpected EOF while parsing");
+                }
+                return -1;
+            case E_DEDENT:
+                RAISE_INDENTATION_ERROR(p, "unindent does not match any outer indentation level");
+                return -1;
+            case E_INTR:
+                if (!p.errorOccurred()) {
+                    p.setError("KeyboardInterrupt", "");
+                }
+                return -1;
+            case E_NOMEM:
+                p.setError("MemoryError", "");
+                return -1;
+            case E_TABSPACE:
+                errtype = "TabError";
+                msg = "inconsistent use of tabs and spaces in indentation";
+                break;
+            case E_TOODEEP:
+                errtype = PyExc_IndentationError;
+                msg = "too many levels of indentation";
+                break;
+            case E_LINECONT: {
+                // C: p->tok->cur - p->tok->buf - 1
+                col_offset = p.tok.cursorColumn() - 1;
+                msg = "unexpected character after line continuation character";
+                break;
+            }
+            case E_COLUMNOVERFLOW:
+                p.setError("OverflowError",
+                        "Parser column offset overflow - source line is too big");
+                return -1;
+            default:
+                msg = "unknown parsing error";
+        }
+
+        RAISE_ERROR_KNOWN_LOCATION(p, errtype, p.tok.lineno(),
+                                   col_offset >= 0 ? col_offset : 0,
+                                   p.tok.lineno(), -1, "%s", msg);
+        return -1;
     }
 
     /**
@@ -317,6 +375,254 @@ public final class ActionHelpers {
         }
         return -1;
     }
+
+    private static int _PyPegen_tokenize_full_source_to_check_for_errors(Parser p) {
+        // Tokenize the whole input to see if there are any tokenization
+        // errors such as mismatching parentheses. These will get priority
+        // over generic syntax errors only if the line number of the error is
+        // before the one that we had for the generic error.
+
+        // We don't want to tokenize to the end for interactive input
+        if (p.tok.interactive()) {
+            return 0;
+        }
+
+        PythonSyntaxError saved = p.getError(); // PyErr_Fetch
+        p.clearError();
+
+        Token current_token = p.known_err_token != null ? p.known_err_token : p.tokens[p.fill - 1];
+        int current_err_line = current_token.lineno;
+
+        int ret = 0;
+
+        for (;;) {
+            Token new_token = p.tok.next();
+            // (A null token is an error with nothing more to say: ERRORTOKEN.)
+            int type = new_token == null ? ERRORTOKEN : new_token.type;
+            if (type == ERRORTOKEN) {
+                PythonSyntaxError tokenizer_error = p.tok.error();
+                if (tokenizer_error != null) {
+                    p.setError(tokenizer_error);
+                    ret = -1;
+                    break;
+                }
+                if (p.tok.level() != 0) {
+                    int error_lineno = p.tok.parenlinenostack(p.tok.level() - 1);
+                    if (current_err_line > error_lineno) {
+                        raise_unclosed_parentheses_error(p);
+                        ret = -1;
+                        break;
+                    }
+                }
+                break;
+            } else if (type == ENDMARKER) {
+                break;
+            }
+        }
+
+        // exit:
+        // If we're in an f-string, we want the syntax error in the expression part
+        // to propagate, so that tokenizer errors (like expecting '}') that happen afterwards
+        // do not swallow it.
+        if (p.errorOccurred() && !p.tok.insideFstring()) {
+            // The new error replaces the saved one.
+        } else {
+            p.setError(saved); // PyErr_Restore
+        }
+        return ret;
+    }
+
+    // PARSER ERRORS
+
+    /** _PyPegen_raise_error: an error at the current token (use_mark) or the last token read. */
+    public static Object _PyPegen_raise_error(Parser p, Object errtype, int use_mark, String errmsg,
+            Object... args) {
+        // Bail out if we already have an error set.
+        if (p.error_indicator && p.errorOccurred()) {
+            return null;
+        }
+        if (p.fill == 0) {
+            _PyPegen_raise_error_known_location(p, errtype, 0, 0, 0, -1, errmsg, args);
+            return null;
+        }
+        if (use_mark != 0 && p.mark == p.fill && p.fillToken() < 0) {
+            p.error_indicator = true;
+            return null;
+        }
+        Token t = p.known_err_token != null
+                       ? p.known_err_token
+                       : p.tokens[use_mark != 0 ? p.mark : p.fill - 1];
+        int col_offset;
+        int end_col_offset = -1;
+        if (t.col_offset == -1) {
+            // C: 0 if nothing was read (tok->cur == tok->buf), else tok->cur - tok->line_start
+            col_offset = p.tok.cursorColumn();
+        } else {
+            col_offset = t.col_offset + 1;
+        }
+
+        if (t.end_col_offset != -1) {
+            end_col_offset = t.end_col_offset + 1;
+        }
+
+        _PyPegen_raise_error_known_location(p, errtype, t.lineno, col_offset, t.end_lineno,
+                end_col_offset, errmsg, args);
+
+        return null;
+    }
+
+    private static String get_error_line_from_tokenizer_buffers(Parser p, int lineno) {
+        /* If the file descriptor is interactive, the source lines of the current
+         * (multi-line) statement are stored in p->tok->interactive_src_start.
+         * If not, we're parsing from a string, which means that the whole source
+         * is stored in p->tok->str. */
+        String line = p.tok.getLine(lineno);
+        return line == null ? "" : line;
+    }
+
+    /** _PyPegen_raise_error_known_location; columns are 1-based UTF-8 byte offsets. */
+    public static Object _PyPegen_raise_error_known_location(Parser p, Object errtype, int lineno,
+            int col_offset, int end_lineno, int end_col_offset, String errmsg, Object... args) {
+        // Bail out if we already have an error set.
+        if (p.error_indicator && p.errorOccurred()) {
+            return null;
+        }
+        String error_line = null;
+        p.error_indicator = true;
+
+        if (end_lineno == CURRENT_POS) {
+            end_lineno = p.tok.lineno();
+        }
+        if (end_col_offset == CURRENT_POS) {
+            end_col_offset = p.tok.cursorColumn();
+        }
+
+        String errstr = formatMessage(errmsg, args);
+
+        if (p.tok.interactive()) {
+            error_line = get_error_line_from_tokenizer_buffers(p, lineno);
+        }
+        // (C next reads the line from the file named p->tok->filename, for
+        // file_input: _PyErr_ProgramDecodedTextObject. The parser here is
+        // always given its source, so it takes the branches C takes when
+        // parsing a string.)
+
+        if (error_line == null) {
+            String current_line = p.tok.currentLine();
+            if (p.tok.lineno() <= lineno && current_line != null) {
+                error_line = current_line;
+            } else {
+                error_line = get_error_line_from_tokenizer_buffers(p, lineno);
+            }
+        }
+
+        int col_number = col_offset;
+        int end_col_number = end_col_offset;
+
+        col_number = _PyPegen_byte_offset_to_character_offset(error_line, col_offset);
+
+        if (end_col_offset > 0) {
+            end_col_number = _PyPegen_byte_offset_to_character_offset(error_line, end_col_offset);
+        }
+
+        p.setError(new PythonSyntaxError(String.valueOf(errtype), errstr, lineno, col_number,
+                error_line, end_lineno, end_col_number));
+        return null;
+    }
+
+    public static void _Pypegen_set_syntax_error(Parser p, Token last_token) {
+        // Existing syntax error
+        if (p.errorOccurred()) {
+            // Prioritize tokenizer errors to custom syntax errors raised
+            // on the second phase only if the errors come from the parser.
+            boolean is_tok_ok = (p.tok.done() == E_DONE || p.tok.done() == E_OK);
+            if (is_tok_ok && p.errorMatches(PyExc_SyntaxError)) {
+                _PyPegen_tokenize_full_source_to_check_for_errors(p);
+            }
+            // Propagate the existing syntax error.
+            return;
+        }
+        // Initialization error
+        if (p.fill == 0) {
+            RAISE_SYNTAX_ERROR(p, "error at start before reading any input");
+            // (C goes on to read last_token, which doesn't exist.)
+            return;
+        }
+        // Parser encountered EOF (End of File) unexpectedtly
+        if (last_token.type == ERRORTOKEN && p.tok.done() == E_EOF) {
+            if (p.tok.level() != 0) {
+                raise_unclosed_parentheses_error(p);
+            } else {
+                RAISE_SYNTAX_ERROR(p, "unexpected EOF while parsing");
+            }
+            return;
+        }
+        // Indentation error in the tokenizer
+        if (last_token.type == INDENT || last_token.type == DEDENT) {
+            RAISE_INDENTATION_ERROR(p,
+                    last_token.type == INDENT ? "unexpected indent" : "unexpected unindent");
+            return;
+        }
+        // Unknown error (generic case)
+
+        // Use the last token we found on the first pass to avoid reporting
+        // incorrect locations for generic syntax errors just because we reached
+        // further away when trying to find specific syntax errors in the second
+        // pass.
+        RAISE_SYNTAX_ERROR_KNOWN_LOCATION(p, last_token, "invalid syntax");
+        // _PyPegen_tokenize_full_source_to_check_for_errors will override the existing
+        // generic SyntaxError we just raised if errors are found.
+        _PyPegen_tokenize_full_source_to_check_for_errors(p);
+    }
+
+    public static void _Pypegen_stack_overflow(Parser p) {
+        p.error_indicator = true;
+        p.setError("MemoryError",
+            "Parser stack overflowed - Python source too complex to parse");
+    }
+
+    // ---- pegen.c: byte offsets to character offsets ----
+
+    /**
+     * _PyPegen_byte_offset_to_character_offset_raw: the number of characters
+     * (code points) in the first col_offset bytes of str's UTF-8 encoding, or
+     * of all of it and its terminating NUL if col_offset is past the end. A
+     * character cut off at the end counts as one (decoding with "replace").
+     */
+    static int _PyPegen_byte_offset_to_character_offset_raw(String str, int col_offset) {
+        byte[] data = str.getBytes(StandardCharsets.UTF_8);
+        int len = data.length;
+        if (col_offset > len + 1) {
+            col_offset = len + 1;
+        }
+        assert col_offset >= 0;
+        int n = Math.min(col_offset, len);
+        int size = 0;
+        for (int i = 0; i < n; size++) {
+            int ch = data[i] & 0xff;
+            if (ch < 0x80) {
+                i += 1;
+            } else if ((ch & 0xe0) == 0xc0) {
+                i += 2;
+            } else if ((ch & 0xf0) == 0xe0) {
+                i += 3;
+            } else if ((ch & 0xf8) == 0xf0) {
+                i += 4;
+            } else {
+                i += 1;
+            }
+        }
+        if (col_offset == len + 1) {
+            size++; // the NUL
+        }
+        return size;
+    }
+
+    static int _PyPegen_byte_offset_to_character_offset(String line, int col_offset) {
+        return _PyPegen_byte_offset_to_character_offset_raw(line, col_offset);
+    }
+
+    // ---- Formatting ----
 
     /**
      * Expands the PyUnicode_FromFormat directives the C messages use: %s %U
@@ -378,6 +684,34 @@ public final class ActionHelpers {
     /** Returns a dummy Name node, as a placeholder result (C: void *, but always this Name). */
     public static expr _PyPegen_dummy_name(Parser p, Object... args) {
         return DUMMY_NAME;
+    }
+
+    /** The placeholder statement for voidAs. */
+    private static final stmt DUMMY_STMT = new Pass(1, 0, 1, 0);
+
+    /**
+     * A void * rule result used as type in a default action (the generator's
+     * void_cast). It may be the dummy name, which C reinterprets as whatever
+     * type is expected; here a placeholder of that type stands in. Only
+     * invalid_* rules produce such values, in the second pass, whose result
+     * is discarded.
+     */
+    public static <T> T voidAs(Class<T> type, Object value) {
+        if (value == DUMMY_NAME && !type.isInstance(value)) {
+            if (type == stmt.class) {
+                return type.cast(DUMMY_STMT);
+            }
+            throw new ClassCastException("no placeholder for the dummy name as " + type.getName());
+        }
+        return type.cast(value);
+    }
+
+    /** voidAs for a sequence type: the dummy name stands in as an empty sequence. */
+    public static List<?> voidAsList(Object value) {
+        if (value == DUMMY_NAME) {
+            return new ArrayList<>(0);
+        }
+        return (List<?>) value;
     }
 
     /* Creates a single-element asdl_seq* that contains a */

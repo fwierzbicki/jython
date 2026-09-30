@@ -45,7 +45,7 @@ from pegen.grammar import (
 from pegen.parser_generator import ParserGenerator
 
 from action_translator import ActionTranslationError, ActionTranslator
-from java_types import JavaTypeMap, cast, java_comment, java_ident, java_string
+from java_types import JavaTypeMap, cast, java_comment, java_ident, java_string, void_cast
 
 
 class NodeTypes(Enum):
@@ -700,9 +700,15 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
                 )
             else:
                 args = ", ".join(["p"] + self.local_variable_names)
-                self.print(f"_res = {cast(self._result_type, f'_PyPegen_dummy_name({args})')};")
+                self.print(f"_res = {void_cast(self._result_type, f'_PyPegen_dummy_name({args})')};")
         else:
-            self.print(f"_res = {cast(self._result_type, self.local_variable_names[0])};")
+            # An untyped (void *) variable may hold the dummy name; C returns it
+            # as the rule's type regardless.
+            name = self.local_variable_names[0]
+            if self.type_map.java_type(self._alt_var_types.get(name)) == "Object":
+                self.print(f"_res = {void_cast(self._result_type, name)};")
+            else:
+                self.print(f"_res = {cast(self._result_type, name)};")
 
     def emit_dummy_action(self) -> None:
         self.print(f"_res = {self.type_map.dummy(self._result_type)};")
@@ -758,6 +764,7 @@ class JavaParserGenerator(ParserGenerator, GrammarVisitor):
             self._check_for_errors()
             # Prepare variable declarations for the alternative
             vars = self.collect_vars(node)
+            self._alt_var_types = vars
             for v, var_type in sorted(item for item in vars.items() if item[0] is not None):
                 if v == "_cut_var":
                     self.print("boolean _cut_var = false;")
