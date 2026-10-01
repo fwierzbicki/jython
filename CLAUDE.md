@@ -1,4 +1,9 @@
-# PEG parser for Jython 3 (experimental branch: peg-parser-main)
+# Instructions for Claude
+
+## Git
+
+- Never commit or push. Leave all changes uncommitted in the working
+  tree; the user will review, commit and push themselves.# PEG parser for Jython 3 (experimental branch: peg-parser-main)
 
 ## Goal
 Replace the ANTLR parser with a Java port of CPython's pegen-generated parser,
