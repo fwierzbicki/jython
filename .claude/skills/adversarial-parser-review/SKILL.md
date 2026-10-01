@@ -1,6 +1,6 @@
 ---
 name: adversarial-parser-review
-description: Adversarially review parser, tokenizer, generator, or action-helper changes by trying to break them. Use when asked to review, stress-test, or red-team a change on the peg-parser branch.
+description: Adversarially review parser, tokenizer, generator, or action-helper changes by trying to break them. Use when asked to review, stress-test, or red-team a change to the PEG parser.
 disable-model-invocation: true
 context: fork
 ---

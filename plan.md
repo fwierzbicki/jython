@@ -7,21 +7,26 @@ show. The finished generator design is kept at the end for reference.
 
 ## Status (2026-09-30)
 
+- **Done: moving to `main`** (branch `peg-parser-main`; see "Completed: port
+  to main" below). `main` is the Jython 3 rewrite: Gradle, Java 17, JUnit 5.
+  The work on `master` (Jython 2.7, Ant) stays on branch `peg-parser`. The
+  parser is the Gradle subproject `parser`; `\N{...}` now uses the JDK's
+  name table instead of `ucnhash`.
+  - **Not committed:** port steps 2–7 (step 1 is the rebase itself).
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
-  `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
-  at v3.15.0rc2. It translates all 538 grammar actions by default, so the
-  checked-in `GeneratedParser.java` builds the Python 3 AST; `--skip-actions`
-  gives a recognizer instead.
+  `./gradlew :parser:pegenGen` regenerates the checked-in parser from
+  `../cpython`, which is at v3.15.0rc2. It translates all 538 grammar actions
+  by default, so the checked-in `GeneratedParser.java` builds the Python 3
+  AST; `--skip-actions` gives a recognizer instead.
 - **Done: porting the `_PyPegen_*` helpers** (Phases 1–5 below). The parser's
   output matches CPython's `ast.parse()`: trees, errors and warnings. The
-  exceptions are listed in `tests/pegen/compare_known.txt`, and Phase 4's
-  results explain them.
-  - **Not committed:** Phase 5. Phase 4 is in commit 2c17a33f7.
-- **Checks passing:** `ant compile`, `ant compile-test`,
-  `tests/pegen/smoke.sh` (exit 0; it runs the comparison with CPython over
-  Lib, the samples and the error corpus, in about a minute),
-  `tests/pegen/test_action_translator.py` (15 tests) and the pegen JUnit
-  tests (16 tests).
+  exceptions are listed in `parser/src/test/pegen/compare_known.txt`, and
+  Phase 4's results explain them.
+- **Checks passing:** `./gradlew :parser:test` (16 JUnit 5 tests),
+  `parser/src/test/pegen/smoke.sh` (exit 0; it runs the comparison with
+  CPython over Lib, the samples and the error corpus, in about a minute),
+  `parser/src/test/pegen/test_action_translator.py` (15 tests), and
+  `./gradlew :parser:pegenGen` regenerates the checked-in files unchanged.
 - **Before calling it done:** run `/adversarial-parser-review` (see
   Verification).
 - **What's left, beyond this plan:**
@@ -29,12 +34,86 @@ show. The finished generator design is kept at the end for reference.
     `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
     tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
     single-input entries in `compare_known.txt`.
-  - **Stack depth:** `Parser.MAXSTACK` (`pending/stack/`). With actions, all 3
-    of its samples now overflow a 1 MB stack.
-  - **Name aliases for `\N{...}`** (`ucnhash`).
+  - **Stack depth:** `Parser.MAXSTACK` (`pending/stack/`). On a 1 MB stack,
+    2 of its 3 samples overflow under the Gradle build (all 3 on
+    `peg-parser`); `deep_power.py` is borderline, so it stays pending.
+  - **`\N{...}` names newer than Unicode 13, and most name aliases:** the
+    JDK's table (Java 17) lacks them. See the port's step 5.
   - **Connecting the parser to Jython's compiler.**
-- **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
-  13fdf834c, Phase 4 in 2c17a33f7. Check `git status` for anything newer.
+- **Committed** on `peg-parser-main` (rebased from `peg-parser`): Phase 1 in
+  0d1ee8679 (with the `build.xml` removal), Phase 2 in 3a12de671, Phase 3 in
+  9c5753e83, Phase 4 in acd7406a3, Phase 5 in be16efb0f. On `peg-parser`
+  they are f59b322e1, 51ec27f58, 13fdf834c, 2c17a33f7 and bcb06aec6. Check
+  `git status` for anything newer.
+
+## Completed: port to main
+
+**Goal:** the parser builds and tests under `main`'s Gradle build, with the
+same results as on `peg-parser`.
+
+**Decisions:**
+- **A new Gradle subproject, `parser`,** rather than putting the parser in
+  `core`. It keeps the 32k-line `GeneratedParser.java` out of `core` and
+  depends on nothing in it.
+- **The generator tools live in `build-tools/python/pegen/`,** not in
+  `build-tools/python/lib/`. `lib/` is on the `PYTHONPATH` of `core`'s Python
+  tasks, and a `pegen` directory there would shadow CPython's `pegen` package.
+
+| Was (on `peg-parser`) | Now |
+|---|---|
+| `src/org/python/pegen/` | `parser/src/main/java/org/python/pegen/` |
+| `tests/java/org/python/pegen/` | `parser/src/test/java/org/python/pegen/` |
+| `tests/pegen/` (scripts, corpus) | `parser/src/test/pegen/` |
+| `src/pegen/tools/` | `build-tools/python/pegen/` |
+| `ant pegen-gen` | `./gradlew :parser:pegenGen` |
+| `build/classes` | `parser/build/classes/java/main` |
+| `build/pegen-smoke`, `build/pegen-compare` | `parser/build/pegen-smoke`, `parser/build/pegen-compare` |
+
+1. [x] **Rebase** `peg-parser` onto `main` as `peg-parser-main`. The only
+   conflict was `build.xml`, which `main` deleted; the `pegen-gen` target
+   went with it. "build.xml comment improvement" became empty and was dropped.
+2. [x] **Move the files** (table above) and add the `parser` subproject
+   (`settings.gradle`, `parser/parser.gradle`). Paths in `generate.py`,
+   `smoke.sh`, `compare_ast.py`, `extract_samples.py`,
+   `test_action_translator.py` and in doc comments were updated.
+3. [x] **Gradle wiring:** the `pegenGen` task replaces `ant pegen-gen`;
+   `smoke.sh` and `compare_ast.py` use the Gradle output directory.
+   Regenerating with `pegenGen` changed only the `DO NOT EDIT. Regenerate
+   with ...` header of each generated file.
+4. [x] **Port the JUnit tests to JUnit 5** (`org.junit.jupiter.api.Test`,
+   `Assertions`). JUnit 4's message-first `assertX(message, ...)` calls now
+   pass the message last. `parser.gradle` runs only the Jupiter engine, as
+   `core.gradle` does.
+5. [x] **`ucnhash`:** on `main`, `org.python.modules.ucnhash` exists only in
+   the legacy `src/` tree that Gradle doesn't build. Decided with the user:
+   `UnicodeNames` looks names up with the JDK's `Character.codePointOf`
+   (available from Java 9; the Java 8 target was why `ucnhash` was used), so
+   `parser` still depends on nothing. Derived names are computed as before.
+   `jdk_lookup` rejects what the JDK accepts but CPython doesn't: leading or
+   trailing whitespace, the names `Character.getName` makes up for unnamed
+   code points (block name and hex: private use, surrogates, and the CJK,
+   Hangul and Tangut ranges, whose real names are the derived ones), and
+   Unicode 1.0 control names with parentheses (`LINE FEED (LF)`).
+   **Checked exhaustively** against CPython 3.15's `unicodedata.lookup` over
+   409,565 names (every CPython name, every JDK name, and variants):
+
+   | | agree | missed | wrong | crash |
+   |---|---|---|---|---|
+   | old (`ucnhash`, Unicode 9) | 404,441 | 5,035 | 6 | 83 |
+   | new (JDK, Java 17: Unicode 13) | 406,786 | 2,779 | 0 | 0 |
+
+   The new misses are 2,776 names added after Unicode 13 and 3 aliases.
+   `ucnhash` returned code points for the `(LF)`-style names and threw
+   `ArrayIndexOutOfBoundsException` on some long names (e.g. `ARABIC LIGATURE
+   ALAYHAA AS-SALAATU WAS-SALAAM`), so `peg-parser` still has that crash.
+6. [x] **Docs:** CLAUDE.md and this file.
+7. [x] **Re-verify:** `./gradlew :parser:test` (16 tests), `smoke.sh` (exit
+   0, the same results as on `peg-parser` apart from `pending/stack/`; see
+   Status), the translator tests (15), and `pegenGen` with no diff.
+
+**Later, optional:** the AST constants are plain Java values (see the table
+in "Completed: port the _PyPegen_* helpers"). When the parser feeds `main`'s
+compiler, they may become `main`'s own object types.
 
 ## Completed: port the _PyPegen_* helpers
 
@@ -67,7 +146,7 @@ accept/reject smoke test.
 | `Parser/pegen_errors.c` | ~420 lines | Error reporting |
 
 ### Phase 1: generate the Python 3 AST (done)
-- [x] `src/pegen/tools/asdl_java.py`, run by `generate.py`. It uses CPython's
+- [x] `build-tools/python/pegen/asdl_java.py`, run by `generate.py`. It uses CPython's
       own `Parser/asdl.py` and is modelled on `Parser/asdl_c.py`.
 - [x] **Generated output:**
   - Node classes go in `org.python.pegen.ast`.
@@ -93,7 +172,7 @@ accept/reject smoke test.
 - [x] **`Token` carries C's data:**
   - `Token.string` holds the exact token text.
   - Columns are UTF-8 **byte** offsets, as in C.
-  - `tests/pegen/dump_tokens.py` writes both (escaped text, byte columns) and
+  - `parser/src/test/pegen/dump_tokens.py` writes both (escaped text, byte columns) and
     `RecognizerSmoke` decodes them. The future Java tokenizer must do the same.
 - [x] **pegen.c literals in `Parser.java`:**
   - `nameToken()` and `softKeywordToken()` return `Name` nodes via
@@ -101,7 +180,7 @@ accept/reject smoke test.
     C, `softKeywordToken()` doesn't rewind on failure.
   - `numberToken()` returns a `Constant` via `parsenumber`, and applies the
     4,300-digit limit with CPython's message.
-- [x] **Port `string_parser.c` into `src/org/python/pegen/StringParser.java`**,
+- [x] **Port `string_parser.c` into `parser/src/main/java/org/python/pegen/StringParser.java`**,
       keeping the C function names (`_PyPegen_decode_string`,
       `_PyPegen_parse_string`, `decode_unicode_with_escapes`, …).
   - It also ports the two decoders C calls,
@@ -111,14 +190,15 @@ accept/reject smoke test.
   - `\N{...}` goes through `UnicodeNames.getcode`, a port of unicodedata.c's
     `_getcode`. It computes the derived names (Hangul syllables, CJK/Tangut/…
     ideographs, with the Unicode 17 ranges) and looks up the rest in Jython's
-    `ucnhash`. **Known gaps:** `ucnhash` has no name aliases
-    (`\N{LINE FEED}`, `\N{BYTE ORDER MARK}`) and older Unicode data. Add
+    `ucnhash` (on `main`: the JDK's table; see "Completed: port to main",
+    step 5). **Known gaps:** most name aliases (`\N{LINE FEED}`,
+    `\N{BYTE ORDER MARK}`) and older Unicode data. Add
     samples to `pending/` once the Phase 5 oracle can see them; the
     recognizer never decodes strings.
   - Invalid escapes warn through a minimal warnings channel in `Parser`
     (`warnings`, `warnings_as_errors`, `warnExplicit`). Phase 4 finishes it.
 - [x] JUnit tests `StringParserTest` and `ParsenumberTest` in
-      `tests/java/org/python/pegen/`. Their expected values, messages and
+      `parser/src/test/java/org/python/pegen/`. Their expected values, messages and
       positions were checked against CPython 3.15, and include cases from
       `test_grammar` and `test_string_literals`.
 
@@ -230,12 +310,12 @@ The token-dump limitations behind the 12 and 39 files were fixed in Phase 4
       `single/reject/`.
 
 **Comparison tooling** (see Commands):
-- `tests/pegen/compare_ast.py` builds the full-actions parser and runs
+- `parser/src/test/pegen/compare_ast.py` builds the full-actions parser and runs
   `AstCompare.java` over the token dumps. It compares every tree, error
   (type, msg, lineno, offset, end_lineno, end_offset, text) and parser warning
   with CPython's `compile(..., "<unknown>", mode, PyCF_ONLY_AST)`, using a
   canonical text form both sides write.
-- `tests/pegen/extract_samples.py` writes the error corpus: the
+- `parser/src/test/pegen/extract_samples.py` writes the error corpus: the
   `test_syntax.py` doctests and every string constant in Lib/test that
   CPython rejects.
 - `dump_tokens.py` now dumps C's own tokens (`_tokenize.TokenizerIter` with
@@ -254,7 +334,8 @@ The token-dump limitations behind the 12 and 39 files were fixed in Phase 4
 | error corpus | single | 29,001 of 29,012 |
 
 The remaining differences:
-- **`\N{RS}` in test_configparser.py:** a name alias, which `ucnhash` lacks.
+- **`\N{RS}` in test_configparser.py:** a name alias, which `ucnhash` (and on
+  `main`, the JDK's table) lacks.
 - **`from __future__ import braces` and an unknown future feature:** CPython
   raises these in the compiler (`future.c`), not the parser. They're out of
   scope.
@@ -275,10 +356,10 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 - [x] **The comparison with CPython,** built in Phase 4 as
       `compare_ast.py` + `AstCompare.java` (a canonical text form written by
       both sides) in place of the planned `AstJson.java`. It now tests the
-      checked-in parser in `build/classes`.
+      checked-in parser in `parser/build/classes/java/main`.
 - [x] **`smoke.sh` runs the comparison** over `../cpython/Lib`, `accept/`,
       `reject/` and `single/`, and over the error corpus in file and single
-      mode. Expected differences are in `tests/pegen/compare_known.txt`,
+      mode. Expected differences are in `parser/src/test/pegen/compare_known.txt`,
       keyed by mode and content hash, and are reported without failing.
       `smoke.sh` still uses RecognizerSmoke for the 1 MB-stack check of
       `accept/` and for `pending/`. It also checks that the `--skip-actions`
@@ -286,8 +367,9 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 - [x] The `pending/actions/` samples moved to `reject/` and `single/reject/`.
 
 ### Verification
-- **Every phase:** `ant compile`, `tests/pegen/smoke.sh`, and
-  `python3 tests/pegen/test_action_translator.py`.
+- **Every phase:** `./gradlew :parser:compileJava`,
+  `parser/src/test/pegen/smoke.sh`, and
+  `python3 parser/src/test/pegen/test_action_translator.py`.
 - **Phases 3–5:** the comparison over all of Lib, with identical trees,
   positions included, and CPython's exact errors for the `reject/` samples and
   the error corpus. `smoke.sh` runs it.
@@ -296,34 +378,37 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 ## Working notes (for a new session)
 
 ### Commands
-- **Regenerate:** `ant pegen-gen`, or `python3 src/pegen/tools/generate.py`.
-  Add `--skip-actions --output-dir <dir>` for the recognizer, which should
-  not be written into `src/`. Setting `PYTHONDONTWRITEBYTECODE=1` keeps
-  `__pycache__` out of `src/pegen/tools/`.
-- **Smoke test:** `ant compile && tests/pegen/smoke.sh`. It needs Python 3.15
-  and uses `../cpython/python.exe` (an in-tree 3.15.0rc2 build) by default.
-  Override with `PYTHON=`. It extracts the error corpus into
-  `build/pegen-smoke/samples` on every run.
-- **Translator tests:** `python3 tests/pegen/test_action_translator.py`.
-- **pegen JUnit tests** (after `ant compile`):
-  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java`,
-  then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest`.
-  `ant javatest` also picks them up (`**/*Test*.java`).
-- **Compare with CPython** (after `ant compile`; run with the 3.15 build):
-  `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...`.
-  It tests the parser in `build/classes`, and compiles its Java driver into
-  `build/pegen-compare/` (`--no-build` reuses it). `--known
-  tests/pegen/compare_known.txt` lets the listed differences pass; each
-  difference printed shows the mode and hash for an entry. For the error
-  corpus, first run
-  `../cpython/python.exe tests/pegen/extract_samples.py build/pegen-samples`,
-  then compare `build/pegen-samples/doctests build/pegen-samples/strings`.
+- **Regenerate:** `./gradlew :parser:pegenGen`, or
+  `python3 build-tools/python/pegen/generate.py`. The task takes
+  `-Ppegen.python=`, `-Ppegen.cpython=` (default `../cpython`) and
+  `-Ppegen.args=` (more generate.py options). Add
+  `--skip-actions --output-dir <dir>` for the recognizer, which should not be
+  written into `parser/src/`. Setting `PYTHONDONTWRITEBYTECODE=1` (the task
+  does) keeps `__pycache__` out of `build-tools/python/pegen/`.
+- **Smoke test:** `./gradlew :parser:compileJava && parser/src/test/pegen/smoke.sh`.
+  It needs Python 3.15 and uses `../cpython/python.exe` (an in-tree
+  3.15.0rc2 build) by default. Override with `PYTHON=`. It tests the classes
+  in `parser/build/classes/java/main` and extracts the error corpus into
+  `parser/build/pegen-smoke/samples` on every run.
+- **Translator tests:** `python3 parser/src/test/pegen/test_action_translator.py`.
+- **pegen JUnit tests:** `./gradlew :parser:test` (JUnit 5:
+  `StringParserTest` and `ParsenumberTest`). Gradle also compiles the drivers (`AstCompare`, `RecognizerSmoke`,
+  `TokenDump`) as test sources; they aren't tests.
+- **Compare with CPython** (after `./gradlew :parser:compileJava`; run with
+  the 3.15 build):
+  `../cpython/python.exe parser/src/test/pegen/compare_ast.py [--mode single] PATH...`.
+  It tests the parser in `parser/build/classes/java/main`, and compiles its
+  Java driver into `parser/build/pegen-compare/` (`--no-build` reuses it).
+  `--known parser/src/test/pegen/compare_known.txt` lets the listed
+  differences pass; each difference printed shows the mode and hash for an
+  entry. For the error corpus, first run
+  `../cpython/python.exe parser/src/test/pegen/extract_samples.py parser/build/pegen-samples`,
+  then compare `parser/build/pegen-samples/doctests parser/build/pegen-samples/strings`.
   Lib takes about a minute.
 - **Compiling a generated parser** by hand into a scratch directory:
   generate with `--output-dir $D` (and `--skip-actions` for the recognizer),
-  then
-  `javac --release 8 -d $OUT $D/*.java $D/ast/*.java $D/ast/base/*.java src/org/python/pegen/{Parser,Token,TokenSource,ActionHelpers}.java src/org/python/pegen/ast/*.java`.
+  then, with `M=parser/src/main/java/org/python/pegen`,
+  `javac --release 17 -d $OUT $D/*.java $D/ast/*.java $D/ast/base/*.java $M/{Parser,Token,TokenSource,ActionHelpers}.java $M/ast/*.java`.
 
 ### Conventions
 - **Generated files are never hand-edited.** That covers `GeneratedParser.java`,
@@ -351,8 +436,10 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   when the tokenizer is still on the error's line. Otherwise it's the source
   line without the newline. Offsets are clamped against it, so a wrong line
   shows up as a wrong offset.
-- **Java 8 target:** Jython builds with `-source/-target 1.8`, so no `var` and no
-  `Character.codePointOf`. Check with `javac --release 8`.
+- **Java 17 target:** `main` builds with `--release 17` (the root
+  `build.gradle`). On `peg-parser` the target was Java 8, so the code
+  written there avoids `var`; that's no longer required, and `UnicodeNames`
+  now uses `Character.codePointOf`.
 - **Case-insensitive file systems (macOS):** ASDL names that differ only in case
   (`expr`/`Expr`, `boolop`/`BoolOp`) can't share a directory. Hence `ast/base/`
   and the `*Type` enums, following Jython 2.7's generated AST.
@@ -382,11 +469,15 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `PyErr_Clear`. `raiseError` also sets `error_indicator`.
 - **Stack depth:** a TODO on `Parser.MAXSTACK`. On a 1 MB JVM stack, deep but
   valid input can overflow before reaching CPython's limit. Tracked in
-  `tests/pegen/pending/stack/`.
+  `parser/src/test/pegen/pending/stack/`.
 
 ---
 
 ## Completed: the Java parser generator (original design and plan)
+
+*Written for `peg-parser` on `master`: its paths and Ant targets are the
+pre-move ones. See the table in "Current work: port to main" for where
+things are now.*
 
 ### Context
 The goal is to replace Jython's ANTLR parser with a Java port of CPython 3.15's pegen parser (checked out at ../cpython, tag v3.15.0rc2). We need a generator that turns `Grammar/python.gram`, left unmodified, into a Java parser. It should follow `CParserGenerator` closely so the generated Java can be compared with `Parser/parser.c` rule by rule. Decisions made so far:
