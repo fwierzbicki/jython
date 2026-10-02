@@ -7,10 +7,12 @@
 # syntax-error corpus extract_samples.py takes from CPython's tests.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
+# deep/ holds input nested close to (accept/) and past (reject/) the parser's
+# MAXSTACK limit, checked on a 1 MB stack.
+#
 # Samples under pending/ record known gaps; they are run and reported but do
-# not fail the script. pending/tokenizer/ needs the Java tokenizer, and
-# pending/stack/ is the stack-depth TODO in Parser.MAXSTACK. Move a sample out
-# once it passes.
+# not fail the script. pending/tokenizer/ needs the Java tokenizer. Move a
+# sample out once it passes.
 #
 # Needs: `ant compile` already run and a CPython checkout (default ../cpython;
 # override with CPYTHON=...). PYTHON must be Python >= 3.15; by default an
@@ -96,11 +98,14 @@ compare corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
 
 # Run with a 1 MB stack (the Linux x64 default) so a JVM StackOverflowError
-# can't be hidden by a large -Xss.
+# can't be hidden by a large -Xss. Parser.runParser parses on a thread with its
+# own stack (Parser.STACK_SIZE), so nesting just under MAXSTACK must parse,
+# and just over it must be rejected (MemoryError), whatever the caller's.
 check accept-small-stack "" "$HERE/accept" -Xss1m $SMOKE --expect accept
+check deep-accept "" "$HERE/deep/accept" -Xss1m $SMOKE --expect accept
+check deep-reject --all "$HERE/deep/reject" -Xss1m $SMOKE --expect reject
 
 pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
-pending stack-accept "" "$HERE/pending/stack/accept" -Xss1m $SMOKE --expect accept
 
 # The recognizer (the parser generated with --skip-actions) must keep
 # compiling against the runtime.

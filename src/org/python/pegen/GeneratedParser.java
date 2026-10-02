@@ -32623,7 +32623,7 @@ public class GeneratedParser {
             }
             return null;
         } catch (StackOverflowError e) {
-            // TODO(stack depth): see Parser.MAXSTACK.
+            // C: _Py_ReachedRecursionLimitWithMargin; see Parser.MAXSTACK.
             p.stackOverflow();
             return null;
         }

@@ -5,7 +5,7 @@ next. **Current work** is the approved plan with progress ticked off.
 **Working notes** has the decisions, traps and commands that the code doesn't
 show. The finished generator design is kept at the end for reference.
 
-## Status (2026-09-30)
+## Status (2026-10-02)
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
@@ -17,6 +17,12 @@ show. The finished generator design is kept at the end for reference.
   exceptions are listed in `tests/pegen/compare_known.txt`, and Phase 4's
   results explain them.
   - **Not committed:** Phase 5. Phase 4 is in commit 2c17a33f7.
+- **Done: stack depth** (not committed). `Parser.runParser` parses on a
+  pooled thread with a 16 MB stack (`Parser.STACK_SIZE`), so MAXSTACK, not
+  the caller's stack, is the limit, as in CPython. The `pending/stack/`
+  samples moved to `tests/pegen/deep/accept/`, and `deep/reject/` has input
+  just past MAXSTACK (CPython rejects it with the same MemoryError).
+  smoke.sh checks both on a 1 MB stack and passes. See Working notes.
 - **Checks passing:** `ant compile`, `ant compile-test`,
   `tests/pegen/smoke.sh` (exit 0; it runs the comparison with CPython over
   Lib, the samples and the error corpus, in about a minute),
@@ -29,8 +35,6 @@ show. The finished generator design is kept at the end for reference.
     `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
     tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
     single-input entries in `compare_known.txt`.
-  - **Stack depth:** `Parser.MAXSTACK` (`pending/stack/`). With actions, all 3
-    of its samples now overflow a 1 MB stack.
   - **Name aliases for `\N{...}`** (`ucnhash`).
   - **Connecting the parser to Jython's compiler.**
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
@@ -281,7 +285,7 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
       mode. Expected differences are in `tests/pegen/compare_known.txt`,
       keyed by mode and content hash, and are reported without failing.
       `smoke.sh` still uses RecognizerSmoke for the 1 MB-stack check of
-      `accept/` and for `pending/`. It also checks that the `--skip-actions`
+      `accept/` and `deep/`, and for `pending/`. It also checks that the `--skip-actions`
       recognizer compiles, replacing the old actions-compile step.
 - [x] The `pending/actions/` samples moved to `reject/` and `single/reject/`.
 
@@ -380,9 +384,20 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `_Pypegen_raise_decode_error`. `Parser.setError` / `errorMatches` /
   `clearError` model `PyErr_SetString` / `PyErr_ExceptionMatches` /
   `PyErr_Clear`. `raiseError` also sets `error_indicator`.
-- **Stack depth:** a TODO on `Parser.MAXSTACK`. On a 1 MB JVM stack, deep but
-  valid input can overflow before reaching CPython's limit. Tracked in
-  `tests/pegen/pending/stack/`.
+- **Stack depth:** in 3.15, C stops at `MAXSTACK` (6000 rule calls), or
+  earlier if the C stack runs low (`_Py_ReachedRecursionLimitWithMargin`).
+  Java keeps the MAXSTACK check, and `GeneratedParser.parse()` catches
+  `StackOverflowError` in place of the C-stack check. Input nested close to
+  MAXSTACK needs about 1.25 MB of Java stack (about 210 bytes per level,
+  measured with `-Xint`, the default JIT and `-Xcomp`, in both passes). That's
+  more than a 1 MB default, so `Parser.runParser` runs `_PyPegen_run_parser`
+  on a cached daemon thread (`pegen-parser-N`) with a `STACK_SIZE` (16 MB)
+  stack. It runs directly when it's already on one, and it waits
+  uninterruptibly. **For the compiler hookup:** the `warning_handler` runs on
+  that thread, so it can't use thread-locals such as Jython's ThreadState.
+  `tests/pegen/deep/` holds the samples. They aren't in `accept/`, because
+  CPython's AST conversion of `deep_invert.py` hits a RecursionError and
+  `AstCompare`'s dump is recursive.
 
 ---
 

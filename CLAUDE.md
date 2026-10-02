@@ -47,6 +47,7 @@ checkboxes at each checkpoint.
   ports of the pegen.h macros, action_helpers.c and pegen_errors.c.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
   dirs and the error corpus (compare_known.txt lists expected differences);
+  deep/ is nesting just under and over MAXSTACK, checked on a 1 MB stack;
   pending/ holds known gaps that are reported but don't fail.
 - tests/pegen/dump_tokens.py: dumps CPython's C tokens (and source, metadata);
   tests/java/org/python/pegen/TokenDump.java reads them as a TokenSource.
