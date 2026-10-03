@@ -45,8 +45,9 @@ kept below for reference.
     compiler front end (plan-cpython-bytecode-compiler.md).
   - **Name aliases for `\N{...}`** (`ucnhash`).
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
-  13fdf834c, Phase 4 in 2c17a33f7, Phase 5 and stack depth by 676fc3da9.
-  Check `git status` for anything newer.
+  13fdf834c, Phase 4 in 2c17a33f7, Phase 5 and stack depth by 676fc3da9,
+  the last commit on peg-parser. Later work is on cpython-bytecode-compiler
+  (plan-cpython-bytecode-compiler.md).
 
 ## Completed: port the _PyPegen_* helpers
 
