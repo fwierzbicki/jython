@@ -22,8 +22,8 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
 - **What's left after this plan:** the Java tokenizer (plan-pegen-parser.md),
   then **backends** (codegen onwards). See ADR 0001 and the open questions
   below.
-- **Committed:** Phase A (and the plan split) in c5e31fdb9. Phase B is not
-  committed yet. Check `git status` for anything newer.
+- **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
+  d91441d6a. Check `git status` for anything newer.
 
 ## Current plan: the compiler front end
 
