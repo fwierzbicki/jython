@@ -4,11 +4,13 @@
 # Compares the parser's output with CPython 3.15's (compare_ast.py: trees,
 # errors and warnings, file by file) over CPython's Lib/, the sample
 # directories under tests/pegen/ (accept/, reject/, single/), and the
-# syntax-error corpus extract_samples.py takes from CPython's tests.
+# syntax-error corpus extract_samples.py takes from CPython's tests. Lib and
+# the samples are compared again at optimize levels 1 and 2, where
+# preprocess folds constants (ast.parse(..., optimize=N)).
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
-# MAXSTACK limit, checked on a 1 MB stack.
+# MAXSTACK limit, checked on a small stack.
 #
 # Samples under pending/ record known gaps; they are run and reported but do
 # not fail the script. pending/tokenizer/ needs the Java tokenizer. Move a
@@ -92,18 +94,26 @@ compare samples "$HERE/accept" "$HERE/reject"
 # Samples parsed as single_input (compile(..., "single")).
 compare single-samples --mode single "$HERE/single"
 
+# Preprocess folding, and docstrings removed at level 2.
+for level in 1 2; do
+    compare "lib-O$level" --optimize $level "$CPYTHON/Lib"
+    compare "samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject"
+    compare "single-samples-O$level" --mode single --optimize $level "$HERE/single"
+done
+
 # The syntax-error corpus from CPython's tests, as file and as single input.
 "$PYTHON" "$HERE/extract_samples.py" --cpython "$CPYTHON" "$OUT/samples" >/dev/null
 compare corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
 
-# Run with a 1 MB stack (the Linux x64 default) so a JVM StackOverflowError
-# can't be hidden by a large -Xss. Parser.runParser parses on a thread with its
-# own stack (Parser.STACK_SIZE), so nesting just under MAXSTACK must parse,
-# and just over it must be rejected (MemoryError), whatever the caller's.
-check accept-small-stack "" "$HERE/accept" -Xss1m $SMOKE --expect accept
-check deep-accept "" "$HERE/deep/accept" -Xss1m $SMOKE --expect accept
-check deep-reject --all "$HERE/deep/reject" -Xss1m $SMOKE --expect reject
+# Run with a 256 KB stack (a quarter of the Linux x64 default) so a JVM
+# StackOverflowError can't be hidden by a large -Xss. The parser and
+# preprocess run on a thread with their own stack (LargeStack.STACK_SIZE), so
+# nesting just under MAXSTACK must parse and preprocess, and just over it must
+# be rejected (MemoryError), whatever the caller's.
+check accept-small-stack "" "$HERE/accept" -Xss256k $SMOKE --expect accept
+check deep-accept "" "$HERE/deep/accept" -Xss256k $SMOKE --expect accept
+check deep-reject --all "$HERE/deep/reject" -Xss256k $SMOKE --expect reject
 
 pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
 

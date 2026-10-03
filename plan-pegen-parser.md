@@ -20,7 +20,7 @@ kept below for reference.
   exceptions are listed in `tests/pegen/compare_known.txt`, and Phase 4's
   results explain them.
 - **Done: stack depth.** `Parser.runParser` parses on a
-  pooled thread with a 16 MB stack (`Parser.STACK_SIZE`), so MAXSTACK, not
+  pooled thread with a 16 MB stack (`LargeStack.STACK_SIZE`), so MAXSTACK, not
   the caller's stack, is the limit, as in CPython. The `pending/stack/`
   samples moved to `tests/pegen/deep/accept/`, and `deep/reject/` has input
   just past MAXSTACK (CPython rejects it with the same MemoryError).
@@ -322,10 +322,11 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 - **pegen JUnit tests** (after `ant compile`):
   `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java`,
   then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest`.
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
-  `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...`.
+  `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] [--optimize N] PATH...`
+  (`../cpython/python` on Linux).
   It tests the parser in `build/classes`, and compiles its Java driver into
   `build/pegen-compare/` (`--no-build` reuses it). `--known
   tests/pegen/compare_known.txt` lets the listed differences pass; each
@@ -401,9 +402,9 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   MAXSTACK needs about 1.25 MB of Java stack (about 210 bytes per level,
   measured with `-Xint`, the default JIT and `-Xcomp`, in both passes). That's
   more than a 1 MB default, so `Parser.runParser` runs `_PyPegen_run_parser`
-  on a cached daemon thread (`pegen-parser-N`) with a `STACK_SIZE` (16 MB)
-  stack. It runs directly when it's already on one, and it waits
-  uninterruptibly. **For the compiler hookup:** the `warning_handler` runs on
+  on a cached daemon thread (`pegen-large-stack-N`) with a `STACK_SIZE` (16 MB)
+  stack, through `LargeStack.call`, which the compiler stages use too. It
+  runs directly when it's already on one, and it waits uninterruptibly. **For the compiler hookup:** the `warning_handler` runs on
   that thread, so it can't use thread-locals such as Jython's ThreadState.
   `tests/pegen/deep/` holds the samples. They aren't in `accept/`, because
   CPython's AST conversion of `deep_invert.py` hits a RecursionError and

@@ -1,21 +1,28 @@
 """Compare the Java PEG parser's output with CPython's ast.parse(), file by file.
 
-Usage: compare_ast.py [--mode file|single|eval] [--show N] [--no-build]
-                      [--known FILE] PATH...
+Usage: compare_ast.py [--mode file|single|eval] [--optimize N] [--show N]
+                      [--no-build] [--known FILE] PATH...
 
 PATH is a .py file or a directory (searched for *.py). Each file that
 CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by the
 checked-in parser (build/classes; driven by
 tests/java/org/python/pegen/AstCompare.java) followed by the compiler stages
-CPython runs for PyCF_ONLY_AST (org.python.pegen.compile.Compile: future, so
-far), and compared with what CPython's compile(..., "<unknown>", mode,
-ast.PyCF_ONLY_AST) gives for the same source:
+CPython runs for PyCF_ONLY_AST (org.python.pegen.compile.Compile: future and
+preprocess), and compared with what CPython's compile(..., "<unknown>", mode,
+ast.PyCF_ONLY_AST) gives for the same source. With --optimize N (0, 1 or 2)
+both sides use that optimize level, and for N > 0 PyCF_OPTIMIZED_AST, as
+ast.parse(..., optimize=N) does. Compared:
 
 - the tree, every node, field and location, when both accept the file;
 - the exception, when either rejects it: type, msg, lineno, offset,
   end_lineno, end_offset and text (for SyntaxError and its subclasses);
 - the warnings the parser issued: category, lineno and message. (Warnings the
   tokenizer issues are left out: the Java side has no tokenizer yet.)
+- for a file both accept, the warnings preprocess issues when compiling to
+  code (PEP 765's return, break or continue in a finally block), which
+  PyCF_ONLY_AST doesn't enable: CPython's come from a full compile(), the
+  Java side's from Compile.new_compiler on a second parse. They are written
+  as #COMPILE-WARNING lines.
 
 Both sides write the same canonical text (see AstCompare.java), so a
 difference is a real one; the first differing line of each file is shown.
@@ -36,6 +43,7 @@ import ast
 import hashlib
 import io
 import pathlib
+import re
 import struct
 import subprocess
 import sys
@@ -114,6 +122,25 @@ def warning_lines(ws):
             for w in ws]
 
 
+# The warnings preprocess (Python/ast_preprocess.c) issues when compiling to
+# code; a full compile() issues codegen's too, which the Java side can't yet.
+PREPROCESS_WARNING = re.compile(r"'(return|break|continue)' in a 'finally' block")
+
+
+def compile_warnings(src, mode, optimize):
+    """The preprocess warnings compiling src to code issues."""
+    with warnings.catch_warnings(record=True) as ws:
+        warnings.simplefilter("always")
+        try:
+            compile(src, "<unknown>", mode, 0, optimize=optimize)
+        except (SyntaxError, ValueError, MemoryError, OverflowError, SystemError,
+                RecursionError):
+            pass
+    ws = [w for w in ws
+          if w.category is SyntaxWarning and PREPROCESS_WARNING.fullmatch(str(w.message))]
+    return ["#COMPILE-" + line[1:] for line in warning_lines(ws)]
+
+
 def tokenizer_warnings(text):
     """The warnings CPython's tokenizer alone issues for text."""
     with warnings.catch_warnings(record=True) as ws:
@@ -126,22 +153,28 @@ def tokenizer_warnings(text):
     return {(w.category, w.lineno, str(w.message)) for w in ws}
 
 
-def cpython(path, mode):
+def cpython(path, mode, optimize):
     """The canonical form of CPython's result for path (after the #FILE line)."""
     src = pathlib.Path(path).read_bytes()
     out = []
+    flags = ast.PyCF_OPTIMIZED_AST if optimize > 0 else ast.PyCF_ONLY_AST
+    accepted = False
     with warnings.catch_warnings(record=True) as ws:
         warnings.simplefilter("always")
         try:
-            tree = compile(src, "<unknown>", mode, ast.PyCF_ONLY_AST)
+            tree = compile(src, "<unknown>", mode, flags, optimize=optimize)
             node(tree, out, 0)
-        except (SyntaxError, ValueError, MemoryError, OverflowError, SystemError) as e:
+            accepted = True
+        except (SyntaxError, ValueError, MemoryError, OverflowError, SystemError,
+                RecursionError) as e:
             out.append(error(e))
     if ws:
         encoding, _ = tokenize.detect_encoding(io.BytesIO(src).readline)
         from_tokenizer = tokenizer_warnings(src.decode(encoding))
         ws = [w for w in ws if (w.category, w.lineno, str(w.message)) not in from_tokenizer]
     out += warning_lines(ws)
+    if accepted:
+        out += compile_warnings(src, mode, optimize)
     return "".join(out).splitlines(keepends=True)
 
 
@@ -198,6 +231,8 @@ def first_difference(java, python):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--mode", choices=["file", "single", "eval"], default="file")
+    ap.add_argument("--optimize", type=int, choices=[0, 1, 2], default=0,
+                    help="optimize level, as ast.parse(..., optimize=N)")
     ap.add_argument("--show", type=int, default=20, help="differences to show in full")
     ap.add_argument("--no-build", action="store_true",
                     help="reuse the drivers compiled by an earlier run")
@@ -222,7 +257,8 @@ def main():
     java_out = OUT / "java.out"
     run(["java", "-Xss16m", "-cp",
          f"{ROOT / 'build/classes'}:{OUT / 'classes'}",
-         "org.python.pegen.AstCompare", "--mode", args.mode, dump, java_out])
+         "org.python.pegen.AstCompare", "--mode", args.mode,
+         "--optimize", args.optimize, dump, java_out])
 
     files = same = 0
     differ = {"tree": [], "error": [], "accept/reject": [], "warnings": [], "crash": []}
@@ -230,7 +266,7 @@ def main():
     fixed = []
     for name, java in blocks(java_out):
         files += 1
-        python = cpython(name, compile_mode)
+        python = cpython(name, compile_mode, args.optimize)
         key = (args.mode, sha(name))
         if java == python:
             same += 1
@@ -249,7 +285,8 @@ def main():
             kind = "crash"
         elif java_error != python_error:
             kind = "accept/reject"
-        elif j.startswith("#WARNING") or p.startswith("#WARNING"):
+        elif j.startswith(("#WARNING", "#COMPILE-WARNING")) or \
+                p.startswith(("#WARNING", "#COMPILE-WARNING")):
             kind = "warnings"
         elif java_error:
             kind = "error"

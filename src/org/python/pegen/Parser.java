@@ -8,11 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.python.pegen.ast.Complex;
 import org.python.pegen.ast.base.expr;
@@ -39,18 +34,9 @@ public class Parser {
      * (_Py_ReachedRecursionLimitWithMargin); GeneratedParser.parse() stands
      * in for that by catching StackOverflowError. So that MAXSTACK, not the
      * caller's thread stack, is the limit in practice, {@link #runParser}
-     * parses on a thread with a {@link #STACK_SIZE} stack.
+     * parses on a thread with a {@link LargeStack#STACK_SIZE} stack.
      */
     public static final int MAXSTACK = 6000;
-
-    /**
-     * The stack size of the threads {@link #runParser} parses on. Input
-     * nested close to MAXSTACK needs about 1.25 MB (about 210 bytes per
-     * level, interpreted or compiled, in either pass; HotSpot on 64-bit
-     * arm), so this leaves a wide margin. A thread's stack is reserved
-     * address space, committed only as it is used.
-     */
-    static final long STACK_SIZE = 16L * 1024 * 1024;
 
     /** Start rules; the values of Py_single_input etc. in CPython's compile.h. */
     public static final int SINGLE_INPUT = 256;
@@ -158,7 +144,7 @@ public class Parser {
         public final int lineno;
         public final String module;
 
-        ParserWarning(String category, String message, String filename, int lineno,
+        public ParserWarning(String category, String message, String filename, int lineno,
                 String module) {
             this.category = category;
             this.message = message;
@@ -263,56 +249,15 @@ public class Parser {
         return tok.next();
     }
 
-    /** A thread with a {@link #STACK_SIZE} stack, for {@link #runParser}. */
-    private static final class ParserThread extends Thread {
-        private static final AtomicInteger count = new AtomicInteger();
-
-        ParserThread(Runnable r) {
-            super(null, r, "pegen-parser-" + count.incrementAndGet(), STACK_SIZE);
-            setDaemon(true);
-        }
-    }
-
-    /** Runs parses on ParserThreads; idle threads exit after a minute. */
-    private static final ExecutorService parserThreads =
-            Executors.newCachedThreadPool(ParserThread::new);
-
     /**
-     * Parses (as _PyPegen_run_parser) on a thread with a {@link #STACK_SIZE}
-     * stack, so that input CPython accepts doesn't overflow the caller's
-     * stack. Returns null on failure, with the exception (if any) available
-     * from {@link #getError()}. The warning handler runs on that thread too.
+     * Parses (as _PyPegen_run_parser) on a thread with a
+     * {@link LargeStack#STACK_SIZE} stack, so that input CPython accepts
+     * doesn't overflow the caller's stack. Returns null on failure, with the
+     * exception (if any) available from {@link #getError()}. The warning
+     * handler runs on that thread too.
      */
     public Object runParser(GeneratedParser parser) {
-        if (Thread.currentThread() instanceof ParserThread) {
-            return _PyPegen_run_parser(parser);
-        }
-        Future<Object> result = parserThreads.submit(() -> _PyPegen_run_parser(parser));
-        // The parse is bounded, so wait for it even if interrupted, then
-        // restore the interrupt.
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    return result.get();
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            }
-            if (cause instanceof Error) {
-                throw (Error) cause;
-            }
-            throw new IllegalStateException(cause);
-        } finally {
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-        }
+        return LargeStack.call(() -> _PyPegen_run_parser(parser));
     }
 
     /**

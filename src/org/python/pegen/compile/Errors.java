@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 
+import org.python.pegen.Parser;
 import org.python.pegen.PythonSyntaxError;
 
 /**
@@ -33,6 +34,33 @@ public final class Errors {
         String text = filename != null ? PyErr_ProgramTextObject(filename, lineno) : null;
         return new PythonSyntaxError(exc.type, exc.msg, lineno, col_offset, text, end_lineno,
                 end_col_offset);
+    }
+
+    /**
+     * _PyErr_RaiseSyntaxError: the SyntaxError msg at the given location
+     * (1-based columns), with text read from the file filename names.
+     */
+    public static PythonSyntaxError _PyErr_RaiseSyntaxError(String msg, String filename,
+            int lineno, int col_offset, int end_lineno, int end_col_offset) {
+        return PyErr_RangedSyntaxLocationObject(new PythonSyntaxError("SyntaxError", msg),
+                filename, lineno, col_offset, end_lineno, end_col_offset);
+    }
+
+    /**
+     * _PyErr_EmitSyntaxWarning: issues a SyntaxWarning to warnings (C:
+     * PyErr_WarnExplicitObject). If the handler makes it an error, throws a
+     * SyntaxError at the given location (1-based columns) instead.
+     */
+    public static void _PyErr_EmitSyntaxWarning(Parser.WarningHandler warnings, String msg,
+            String filename, int lineno, int col_offset, int end_lineno, int end_col_offset,
+            String module) {
+        if (!warnings.warn(new Parser.ParserWarning("SyntaxWarning", msg, filename, lineno,
+                module))) {
+            /* Replace the SyntaxWarning exception with a SyntaxError
+               to get a more accurate error report */
+            throw _PyErr_RaiseSyntaxError(msg, filename, lineno, col_offset, end_lineno,
+                    end_col_offset);
+        }
     }
 
     /** C: the size of err_programtext's linebuf. */

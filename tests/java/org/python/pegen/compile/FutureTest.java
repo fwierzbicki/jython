@@ -86,7 +86,8 @@ public class FutureTest {
     @Test
     public void compilerSetupMergesFlags() {
         Compile.PyCompilerFlags flags = new Compile.PyCompilerFlags(Compile.CO_FUTURE_DIVISION);
-        Compile c = Compile.new_compiler(module(future(1, "annotations")), "<unknown>", flags, -1);
+        Compile c = Compile.new_compiler(module(future(1, "annotations")), "<unknown>", flags, -1,
+                null, w -> true);
         int merged = Compile.CO_FUTURE_DIVISION | Compile.CO_FUTURE_ANNOTATIONS;
         assertEquals(merged, c.c_future.ff_features);
         assertEquals(merged, flags.cf_flags);

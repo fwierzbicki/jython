@@ -1,5 +1,6 @@
 package org.python.pegen.compile;
 
+import org.python.pegen.Parser;
 import org.python.pegen.ast.base.mod;
 
 /**
@@ -13,9 +14,8 @@ import org.python.pegen.ast.base.mod;
  * <p>C's names are kept. Errors are thrown as PythonSyntaxError where C sets
  * one and returns ERROR (or NULL).
  *
- * <p>Not ported yet: _PyAST_Preprocess (Phase B of
- * plan-cpython-bytecode-compiler.md) and _PySymtable_Build (Phase C), so
- * for now only future runs.
+ * <p>Not ported yet: _PySymtable_Build (Phase C of
+ * plan-cpython-bytecode-compiler.md), so for now future and preprocess run.
  */
 public final class Compile {
 
@@ -80,14 +80,18 @@ public final class Compile {
     public PyCompilerFlags c_flags;
     /** optimization level */
     public int c_optimize;
+    /** module name, for warnings; may be null */
+    public String c_module;
 
     private Compile() {}
 
-    private void compiler_setup(mod mod, String filename, PyCompilerFlags flags, int optimize) {
+    private void compiler_setup(mod mod, String filename, PyCompilerFlags flags, int optimize,
+            String module, Parser.WarningHandler warnings) {
         PyCompilerFlags local_flags = new PyCompilerFlags();
 
         c_filename = filename;
         Future._PyFuture_FromAST(mod, filename, c_future);
+        c_module = module;
         if (flags == null) {
             flags = local_flags;
         }
@@ -97,21 +101,22 @@ public final class Compile {
         c_flags = flags;
         c_optimize = (optimize == -1) ? optimization_level : optimize;
 
-        // Not ported yet (Phase B):
-        // _PyAST_Preprocess(mod, arena, filename, c_optimize, merged, 0, 1, module)
+        AstPreprocess._PyAST_Preprocess(mod, filename, c_optimize, merged, false, true, module,
+                warnings);
         // Not ported yet (Phase C):
         // c_st = _PySymtable_Build(mod, filename, &c_future)
     }
 
     /**
-     * new_compiler: a compiler set up for mod (compiler_setup). Like C's,
-     * it writes the merged future flags back into flags. Throws the
-     * SyntaxError a stage raises.
+     * new_compiler: a compiler set up for mod (compiler_setup), which
+     * changes mod in place. Like C's, it writes the merged future flags back
+     * into flags. Warnings go to warnings (C: Python's warnings machinery).
+     * Throws the SyntaxError a stage raises.
      */
     public static Compile new_compiler(mod mod, String filename, PyCompilerFlags pflags,
-            int optimize) {
+            int optimize, String module, Parser.WarningHandler warnings) {
         Compile c = new Compile();
-        c.compiler_setup(mod, filename, pflags, optimize);
+        c.compiler_setup(mod, filename, pflags, optimize, module, warnings);
         return c;
     }
 
@@ -129,7 +134,8 @@ public final class Compile {
         if (optimize == -1) {
             optimize = optimization_level;
         }
-        // Not ported yet (Phase B):
-        // _PyAST_Preprocess(mod, arena, filename, optimize, flags, no_const_folding, 0, module)
+        // No warnings are enabled, so none need a handler.
+        AstPreprocess._PyAST_Preprocess(mod, filename, optimize, flags, no_const_folding, false,
+                null, null);
     }
 }
