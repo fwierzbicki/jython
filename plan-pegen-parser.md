@@ -1,11 +1,14 @@
 # PEG parser for Jython: plan and status
 
-Start here when resuming. **Status** says where the work stands and what is
-next. **Current work** is the approved plan with progress ticked off.
-**Working notes** has the decisions, traps and commands that the code doesn't
-show. The finished generator design is kept at the end for reference.
+The parser, built on the peg-parser branch: a Java port of CPython's
+pegen-generated parser, building a Python 3 AST identical to `ast.parse()`'s.
+The compiler work continues on the cpython-bytecode-compiler branch.
+**Status** says where it stands and what's left. **Working notes** has the
+commands, conventions and traps the code doesn't show; they apply to the
+compiler work too (plan-cpython-bytecode-compiler.md). The completed plans are
+kept below for reference.
 
-## Status (2026-10-02)
+## Status (2026-10-03)
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
@@ -16,8 +19,7 @@ show. The finished generator design is kept at the end for reference.
   output matches CPython's `ast.parse()`: trees, errors and warnings. The
   exceptions are listed in `tests/pegen/compare_known.txt`, and Phase 4's
   results explain them.
-  - **Not committed:** Phase 5. Phase 4 is in commit 2c17a33f7.
-- **Done: stack depth** (not committed). `Parser.runParser` parses on a
+- **Done: stack depth.** `Parser.runParser` parses on a
   pooled thread with a 16 MB stack (`Parser.STACK_SIZE`), so MAXSTACK, not
   the caller's stack, is the limit, as in CPython. The `pending/stack/`
   samples moved to `tests/pegen/deep/accept/`, and `deep/reject/` has input
@@ -27,18 +29,24 @@ show. The finished generator design is kept at the end for reference.
   `tests/pegen/smoke.sh` (exit 0; it runs the comparison with CPython over
   Lib, the samples and the error corpus, in about a minute),
   `tests/pegen/test_action_translator.py` (15 tests) and the pegen JUnit
-  tests (16 tests).
+  tests (21 tests, `FutureTest` included).
 - **Before calling it done:** run `/adversarial-parser-review` (see
   Verification).
-- **What's left, beyond this plan:**
+- **Upstream stays at v3.15.0rc2** (`../cpython` checked out at the tag,
+  rebuilt). rc3 changed `python.gram`, `action_helpers.c`, `pegen.c/h`,
+  `asdl_c.py` and the lexer (`<>` tokenizing as `<` `>` without
+  barry_as_FLUFL, gh-151464; unary `+` in match patterns, gh-152708;
+  f-string debug text). Syncing to rc3 or later is a separate task.
+- **What's left:**
   - **The Java tokenizer,** a port of Parser/lexer/. It replaces
     `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
     tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
-    single-input entries in `compare_known.txt`.
+    single-input entries in `compare_known.txt`. It comes right after the
+    compiler front end (plan-cpython-bytecode-compiler.md).
   - **Name aliases for `\N{...}`** (`ucnhash`).
-  - **Connecting the parser to Jython's compiler.**
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
-  13fdf834c, Phase 4 in 2c17a33f7. Check `git status` for anything newer.
+  13fdf834c, Phase 4 in 2c17a33f7, Phase 5 and stack depth by 676fc3da9.
+  Check `git status` for anything newer.
 
 ## Completed: port the _PyPegen_* helpers
 
@@ -261,7 +269,7 @@ The remaining differences:
 - **`\N{RS}` in test_configparser.py:** a name alias, which `ucnhash` lacks.
 - **`from __future__ import braces` and an unknown future feature:** CPython
   raises these in the compiler (`future.c`), not the parser. They're out of
-  scope.
+  scope. (They match since Phase A of plan-cpython-bytecode-compiler.md.)
 - **9 single-mode inputs** that end with a whitespace-only line and no
   newline, after a `def` or `class` header. C's non-exec tokenizer handles
   that last line differently from the exec-mode tokens the dump starts from,
@@ -305,14 +313,15 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   not be written into `src/`. Setting `PYTHONDONTWRITEBYTECODE=1` keeps
   `__pycache__` out of `src/pegen/tools/`.
 - **Smoke test:** `ant compile && tests/pegen/smoke.sh`. It needs Python 3.15
-  and uses `../cpython/python.exe` (an in-tree 3.15.0rc2 build) by default.
+  and uses the in-tree build in `../cpython` (`python.exe` on macOS,
+  `python` on Linux) by default.
   Override with `PYTHON=`. It extracts the error corpus into
   `build/pegen-smoke/samples` on every run.
 - **Translator tests:** `python3 tests/pegen/test_action_translator.py`.
 - **pegen JUnit tests** (after `ant compile`):
-  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java`,
+  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java`,
   then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest`.
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
   `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...`.

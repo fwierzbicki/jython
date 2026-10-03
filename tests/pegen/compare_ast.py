@@ -6,7 +6,9 @@ Usage: compare_ast.py [--mode file|single|eval] [--show N] [--no-build]
 PATH is a .py file or a directory (searched for *.py). Each file that
 CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by the
 checked-in parser (build/classes; driven by
-tests/java/org/python/pegen/AstCompare.java), and compared with what CPython's compile(..., "<unknown>", mode,
+tests/java/org/python/pegen/AstCompare.java) followed by the compiler stages
+CPython runs for PyCF_ONLY_AST (org.python.pegen.compile.Compile: future, so
+far), and compared with what CPython's compile(..., "<unknown>", mode,
 ast.PyCF_ONLY_AST) gives for the same source:
 
 - the tree, every node, field and location, when both accept the file;

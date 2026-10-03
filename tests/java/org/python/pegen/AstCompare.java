@@ -19,12 +19,16 @@ import java.util.List;
 import org.python.pegen.ast.AST;
 import org.python.pegen.ast.Bytes;
 import org.python.pegen.ast.Complex;
+import org.python.pegen.ast.base.mod;
+import org.python.pegen.compile.Compile;
 
 /**
  * The Java half of tests/pegen/compare_ast.py: parses each file of a token
  * dump (tests/pegen/dump_tokens.py) with a parser generated with actions, and
- * writes the result in a canonical text form that compare_ast.py also
- * produces from CPython's ast.parse(), so the two can be compared exactly.
+ * runs the compiler stages compile(..., PyCF_ONLY_AST) runs on the tree
+ * (Compile._PyCompile_AstPreprocess: future, for now), and writes the result
+ * in a canonical text form that compare_ast.py also produces from CPython's
+ * ast.parse(), so the two can be compared exactly.
  *
  * <p>Per file: "#FILE path", then the tree (one node, field or list item per
  * line, indented), or one "#ERROR" line with the exception's type, msg,
@@ -61,14 +65,25 @@ public class AstCompare {
                 b.append("#FILE ").append(file.path).append('\n');
                 Parser p = new Parser(file.tokenSource(startRule == Parser.FILE_INPUT), startRule);
                 Object result;
+                PythonSyntaxError compileError = null;
                 try {
                     result = p.runParser(new GeneratedParser(p));
+                    if (result != null) {
+                        // What compile(..., PyCF_ONLY_AST) runs after parsing (pythonrun.c).
+                        Compile._PyCompile_AstPreprocess((mod) result, "<unknown>",
+                                new Compile.PyCompilerFlags(Compile.PyCF_ONLY_AST), -1, true);
+                    }
+                } catch (PythonSyntaxError e) {
+                    result = null;
+                    compileError = e;
                 } catch (RuntimeException | StackOverflowError e) {
                     result = null;
                     b.append("#CRASH ").append(str(e.toString())).append('\n');
                 }
                 if (result != null) {
                     dump(result, b, 0);
+                } else if (compileError != null) {
+                    error(compileError, b);
                 } else if (p.getError() != null) {
                     error(p.getError(), b);
                 } else if (b.indexOf("#CRASH") < 0) {

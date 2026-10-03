@@ -5,12 +5,6 @@
 # \N{RS}: a Unicode name alias; Jython's ucnhash has no aliases.
 file c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
 
-# Errors CPython raises in the compiler (future.c), not the parser.
-file 40417bfd4f1d "from __future__ import doesnt_exist" (future.c)
-single 40417bfd4f1d "from __future__ import doesnt_exist" (future.c)
-file 14df484a3c78 "from __future__ import braces" (future.c)
-single 14df484a3c78 "from __future__ import braces" (future.c)
-
 # Single input ending in a whitespace-only line with no newline, after a def
 # or class header: C's non-exec tokenizer handles that line differently from
 # the exec-mode tokens dump_tokens.py starts from. Needs the Java tokenizer.

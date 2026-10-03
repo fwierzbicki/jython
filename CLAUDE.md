@@ -1,14 +1,20 @@
-# PEG parser for Jython 3 (experimental branch: peg-parser)
+# CPython bytecode compiler for Jython 3 (experimental branch: cpython-bytecode-compiler)
 
 ## Goal
-Replace the ANTLR parser with a Java port of CPython's pegen-generated parser,
-as groundwork for Python 3 support. Target grammar: CPython v3.15.0 (../cpython).
+Groundwork for Python 3 support, modelled stage for stage on CPython. The
+parser, a Java port of CPython's pegen-generated parser that replaces the
+ANTLR parser, was built on the peg-parser branch; this branch builds on it
+with the compiler front end (future, preprocess, symtable) and then a backend
+that compiles to CPython bytecode. Target: CPython v3.15.0 (../cpython).
 
 ## Resuming work
-Read plan.md first: its Status section says where the work stands and what is
-next, the current plan tracks progress with checkboxes, and "Working notes"
-lists the decisions, conventions and traps already hit. Update Status and the
-checkboxes at each checkpoint.
+There are two plans; each Status section says where that work stands and
+what is next, and "Working notes" lists the decisions, conventions and traps
+already hit. Update Status and the checkboxes at each checkpoint.
+- plan-cpython-bytecode-compiler.md: the current work (compiler front end,
+  then backends). Read it first.
+- plan-pegen-parser.md: the finished parser, and the commands, conventions
+  and traps both share.
 
 ## Ground rules
 - The user makes the git commits: don't commit or stage (use mv, not git mv).
@@ -22,7 +28,8 @@ checkboxes at each checkpoint.
   diffed against our output over a source corpus.
 
 ## Layout
-- plan.md: design and implementation plan.
+- plan-pegen-parser.md, plan-cpython-bytecode-compiler.md: plans and status.
+- GLOSSARY.md: canonical terms (CPython's); docs/adr/: architecture decisions.
 - src/pegen/tools/java_generator.py: JavaParserGenerator, a port of pegen's c_generator.py.
 - src/pegen/tools/action_translator.py: C grammar actions -> Java (fails loudly
   on anything it doesn't know); java_types.py: shared Java naming/type mapping.
@@ -45,6 +52,11 @@ checkboxes at each checkpoint.
   \N{...} name lookup (unicodedata.c _getcode over Jython's ucnhash).
 - src/org/python/pegen/ActionHelpers.java: helpers actions call, C names kept;
   ports of the pegen.h macros, action_helpers.c and pegen_errors.c.
+- src/org/python/pegen/compile/: the compiler front end, hand-ported with C
+  names: Compile.java (front half of compile.c, and _PyCompile_AstPreprocess,
+  which AstCompare runs after parsing), Future.java (future.c), Errors.java
+  (errors.c), Ast.java (ast.c), SourceLocation.java. Tests in
+  tests/java/org/python/pegen/compile/.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
   dirs and the error corpus (compare_known.txt lists expected differences);
   deep/ is nesting just under and over MAXSTACK, checked on a 1 MB stack;
@@ -76,7 +88,7 @@ translates actions by default, --skip-actions gives a recognizer)
 
 ## Compare with CPython (after ant compile)
 ../cpython/python.exe tests/pegen/compare_ast.py [--mode single] PATH...
-(see plan.md, Commands)
+(see plan-pegen-parser.md, Commands)
 
 ## Smoke test (after ant compile)
 tests/pegen/smoke.sh   (needs Python 3.15: uses ../cpython/python.exe if built,
