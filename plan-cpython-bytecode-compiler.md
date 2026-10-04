@@ -24,8 +24,7 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   `AstPreprocessTest` and `SymtableTest` included); commands in
   plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
-  d91441d6a. Phase C is not committed yet. Check `git status` for anything
-  newer.
+  d91441d6a, Phase C in ad571bf9a. Check `git status` for anything newer.
 
 ## Current plan: the compiler front end
 
@@ -198,6 +197,10 @@ Results:
   the exception and returns 0. Their offsets are passed through unconverted
   (1-based UTF-8 byte offsets, as in C's `PyErr_RangedSyntaxLocationObject`),
   and `text` comes from reading `filename`, so it's None for `<unknown>`.
+  That is a CPython bug (SyntaxError offsets are characters; the parser and,
+  since gh-156894, the tokenizer convert), seen on 3.15.0rc2 and not yet
+  reported upstream as of 2026-10-04. Keep matching CPython; if it's fixed
+  there, follow the fix in Symtable, AstPreprocess and Errors.
   `Errors.PyErr_ProgramTextObject` assumes UTF-8 until the Java tokenizer
   can find a coding cookie.
 - **`PyUnicode_FromFormat`'s `%.100s`** decodes statefully: a character cut
