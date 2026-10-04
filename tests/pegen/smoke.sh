@@ -6,7 +6,9 @@
 # directories under tests/pegen/ (accept/, reject/, single/), and the
 # syntax-error corpus extract_samples.py takes from CPython's tests. Lib and
 # the samples are compared again at optimize levels 1 and 2, where
-# preprocess folds constants (ast.parse(..., optimize=N)).
+# preprocess folds constants (ast.parse(..., optimize=N)). The symbol table
+# is compared with CPython's _symtable.symtable() (compare_symtable.py) over
+# the same files and symtable/, which holds samples aimed at it.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
@@ -83,21 +85,36 @@ compare() {
         status=1
 }
 
-# compare_ast.py's Java driver, compiled once for all the runs below.
-mkdir -p "$ROOT/build/pegen-compare/classes"
+# compare_symtable NAME COMPARE_ARGS...
+# Runs compare_symtable.py; a failure sets status=1.
+compare_symtable() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_symtable.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
+# The Java drivers of compare_ast.py and compare_symtable.py, compiled once
+# for all the runs below.
+mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-compare/classes" \
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java" \
+    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-symtable/classes" \
+    "$ROOT/tests/java/org/python/pegen/SymtableCompare.java" \
     "$ROOT/tests/java/org/python/pegen/AstCompare.java" \
     "$ROOT/tests/java/org/python/pegen/TokenDump.java"
 
 compare lib "$CPYTHON/Lib"
-compare samples "$HERE/accept" "$HERE/reject"
+compare samples "$HERE/accept" "$HERE/reject" "$HERE/symtable"
 # Samples parsed as single_input (compile(..., "single")).
 compare single-samples --mode single "$HERE/single"
 
 # Preprocess folding, and docstrings removed at level 2.
 for level in 1 2; do
     compare "lib-O$level" --optimize $level "$CPYTHON/Lib"
-    compare "samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject"
+    compare "samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject" "$HERE/symtable"
     compare "single-samples-O$level" --mode single --optimize $level "$HERE/single"
 done
 
@@ -106,12 +123,22 @@ done
 compare corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
 
+# The symbol table, as _symtable.symtable() builds it (no preprocess).
+compare_symtable symtable-lib "$CPYTHON/Lib"
+compare_symtable symtable-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable"
+compare_symtable symtable-single-samples --mode single "$HERE/single"
+compare_symtable symtable-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_symtable symtable-single-corpus --mode single "$OUT/samples/doctests" \
+    "$OUT/samples/strings"
+
 # Run with a 256 KB stack (a quarter of the Linux x64 default) so a JVM
-# StackOverflowError can't be hidden by a large -Xss. The parser and
-# preprocess run on a thread with their own stack (LargeStack.STACK_SIZE), so
-# nesting just under MAXSTACK must parse and preprocess, and just over it must
-# be rejected (MemoryError), whatever the caller's.
+# StackOverflowError can't be hidden by a large -Xss. The parser and the
+# compiler stages (preprocess, symtable) run on a thread with their own stack
+# (LargeStack.STACK_SIZE), so nesting just under MAXSTACK must parse,
+# preprocess and get a symbol table, and just over it must be rejected
+# (MemoryError), whatever the caller's.
 check accept-small-stack "" "$HERE/accept" -Xss256k $SMOKE --expect accept
+check symtable-small-stack "" "$HERE/symtable/accept" -Xss256k $SMOKE --expect accept
 check deep-accept "" "$HERE/deep/accept" -Xss256k $SMOKE --expect accept
 check deep-reject --all "$HERE/deep/reject" -Xss256k $SMOKE --expect reject
 

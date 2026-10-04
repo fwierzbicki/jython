@@ -13,9 +13,6 @@ import org.python.pegen.ast.base.mod;
  *
  * <p>C's names are kept. Errors are thrown as PythonSyntaxError where C sets
  * one and returns ERROR (or NULL).
- *
- * <p>Not ported yet: _PySymtable_Build (Phase C of
- * plan-cpython-bytecode-compiler.md), so for now future and preprocess run.
  */
 public final class Compile {
 
@@ -82,6 +79,8 @@ public final class Compile {
     public int c_optimize;
     /** module name, for warnings; may be null */
     public String c_module;
+    /** the symbol table */
+    public Symtable c_st;
 
     private Compile() {}
 
@@ -103,8 +102,7 @@ public final class Compile {
 
         AstPreprocess._PyAST_Preprocess(mod, filename, c_optimize, merged, false, true, module,
                 warnings);
-        // Not ported yet (Phase C):
-        // c_st = _PySymtable_Build(mod, filename, &c_future)
+        c_st = Symtable._PySymtable_Build(mod, filename, c_future);
     }
 
     /**

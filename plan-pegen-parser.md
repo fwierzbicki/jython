@@ -322,7 +322,7 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 - **pegen JUnit tests** (after `ant compile`):
   `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java`,
   then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest`.
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest org.python.pegen.compile.SymtableTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
   `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] [--optimize N] PATH...`
@@ -335,6 +335,10 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `../cpython/python.exe tests/pegen/extract_samples.py build/pegen-samples`,
   then compare `build/pegen-samples/doctests build/pegen-samples/strings`.
   Lib takes about a minute.
+- **Compare symbol tables with CPython** (after `ant compile`):
+  `../cpython/python.exe tests/pegen/compare_symtable.py [--mode single] PATH...`
+  compares with `_symtable.symtable()` the same way (driver in
+  `build/pegen-symtable/`; same `--no-build` and `--known`).
 - **Compiling a generated parser** by hand into a scratch directory:
   generate with `--output-dir $D` (and `--skip-actions` for the recognizer),
   then

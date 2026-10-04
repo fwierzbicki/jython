@@ -198,11 +198,12 @@ def read_known(path):
     """{(mode, sha): description} from a known-differences file."""
     known = {}
     if path:
-        for line in open(path, encoding="utf-8"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                mode, digest, description = (line.split(None, 2) + [""])[:3]
-                known[(mode, digest)] = description
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    mode, digest, description = (line.split(None, 2) + [""])[:3]
+                    known[(mode, digest)] = description
     return known
 
 

@@ -57,11 +57,13 @@ already hit. Update Status and the checkboxes at each checkpoint.
 - src/org/python/pegen/compile/: the compiler front end, hand-ported with C
   names: Compile.java (front half of compile.c, and _PyCompile_AstPreprocess,
   which AstCompare runs after parsing), Future.java (future.c),
-  AstPreprocess.java (ast_preprocess.c), Errors.java (errors.c), Ast.java
-  (ast.c), SourceLocation.java. Tests in tests/java/org/python/pegen/compile/.
+  AstPreprocess.java (ast_preprocess.c), Symtable.java (symtable.c),
+  Errors.java (errors.c), Ast.java (ast.c), SourceLocation.java. Tests in
+  tests/java/org/python/pegen/compile/.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
   dirs and the error corpus (compare_known.txt lists expected differences),
-  Lib and the samples again at --optimize 1 and 2;
+  Lib and the samples again at --optimize 1 and 2, compare_symtable.py over
+  the same; symtable/ holds samples aimed at symtable;
   deep/ is nesting just under and over MAXSTACK, checked on a 256 KB stack;
   pending/ holds known gaps that are reported but don't fail.
 - tests/pegen/dump_tokens.py: dumps CPython's C tokens (and source, metadata);
@@ -72,6 +74,8 @@ already hit. Update Status and the checkboxes at each checkpoint.
   the correctness oracle; trees, errors and warnings vs CPython's, file by
   file, at an optimize level (--optimize N).
   tests/pegen/extract_samples.py: the syntax-error corpus for it.
+- tests/pegen/compare_symtable.py + tests/java/org/python/pegen/SymtableCompare.java:
+  the same for symbol tables, against CPython's _symtable.symtable().
 - tests/pegen/test_action_translator.py: translator unit tests
   (python3 tests/pegen/test_action_translator.py).
 

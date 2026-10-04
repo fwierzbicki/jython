@@ -12,18 +12,20 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
 
 - **The parser is done** (plan-pegen-parser.md): its output matches
   CPython's `ast.parse()` over Lib and the error corpus, upstream v3.15.0rc2.
-- **In progress: the compiler front end** (see **Current plan**). Phases A
-  (driver and future) and B (preprocess) are done: `org.python.pegen.compile`.
-  **Next: Phase C,** symtable.
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 3
-  minutes) and the pegen JUnit tests (27 tests, `FutureTest` and
-  `AstPreprocessTest` included); commands in plan-pegen-parser.md, Working
-  notes.
+- **The compiler front end is done** (see **Current plan**): Phases A
+  (driver and future), B (preprocess) and C (symtable), in
+  `org.python.pegen.compile`. `Compile.new_compiler` runs all three, as
+  CPython's `compiler_setup` does.
 - **What's left after this plan:** the Java tokenizer (plan-pegen-parser.md),
   then **backends** (codegen onwards). See ADR 0001 and the open questions
-  below.
+  below, which are to be decided before codegen starts.
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 11
+  minutes) and the pegen JUnit tests (38 tests, `FutureTest`,
+  `AstPreprocessTest` and `SymtableTest` included); commands in
+  plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
-  d91441d6a. Check `git status` for anything newer.
+  d91441d6a. Phase C is not committed yet. Check `git status` for anything
+  newer.
 
 ## Current plan: the compiler front end
 
@@ -132,12 +134,52 @@ Results:
   comparison can't see: where warnings go, a warning made an error (offsets
   and text), RecursionError, and the number edge cases.
 
-### Phase C: symtable
-- [ ] `Symtable.java` from symtable.c, run on the preprocessed tree.
-- [ ] `compare_symtable.py` + `SymtableCompare.java`: diff the block tree
+### Phase C: symtable (done)
+- [x] `Symtable.java` from symtable.c, run on the preprocessed tree.
+- [x] `compare_symtable.py` + `SymtableCompare.java`: diff the block tree
       and each symbol's raw `DEF_*` bits (through `_symtable`, not the
       friendly `symtable` API) over Lib, the samples and the error corpus.
-- [ ] A symtable error corpus. smoke.sh runs the comparison.
+- [x] A symtable error corpus. smoke.sh runs the comparison.
+
+Results:
+- `Symtable._PySymtable_Build` runs at the end of `compiler_setup`, after
+  preprocess (`Compile.c_st`). `_symtable.symtable()`, the comparison's
+  CPython side, builds from the tree as parsed instead
+  (`_Py_SymtableStringObjectFlags`: future, then symtable, no preprocess),
+  and `Symtable._Py_SymtableStringObjectFlags` does the same for
+  `SymtableCompare` (taking a parsed tree: no tokenizer yet). The two differ
+  only where preprocess changes names (a `__debug__` load becomes a
+  constant); `SymtableTest` checks that.
+- Compared per block: type, name, lineno, nested, symbols (raw flags, scope
+  bits included; sorted, since C adds free names in set order, which follows
+  str hashes) and varnames, children in order. Lib, the samples, single
+  input and the error corpus match from the first run.
+- **What `_symtable` doesn't show** (ste_generator, ste_coroutine,
+  ste_needs_class_closure, ste_needs_classdict,
+  ste_has_conditional_annotations, ste_has_docstring, ste_method,
+  ste_comp_inlined, an inlined comprehension's own symbols, the block keys)
+  is checked by `tests/java/org/python/pegen/compile/SymtableTest.java`,
+  with expected values taken from CPython's code objects (co_flags,
+  co_cellvars). Codegen, when it comes, checks them all through `dis`.
+- **Block keys.** C keys `st_blocks` by AST node address, and twice by
+  address + 1 (an AnnAssign's annotation block: the enclosing block's
+  `ste_id` + 1; a TypeVar's default: the TypeVar + 1). Java uses
+  `Symtable.BlockKey(node, offset)`, compared by node identity; codegen
+  looks blocks up with the same keys.
+- Samples: `tests/pegen/symtable/reject/` (71 files, one error each: every
+  symtable.c message, with mangled, multi-line and non-ASCII locations) and
+  `symtable/accept/` (class scopes, comprehensions, type parameters,
+  annotations with and without `from __future__ import annotations`,
+  global/nonlocal, mangling). The error corpus from CPython's tests had only
+  the `__debug__`, global/nonlocal and type-parameter errors. Mutation
+  checks: 20 mutations of the port, 18 caught by the comparison, the other
+  two by `SymtableTest` (an inlined comprehension's symbols) or not
+  observable (`update_symbols`' `bound` test, which no tree reaches
+  differently).
+- **Stack:** symtable runs on `LargeStack` like preprocess; a
+  StackOverflowError becomes the same RecursionError. `RecognizerSmoke` now
+  also builds the symbol table (any error but a SyntaxError fails it), and
+  smoke.sh runs it on 256 KB over `symtable/accept/` too.
 
 ### Verification
 - smoke.sh passes, with the new comparisons in it, at the end of every
@@ -170,4 +212,9 @@ Results:
   changed code. When changing a file temporarily (e.g. mutation checks),
   delete its .class files before rebuilding.
 - **A sample that doesn't parse** is compared as an error on both sides and
-  silently matches. Check new `accept/` samples with `ast.parse()` first.
+  silently matches. Check new `accept/` samples with `ast.parse()` first
+  (and symtable samples with `_symtable.symtable()`: a reject sample must
+  fail there, not in the parser).
+- **`ast.parse()` accepts what symtable rejects** (`__debug__` assignment,
+  a late `from __future__` inside a block): `accept/` means accepted by
+  `ast.parse()`, so `RecognizerSmoke` lets symtable's SyntaxErrors through.

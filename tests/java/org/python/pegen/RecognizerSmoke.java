@@ -4,13 +4,16 @@ import java.io.IOException;
 
 import org.python.pegen.ast.base.mod;
 import org.python.pegen.compile.Compile;
+import org.python.pegen.compile.Symtable;
 
 /**
  * Runs {@link GeneratedParser} over token dumps written by
  * tests/pegen/dump_tokens.py (read by {@link TokenDump}) and checks that every file is accepted (or, with
  * {@code --expect reject}, that every file is rejected). A parsed file is
  * also preprocessed, with constants folded (as by ast.parse(...,
- * optimize=1)), which must not fail either: like the parser, preprocess must
+ * optimize=1)), which must not fail either, and then given to symtable,
+ * which must not fail other than with a SyntaxError (those are
+ * compare_symtable.py's to check): like the parser, the compiler stages must
  * cope with the deepest nesting whatever the caller's stack. A stopgap until
  * the Python tokenizer is ported; driven by tests/pegen/smoke.sh.
  *
@@ -48,6 +51,14 @@ public class RecognizerSmoke {
                 try {
                     Compile._PyCompile_AstPreprocess((mod) result, "<unknown>",
                             new Compile.PyCompilerFlags(Compile.PyCF_OPTIMIZED_AST), 1, false);
+                    try {
+                        Symtable._Py_SymtableStringObjectFlags((mod) result, "<unknown>",
+                                new Compile.PyCompilerFlags());
+                    } catch (PythonSyntaxError e) {
+                        if (!e.type.equals("SyntaxError")) {
+                            throw e;
+                        }
+                    }
                 } catch (PythonSyntaxError e) {
                     accepted = false;
                     compileError = e;
@@ -60,7 +71,7 @@ public class RecognizerSmoke {
                 System.out.println((accepted ? "ACCEPTED " : "REJECTED ") + file.path
                         + "  furthest token: " + furthest
                         + (p.getError() != null ? "  error: " + p.getError().getMessage() : "")
-                        + (compileError != null ? "  preprocess: " + compileError.getMessage()
+                        + (compileError != null ? "  compile: " + compileError.getMessage()
                                 : ""));
             }
         }

@@ -138,7 +138,7 @@ public class AstCompare {
                 .append('\t').append(str(w.message)).append('\n');
     }
 
-    private static void error(PythonSyntaxError e, StringBuilder b) {
+    static void error(PythonSyntaxError e, StringBuilder b) {
         b.append("#ERROR ").append(e.type).append('\t').append(str(e.msg));
         if (e.hasLocation()) {
             b.append('\t').append(e.lineno).append('\t').append(e.offset)
