@@ -17,8 +17,8 @@ import org.python.pegen.compile.Symtable;
 import org.python.pegen.compile.Symtable.PySTEntryObject;
 
 /**
- * The Java half of tests/pegen/compare_symtable.py: parses each file of a
- * token dump (tests/pegen/dump_tokens.py), builds its symbol table as the
+ * The Java half of tests/pegen/compare_symtable.py: parses each file (with
+ * the Java tokenizer, as for source bytes), builds its symbol table as the
  * _symtable module does (Symtable._Py_SymtableStringObjectFlags: future,
  * then symtable, with no preprocess), and writes the result in a canonical
  * text form that compare_symtable.py also produces from CPython's
@@ -32,7 +32,8 @@ import org.python.pegen.compile.Symtable.PySTEntryObject;
  * These are the fields _symtable's entries show; names are written as
  * AstCompare.str writes strings.
  *
- * <p>Usage: SymtableCompare [--mode file|single|eval] TOKEN_DUMP OUT.
+ * <p>Usage: SymtableCompare [--mode file|single|eval] LIST OUT, where LIST
+ * names the files, one per line.
  */
 public class SymtableCompare {
 
@@ -49,16 +50,19 @@ public class SymtableCompare {
             }
         }
         if (files.size() != 2) {
-            System.err.println("usage: SymtableCompare [--mode file|single|eval] TOKEN_DUMP OUT");
+            System.err.println("usage: SymtableCompare [--mode file|single|eval] LIST OUT");
             System.exit(2);
         }
         try (Writer out = new BufferedWriter(new OutputStreamWriter(
                 Files.newOutputStream(Paths.get(files.get(1))), StandardCharsets.UTF_8))) {
-            for (TokenDump.DumpFile file : TokenDump.read(files.get(0))) {
+            for (String path : Files.readAllLines(Paths.get(files.get(0)),
+                    StandardCharsets.UTF_8)) {
                 StringBuilder b = new StringBuilder();
-                b.append("#FILE ").append(file.path).append('\n');
-                Parser p = new Parser(file.tokenSource(startRule == Parser.FILE_INPUT), startRule);
+                b.append("#FILE ").append(path).append('\n');
                 try {
+                    // _symtable.symtable(source, ...) with source bytes.
+                    Parser p = AstCompare.parser(Files.readAllBytes(Paths.get(path)), startRule,
+                            Compile.PyCF_SOURCE_IS_UTF8);
                     Object result = p.runParser(new GeneratedParser(p));
                     if (result != null) {
                         Symtable st = Symtable._Py_SymtableStringObjectFlags((mod) result,

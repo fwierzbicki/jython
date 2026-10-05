@@ -23,8 +23,9 @@ import org.python.pegen.ast.base.mod;
 import org.python.pegen.compile.Compile;
 
 /**
- * The Java half of tests/pegen/compare_ast.py: parses each file of a token
- * dump (tests/pegen/dump_tokens.py) with a parser generated with actions, and
+ * The Java half of tests/pegen/compare_ast.py: parses each file (tokenized by
+ * the Java tokenizer, as compile() does with source bytes) with a parser
+ * generated with actions, and
  * runs the compiler stages compile(..., PyCF_ONLY_AST) runs on the tree
  * (Compile._PyCompile_AstPreprocess: future and preprocess), and writes the result
  * in a canonical text form that compare_ast.py also produces from CPython's
@@ -40,8 +41,8 @@ import org.python.pegen.compile.Compile;
  * UTF-16 code units with \\uXXXX escapes, floats as their IEEE bits, bytes in
  * hex.
  *
- * <p>Usage: AstCompare [--mode file|single|eval] [--optimize N] TOKEN_DUMP
- * OUT. With N > 0, PyCF_OPTIMIZED_AST is set too, as ast.parse(...,
+ * <p>Usage: AstCompare [--mode file|single|eval] [--optimize N] LIST OUT,
+ * where LIST names the files, one per line. With N > 0, PyCF_OPTIMIZED_AST is set too, as ast.parse(...,
  * optimize=N) sets it. Needs the
  * parser generated with --actions on the classpath ahead of build/classes.
  */
@@ -64,23 +65,25 @@ public class AstCompare {
         }
         if (files.size() != 2) {
             System.err.println(
-                    "usage: AstCompare [--mode file|single|eval] [--optimize N] TOKEN_DUMP OUT");
+                    "usage: AstCompare [--mode file|single|eval] [--optimize N] LIST OUT");
             System.exit(2);
         }
         try (Writer out = new BufferedWriter(new OutputStreamWriter(
                 Files.newOutputStream(Paths.get(files.get(1))), StandardCharsets.UTF_8))) {
-            for (TokenDump.DumpFile file : TokenDump.read(files.get(0))) {
+            for (String path : Files.readAllLines(Paths.get(files.get(0)),
+                    StandardCharsets.UTF_8)) {
+                byte[] source = Files.readAllBytes(Paths.get(path));
                 StringBuilder b = new StringBuilder();
-                b.append("#FILE ").append(file.path).append('\n');
-                Parser p = new Parser(file.tokenSource(startRule == Parser.FILE_INPUT), startRule);
+                b.append("#FILE ").append(path).append('\n');
+                int flags = optimize > 0 ? Compile.PyCF_OPTIMIZED_AST : Compile.PyCF_ONLY_AST;
+                Parser p = null;
                 Object result;
                 PythonSyntaxError compileError = null;
                 try {
+                    p = parser(source, startRule, flags);
                     result = p.runParser(new GeneratedParser(p));
                     if (result != null) {
                         // What compile(..., PyCF_ONLY_AST) runs after parsing (pythonrun.c).
-                        int flags = optimize > 0 ? Compile.PyCF_OPTIMIZED_AST
-                                : Compile.PyCF_ONLY_AST;
                         boolean syntax_check_only = (flags & Compile.PyCF_OPTIMIZED_AST)
                                 == Compile.PyCF_ONLY_AST;
                         Compile._PyCompile_AstPreprocess((mod) result, "<unknown>",
@@ -97,16 +100,18 @@ public class AstCompare {
                     dump(result, b, 0);
                 } else if (compileError != null) {
                     error(compileError, b);
-                } else if (p.getError() != null) {
+                } else if (p != null && p.getError() != null) {
                     error(p.getError(), b);
                 } else if (b.indexOf("#CRASH") < 0) {
                     b.append("#CRASH no result and no error\n");
                 }
-                for (Parser.ParserWarning w : p.warnings) {
-                    warning("#WARNING ", w, b);
+                if (p != null) {
+                    for (Parser.ParserWarning w : p.warnings) {
+                        warning("#WARNING ", w, b);
+                    }
                 }
                 if (result != null) {
-                    for (Parser.ParserWarning w : compileWarnings(file, startRule, optimize)) {
+                    for (Parser.ParserWarning w : compileWarnings(source, startRule, optimize)) {
                         warning("#COMPILE-WARNING ", w, b);
                     }
                 }
@@ -119,10 +124,10 @@ public class AstCompare {
      * The warnings compiling the file to code issues after parsing: what
      * Compile.new_compiler issues for a fresh parse of it.
      */
-    private static List<Parser.ParserWarning> compileWarnings(TokenDump.DumpFile file,
+    private static List<Parser.ParserWarning> compileWarnings(byte[] source,
             int startRule, int optimize) {
         List<Parser.ParserWarning> warnings = new ArrayList<>();
-        Parser p = new Parser(file.tokenSource(startRule == Parser.FILE_INPUT), startRule);
+        Parser p = parser(source, startRule, 0);
         Object result = p.runParser(new GeneratedParser(p));
         try {
             Compile.new_compiler((mod) result, "<unknown>", new Compile.PyCompilerFlags(),
@@ -138,12 +143,33 @@ public class AstCompare {
                 .append('\t').append(str(w.message)).append('\n');
     }
 
+    /**
+     * A parser over source as compile(source, "<unknown>", mode, flags) sets
+     * one up for bytes. First what the builtin checks (_Py_SourceAsString):
+     * no null bytes.
+     */
+    static Parser parser(byte[] source, int startRule, int flags) {
+        for (byte c : source) {
+            if (c == 0) {
+                throw new PythonSyntaxError("SyntaxError",
+                        "source code string cannot contain null bytes");
+            }
+        }
+        return Parser.fromString(source, startRule, "<unknown>",
+                new Compile.PyCompilerFlags(flags), null);
+    }
+
     static void error(PythonSyntaxError e, StringBuilder b) {
         b.append("#ERROR ").append(e.type).append('\t').append(str(e.msg));
         if (e.hasLocation()) {
-            b.append('\t').append(e.lineno).append('\t').append(e.offset)
-                    .append('\t').append(e.end_lineno).append('\t').append(e.end_offset)
+            b.append('\t').append(e.lineno).append('\t').append(e.offset).append('\t')
+                    .append(e.noEnd ? "None" : String.valueOf(e.end_lineno)).append('\t')
+                    .append(e.noEnd ? "None" : String.valueOf(e.end_offset))
                     .append('\t').append(e.text == null ? "None" : str(e.text));
+        } else if (e.type.equals("SyntaxError") || e.type.equals("IndentationError")
+                || e.type.equals("TabError")) {
+            // A SyntaxError raised with just a message.
+            b.append("\tNone\tNone\tNone\tNone\tNone");
         }
         b.append('\n');
     }

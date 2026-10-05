@@ -28,6 +28,12 @@ public class PythonSyntaxError extends RuntimeException {
      * second pass (C: _PyPegen_set_syntax_error_metadata): the start of the
      * last statement parsed and the source, or null.
      */
+    /**
+     * Whether end_lineno and end_offset are None, as for a SyntaxError made
+     * from a 4-tuple (C: _PyTokenizer_raise_init_error).
+     */
+    public boolean noEnd;
+
     public int[] metadata_location;
     public String metadata_source;
 

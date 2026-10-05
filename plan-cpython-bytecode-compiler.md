@@ -16,15 +16,17 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   (driver and future), B (preprocess) and C (symtable), in
   `org.python.pegen.compile`. `Compile.new_compiler` runs all three, as
   CPython's `compiler_setup` does.
-- **Next: the Java tokenizer,** planned in plan-pegen-parser.md ("Next: the
-  Java tokenizer"). After it comes **the backend** (codegen, flowgraph,
-  assemble), outlined below in **Next plan**. The questions about what comes
-  after the front end were settled with the user on 2026-10-04 (see
+- **The Java tokenizer is done** (plan-pegen-parser.md, "Completed: the
+  Java tokenizer"): `Parser.fromString` parses source bytes, and every
+  comparison runs from source.
+- **Next: the backend** (codegen, flowgraph, assemble), outlined below in
+  **Next plan**, to be detailed into phases before work starts. The
+  questions about it were settled with the user on 2026-10-04 (see
   **Decisions for the backend**).
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 11
-  minutes) and the pegen JUnit tests (38 tests, `FutureTest`,
-  `AstPreprocessTest` and `SymtableTest` included); commands in
-  plan-pegen-parser.md, Working notes.
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 9
+  minutes) and the pegen JUnit tests (41 tests, `FutureTest`,
+  `AstPreprocessTest`, `SymtableTest` and `TokenizerTest` included);
+  commands in plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
   d91441d6a, Phase C in ad571bf9a. Check `git status` for anything newer.
 
@@ -216,7 +218,7 @@ Results:
 - **Names:** see `GLOSSARY.md`, which now has Jython 2, Jython 3 runtime,
   Interpreter and Code object. "Core Jython" is no longer used.
 
-## Next plan: the backend (outline, to be detailed once the tokenizer is done)
+## Next plan: the backend (outline, to be detailed before work starts)
 
 - **Phase D, codegen:** `codegen.c` (about 6.5k lines) and the rest of
   `compile.c` (compiler units, the const cache), which produce the
@@ -238,8 +240,8 @@ Results:
   since gh-156894, the tokenizer convert), seen on 3.15.0rc2 and not yet
   reported upstream as of 2026-10-04. Keep matching CPython; if it's fixed
   there, follow the fix in Symtable, AstPreprocess and Errors.
-  `Errors.PyErr_ProgramTextObject` assumes UTF-8 until the Java tokenizer
-  can find a coding cookie.
+  `Errors.PyErr_ProgramTextObject` decodes the line with the file's coding
+  cookie (`Tokenizer.findEncoding`), as C does.
 - **`PyUnicode_FromFormat`'s `%.100s`** decodes statefully: a character cut
   at the 100th byte is dropped, not replaced with U+FFFD.
 - **The parameter `mod`** obscures the type `mod`, so `mod.Kind.Module`

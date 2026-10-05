@@ -71,6 +71,15 @@ public interface TokenSource {
     }
 
     /**
+     * C: tok->cur - tok->buf, the cursor's byte offset from the start of the
+     * buffer, which is the start of the line the current token began on
+     * (unlike line_start, it stays put across a line continuation).
+     */
+    default int bufferOffset() {
+        return cursorColumn();
+    }
+
+    /**
      * C: the text from tok->line_start to tok->inp, the line the tokenizer is
      * on, including its newline; null if nothing has been read (tok->inp ==
      * tok->buf).

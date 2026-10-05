@@ -1,52 +1,67 @@
 package org.python.pegen;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.python.pegen.ast.base.mod;
 import org.python.pegen.compile.Compile;
 import org.python.pegen.compile.Symtable;
 
 /**
- * Runs {@link GeneratedParser} over token dumps written by
- * tests/pegen/dump_tokens.py (read by {@link TokenDump}) and checks that every file is accepted (or, with
+ * Runs {@link GeneratedParser} over the .py files under a directory, tokenized
+ * by the Java tokenizer, and checks that every file is accepted (or, with
  * {@code --expect reject}, that every file is rejected). A parsed file is
  * also preprocessed, with constants folded (as by ast.parse(...,
  * optimize=1)), which must not fail either, and then given to symtable,
  * which must not fail other than with a SyntaxError (those are
  * compare_symtable.py's to check): like the parser, the compiler stages must
- * cope with the deepest nesting whatever the caller's stack. A stopgap until
- * the Python tokenizer is ported; driven by tests/pegen/smoke.sh.
- *
- * <p>Not a JUnit test: it needs python3 and a CPython checkout to produce its input.
+ * cope with the deepest nesting whatever the caller's stack. Driven by
+ * tests/pegen/smoke.sh.
  */
 public class RecognizerSmoke {
 
     public static void main(String[] args) throws IOException {
         boolean expectAccept = true;
         int startRule = Parser.FILE_INPUT;
-        String dump = null;
+        String root = null;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("--expect")) {
                 expectAccept = args[++i].equals("accept");
             } else if (args[i].equals("--mode")) {
                 startRule = args[++i].equals("single") ? Parser.SINGLE_INPUT : Parser.FILE_INPUT;
             } else {
-                dump = args[i];
+                root = args[i];
             }
         }
-        if (dump == null) {
+        if (root == null) {
             System.err.println(
-                    "usage: RecognizerSmoke [--expect accept|reject] [--mode file|single] TOKEN_DUMP");
+                    "usage: RecognizerSmoke [--expect accept|reject] [--mode file|single] DIR");
             System.exit(2);
         }
 
         int files = 0, unexpected = 0;
         long t0 = System.nanoTime();
-        for (TokenDump.DumpFile file : TokenDump.read(dump)) {
-            Parser p = new Parser(file.tokenSource(startRule == Parser.FILE_INPUT), startRule);
-            Object result = p.runParser(new GeneratedParser(p));
-            boolean accepted = result != null;
+        List<Path> paths;
+        try (Stream<Path> walk = Files.walk(Paths.get(root))) {
+            paths = walk.filter(f -> f.toString().endsWith(".py")).sorted()
+                    .collect(Collectors.toList());
+        }
+        for (Path path : paths) {
+            Parser p = null;
+            Object result = null;
             PythonSyntaxError compileError = null;
+            try {
+                p = AstCompare.parser(Files.readAllBytes(path), startRule, 0);
+                result = p.runParser(new GeneratedParser(p));
+            } catch (PythonSyntaxError e) {
+                compileError = e;
+            }
+            boolean accepted = result != null;
             if (accepted) {
                 try {
                     Compile._PyCompile_AstPreprocess((mod) result, "<unknown>",
@@ -67,10 +82,11 @@ public class RecognizerSmoke {
             files++;
             if (accepted != expectAccept) {
                 unexpected++;
-                Token furthest = p.fill > 0 ? p.tokens[p.fill - 1] : null;
-                System.out.println((accepted ? "ACCEPTED " : "REJECTED ") + file.path
+                Token furthest = p != null && p.fill > 0 ? p.tokens[p.fill - 1] : null;
+                System.out.println((accepted ? "ACCEPTED " : "REJECTED ") + path
                         + "  furthest token: " + furthest
-                        + (p.getError() != null ? "  error: " + p.getError().getMessage() : "")
+                        + (p != null && p.getError() != null
+                                ? "  error: " + p.getError().getMessage() : "")
                         + (compileError != null ? "  compile: " + compileError.getMessage()
                                 : ""));
             }

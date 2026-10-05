@@ -3,9 +3,8 @@
 Usage: compare_symtable.py [--mode file|single|eval] [--show N]
                            [--no-build] [--known FILE] PATH...
 
-PATH is a .py file or a directory (searched for *.py). Each file that
-CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by the
-checked-in parser and given to org.python.pegen.compile.Symtable (driven by
+PATH is a .py file or a directory (searched for *.py). Each file is
+tokenized by the Java tokenizer, parsed by the checked-in parser and given to org.python.pegen.compile.Symtable (driven by
 tests/java/org/python/pegen/SymtableCompare.java) the way the _symtable
 module does it (_Py_SymtableStringObjectFlags: parse, future, then symtable,
 with no preprocess), and compared with what CPython's
@@ -35,8 +34,8 @@ import sys
 import warnings
 import _symtable
 
-from compare_ast import (HERE, ROOT, blocks, error, first_difference, read_known, run, sha,
-                         string)
+from compare_ast import (ROOT, blocks, error, first_difference, python_files, read_known, run,
+                         sha, string)
 
 OUT = ROOT / "build" / "pegen-symtable"
 
@@ -74,7 +73,7 @@ def cpython(path, mode):
 def build():
     tests = ROOT / "tests/java/org/python/pegen"
     run(["javac", "-nowarn", "-cp", ROOT / "build/classes", "-d", OUT / "classes",
-         tests / "SymtableCompare.java", tests / "AstCompare.java", tests / "TokenDump.java"])
+         tests / "SymtableCompare.java", tests / "AstCompare.java"])
 
 
 def main():
@@ -93,17 +92,13 @@ def main():
     if not args.no_build:
         build()
 
-    dump = OUT / "tokens"
-    with open(dump, "w", encoding="utf-8") as out:
-        for i, path in enumerate(args.paths):
-            part = OUT / f"tokens.{i}"
-            run([sys.executable, HERE / "dump_tokens.py", "--all", "--mode", args.mode, path, part])
-            out.write(part.read_text(encoding="utf-8"))
-            part.unlink()
+    file_list = OUT / "files"
+    file_list.write_text("".join(f"{path}\n" for path in python_files(args.paths)),
+                     encoding="utf-8")
 
     java_out = OUT / "java.out"
     run(["java", "-ea", "-cp", f"{ROOT / 'build/classes'}:{OUT / 'classes'}",
-         "org.python.pegen.SymtableCompare", "--mode", args.mode, dump, java_out])
+         "org.python.pegen.SymtableCompare", "--mode", args.mode, file_list, java_out])
 
     files = same = 0
     differ = {"symtable": [], "error": [], "accept/reject": [], "crash": []}

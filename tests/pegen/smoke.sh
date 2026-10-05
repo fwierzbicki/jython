@@ -8,14 +8,16 @@
 # the samples are compared again at optimize levels 1 and 2, where
 # preprocess folds constants (ast.parse(..., optimize=N)). The symbol table
 # is compared with CPython's _symtable.symtable() (compare_symtable.py) over
-# the same files and symtable/, which holds samples aimed at it.
+# the same files and symtable/, which holds samples aimed at it. The Java
+# tokenizer's tokens are compared with CPython's (compare_tokens.py) over
+# the same files.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
 # MAXSTACK limit, checked on a small stack.
 #
-# Samples under pending/ record known gaps; they are run and reported but do
-# not fail the script. pending/tokenizer/ needs the Java tokenizer. Move a
+# Samples under pending/<reason>/accept|reject record known gaps; they are
+# run and reported but do not fail the script (none at present). Move a
 # sample out once it passes.
 #
 # Needs: `ant compile` already run and a CPython checkout (default ../cpython;
@@ -44,31 +46,29 @@ fi
 mkdir -p "$OUT/classes"
 javac -nowarn -cp "$ROOT/build/classes" -d "$OUT/classes" \
     "$ROOT/tests/java/org/python/pegen/RecognizerSmoke.java" \
-    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 CLASSPATH="$ROOT/build/classes:$OUT/classes"
 
 status=0
 
-# check NAME DUMP_FLAGS DIR JAVA_ARGS...
-# Dumps DIR and runs RecognizerSmoke on it; a failure sets status=1.
+# check NAME DIR JAVA_ARGS...
+# Runs RecognizerSmoke on DIR; a failure sets status=1.
 check() {
-    name=$1 dump_flags=$2 dir=$3
-    shift 3
+    name=$1 dir=$2
+    shift 2
     [ -d "$dir" ] || return 0
     echo "== $name"
-    "$PYTHON" "$HERE/dump_tokens.py" $dump_flags "$dir" "$OUT/$name.tokens"
-    java -cp "$CLASSPATH" "$@" "$OUT/$name.tokens" || status=1
+    java -cp "$CLASSPATH" "$@" "$dir" || status=1
 }
 
-# pending NAME DUMP_FLAGS DIR JAVA_ARGS...
+# pending NAME DIR JAVA_ARGS...
 # Like check, but for known gaps: reports without failing.
 pending() {
-    name=$1 dump_flags=$2 dir=$3
-    shift 3
+    name=$1 dir=$2
+    shift 2
     [ -d "$dir" ] || return 0
     echo "== $name (pending: expected to fail)"
-    "$PYTHON" "$HERE/dump_tokens.py" $dump_flags "$dir" "$OUT/$name.tokens"
-    if java -cp "$CLASSPATH" "$@" "$OUT/$name.tokens"; then
+    if java -cp "$CLASSPATH" "$@" "$dir"; then
         echo "   all pass now: move $dir out of pending/"
     fi
 }
@@ -95,16 +95,27 @@ compare_symtable() {
         status=1
 }
 
-# The Java drivers of compare_ast.py and compare_symtable.py, compiled once
-# for all the runs below.
-mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes"
+# compare_tokens NAME COMPARE_ARGS...
+# Runs compare_tokens.py; a failure sets status=1.
+compare_tokens() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_tokens.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
+# The Java drivers of compare_ast.py, compare_symtable.py and
+# compare_tokens.py, compiled once for all the runs below.
+mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes" \
+    "$ROOT/build/pegen-tokens/classes"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-tokens/classes" \
+    "$ROOT/tests/java/org/python/pegen/TokenCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-compare/classes" \
-    "$ROOT/tests/java/org/python/pegen/AstCompare.java" \
-    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-symtable/classes" \
     "$ROOT/tests/java/org/python/pegen/SymtableCompare.java" \
-    "$ROOT/tests/java/org/python/pegen/AstCompare.java" \
-    "$ROOT/tests/java/org/python/pegen/TokenDump.java"
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 
 compare lib "$CPYTHON/Lib"
 compare samples "$HERE/accept" "$HERE/reject" "$HERE/symtable"
@@ -131,18 +142,22 @@ compare_symtable symtable-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare_symtable symtable-single-corpus --mode single "$OUT/samples/doctests" \
     "$OUT/samples/strings"
 
+# The Java tokenizer's tokens, against CPython's (dump_tokens.py).
+compare_tokens tokens-lib "$CPYTHON/Lib"
+compare_tokens tokens-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable" \
+    "$HERE/single" "$HERE/deep"
+compare_tokens tokens-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+
 # Run with a 256 KB stack (a quarter of the Linux x64 default) so a JVM
 # StackOverflowError can't be hidden by a large -Xss. The parser and the
 # compiler stages (preprocess, symtable) run on a thread with their own stack
 # (LargeStack.STACK_SIZE), so nesting just under MAXSTACK must parse,
 # preprocess and get a symbol table, and just over it must be rejected
 # (MemoryError), whatever the caller's.
-check accept-small-stack "" "$HERE/accept" -Xss256k $SMOKE --expect accept
-check symtable-small-stack "" "$HERE/symtable/accept" -Xss256k $SMOKE --expect accept
-check deep-accept "" "$HERE/deep/accept" -Xss256k $SMOKE --expect accept
-check deep-reject --all "$HERE/deep/reject" -Xss256k $SMOKE --expect reject
-
-pending tokenizer-reject --all "$HERE/pending/tokenizer/reject" -Xss16m $SMOKE --expect reject
+check accept-small-stack "$HERE/accept" -Xss256k $SMOKE --expect accept
+check symtable-small-stack "$HERE/symtable/accept" -Xss256k $SMOKE --expect accept
+check deep-accept "$HERE/deep/accept" -Xss256k $SMOKE --expect accept
+check deep-reject "$HERE/deep/reject" -Xss256k $SMOKE --expect reject
 
 # The recognizer (the parser generated with --skip-actions) must keep
 # compiling against the runtime.

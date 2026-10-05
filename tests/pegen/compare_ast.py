@@ -3,10 +3,10 @@
 Usage: compare_ast.py [--mode file|single|eval] [--optimize N] [--show N]
                       [--no-build] [--known FILE] PATH...
 
-PATH is a .py file or a directory (searched for *.py). Each file that
-CPython's tokenizer accepts is tokenized with dump_tokens.py, parsed by the
-checked-in parser (build/classes; driven by
-tests/java/org/python/pegen/AstCompare.java) followed by the compiler stages
+PATH is a .py file or a directory (searched for *.py). Each file is
+tokenized by the Java tokenizer and parsed by the checked-in parser
+(build/classes; driven by tests/java/org/python/pegen/AstCompare.java),
+as compile() does with the file's bytes, followed by the compiler stages
 CPython runs for PyCF_ONLY_AST (org.python.pegen.compile.Compile: future and
 preprocess), and compared with what CPython's compile(..., "<unknown>", mode,
 ast.PyCF_ONLY_AST) gives for the same source. With --optimize N (0, 1 or 2)
@@ -16,8 +16,8 @@ ast.parse(..., optimize=N) does. Compared:
 - the tree, every node, field and location, when both accept the file;
 - the exception, when either rejects it: type, msg, lineno, offset,
   end_lineno, end_offset and text (for SyntaxError and its subclasses);
-- the warnings the parser issued: category, lineno and message. (Warnings the
-  tokenizer issues are left out: the Java side has no tokenizer yet.)
+- the warnings the tokenizer and parser issued: category, lineno and
+  message.
 - for a file both accept, the warnings preprocess issues when compiling to
   code (PEP 765's return, break or continue in a finally block), which
   PyCF_ONLY_AST doesn't enable: CPython's come from a full compile(), the
@@ -41,15 +41,12 @@ build/pegen-compare/.
 import argparse
 import ast
 import hashlib
-import io
 import pathlib
 import re
 import struct
 import subprocess
 import sys
-import tokenize
 import warnings
-import _tokenize
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -141,18 +138,6 @@ def compile_warnings(src, mode, optimize):
     return ["#COMPILE-" + line[1:] for line in warning_lines(ws)]
 
 
-def tokenizer_warnings(text):
-    """The warnings CPython's tokenizer alone issues for text."""
-    with warnings.catch_warnings(record=True) as ws:
-        warnings.simplefilter("always")
-        try:
-            for _ in _tokenize.TokenizerIter(io.StringIO(text).readline, extra_tokens=False):
-                pass
-        except SyntaxError:
-            pass
-    return {(w.category, w.lineno, str(w.message)) for w in ws}
-
-
 def cpython(path, mode, optimize):
     """The canonical form of CPython's result for path (after the #FILE line)."""
     src = pathlib.Path(path).read_bytes()
@@ -168,10 +153,6 @@ def cpython(path, mode, optimize):
         except (SyntaxError, ValueError, MemoryError, OverflowError, SystemError,
                 RecursionError) as e:
             out.append(error(e))
-    if ws:
-        encoding, _ = tokenize.detect_encoding(io.BytesIO(src).readline)
-        from_tokenizer = tokenizer_warnings(src.decode(encoding))
-        ws = [w for w in ws if (w.category, w.lineno, str(w.message)) not in from_tokenizer]
     out += warning_lines(ws)
     if accepted:
         out += compile_warnings(src, mode, optimize)
@@ -187,7 +168,17 @@ def run(cmd, **kw):
 def build():
     tests = ROOT / "tests/java/org/python/pegen"
     run(["javac", "-nowarn", "-cp", ROOT / "build/classes",
-         "-d", OUT / "classes", tests / "AstCompare.java", tests / "TokenDump.java"])
+         "-d", OUT / "classes", tests / "AstCompare.java"])
+
+
+def python_files(paths):
+    """The .py files PATH... names: files as given, directories searched."""
+    for path in paths:
+        path = pathlib.Path(path)
+        if path.is_file():
+            yield path
+        else:
+            yield from sorted(path.rglob("*.py"))
 
 
 def sha(path):
@@ -247,19 +238,15 @@ def main():
     if not args.no_build:
         build()
 
-    dump = OUT / "tokens"
-    with open(dump, "w", encoding="utf-8") as out:
-        for i, path in enumerate(args.paths):
-            part = OUT / f"tokens.{i}"
-            run([sys.executable, HERE / "dump_tokens.py", "--all", "--mode", args.mode, path, part])
-            out.write(part.read_text(encoding="utf-8"))
-            part.unlink()
+    file_list = OUT / "files"
+    file_list.write_text("".join(f"{path}\n" for path in python_files(args.paths)),
+                     encoding="utf-8")
 
     java_out = OUT / "java.out"
     run(["java", "-Xss16m", "-cp",
          f"{ROOT / 'build/classes'}:{OUT / 'classes'}",
          "org.python.pegen.AstCompare", "--mode", args.mode,
-         "--optimize", args.optimize, dump, java_out])
+         "--optimize", args.optimize, file_list, java_out])
 
     files = same = 0
     differ = {"tree": [], "error": [], "accept/reject": [], "warnings": [], "crash": []}

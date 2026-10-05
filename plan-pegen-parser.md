@@ -8,7 +8,7 @@ commands, conventions and traps the code doesn't show; they apply to the
 compiler work too (plan-cpython-bytecode-compiler.md). The completed plans are
 kept below for reference.
 
-## Status (2026-10-03)
+## Status (2026-10-04)
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
@@ -25,11 +25,10 @@ kept below for reference.
   samples moved to `tests/pegen/deep/accept/`, and `deep/reject/` has input
   just past MAXSTACK (CPython rejects it with the same MemoryError).
   smoke.sh checks both on a 1 MB stack and passes. See Working notes.
-- **Checks passing:** `ant compile`, `ant compile-test`,
-  `tests/pegen/smoke.sh` (exit 0; it runs the comparison with CPython over
-  Lib, the samples and the error corpus, in about a minute),
-  `tests/pegen/test_action_translator.py` (15 tests) and the pegen JUnit
-  tests (21 tests, `FutureTest` included).
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about
+  9 minutes: trees, symbol tables and tokens against CPython over Lib, the
+  samples and the error corpus), `tests/pegen/test_action_translator.py`
+  and the pegen JUnit tests (41, `TokenizerTest` included).
 - **Before calling it done:** run `/adversarial-parser-review` (see
   Verification).
 - **Upstream stays at v3.15.0rc2** (`../cpython` checked out at the tag,
@@ -37,28 +36,28 @@ kept below for reference.
   `asdl_c.py` and the lexer (`<>` tokenizing as `<` `>` without
   barry_as_FLUFL, gh-151464; unary `+` in match patterns, gh-152708;
   f-string debug text). Syncing to rc3 or later is a separate task.
-- **What's left:**
-  - **The Java tokenizer,** a port of Parser/lexer/. It replaces
-    `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
-    tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
-    single-input entries in `compare_known.txt`. **It's next:** see
-    **Next: the Java tokenizer** below.
-  - **Name aliases for `\N{...}`** (`ucnhash`).
+- **Done: the Java tokenizer** (`org.python.pegen.lexer`, see **Completed:
+  the Java tokenizer**): the parser now reads source through it
+  (`Parser.fromString`), and every comparison runs from source; token
+  dumps are only the oracle for `compare_tokens.py`.
+- **What's left:** name aliases for `\N{...}` (`ucnhash`), the one
+  `compare_known.txt` entry for the AST.
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
   13fdf834c, Phase 4 in 2c17a33f7, Phase 5 and stack depth by 676fc3da9,
   the last commit on peg-parser. Later work is on cpython-bytecode-compiler
   (plan-cpython-bytecode-compiler.md).
 
-## Next: the Java tokenizer
+## Completed: the Java tokenizer (approved and done 2026-10-04)
 
 Decided with the user, 2026-10-04 (see plan-cpython-bytecode-compiler.md,
-Decisions). It's the next piece of work, ahead of codegen. It's outlined
-here and gets a detailed plan, in phases, when work on it starts.
+Decisions). It's the next piece of work, ahead of codegen.
 
 **Goal:** a port of Parser/lexer/ and Parser/tokenizer/ (about 3.3k lines of
 C) as the parser's `TokenSource`, so the front end runs from source with no
 CPython token dumps. It closes these gaps:
-- tokenizer errors (`pending/tokenizer/`, untested so far);
+- tokenizer errors (`pending/tokenizer/`, and the corpus files compare_ast.py
+  skips today because CPython's tokenizer rejects them);
+- tokenizer warnings (compare_ast.py filters them out today);
 - the 9 single-input entries in `compare_known.txt`;
 - the 39 f/t-string debug files (`Token.metadata`) and the escaped-brace end
   columns, which are limitations of the dump;
@@ -68,6 +67,113 @@ CPython token dumps. It closes these gaps:
 **Rules:** the same as the rest of this plan: C names kept, CPython's
 `tokenize` and `ast.dump()` as the oracle, and smoke.sh passing over the
 whole corpus at every checkpoint. Mutation checks are optional spot-checks.
+
+**Decisions** (approved by the user, 2026-10-04):
+- **Package `org.python.pegen.lexer`,** one Java file per C file, C names and
+  order kept: `State.java` (lexer/state.h and state.c: `tok_state`,
+  `tokenizer_mode`, `struct token`), `Lexer.java` (lexer/lexer.c),
+  `Helpers.java` (tokenizer/helpers.c),
+  `StringTokenizer.java` (tokenizer/string_tokenizer.c and
+  utf8_tokenizer.c). Fields are package-private, as C's struct fields are
+  open. A `Tokenizer` class adapts `tok_state` to `TokenSource` (the
+  `_PyPegen_fill_token`/`initialize_token` side of pegen.c), and
+  `Parser` gets a `_PyPegen_run_parser_from_string` counterpart.
+- **The buffer is a `byte[]` of UTF-8,** and `buf`, `cur`, `inp`,
+  `line_start`, `start`, `multi_line_start` are int indices into it, as
+  `StringParser` works on bytes. Columns stay byte offsets, so nothing
+  converts them, and error columns that C counts in characters (decoded
+  `errtext` length) are counted the way C counts them.
+- **Input: strings only.** `_PyTokenizer_FromString` (bytes: BOM, coding
+  cookie, decoding, newline translation) and `_PyTokenizer_FromUTF8` (str
+  source, `PyCF_IGNORE_COOKIE`). The file, readline and interactive
+  tokenizers (file_tokenizer.c, readline_tokenizer.c) are left out: there
+  is no REPL or `tokenize` module on this branch. `tok->prompt` stays null.
+- **Encodings** named by a cookie are looked up as Java charsets after
+  `get_normal_name`; a name Python knows and Java doesn't is a difference to
+  list, not to emulate.
+- **The token oracle stays:** `dump_tokens.py` keeps writing CPython's
+  tokens, and a new `TokenCompare` driver (`compare_tokens.py`) diffs the
+  Java tokenizer's against them. Once the drivers switch to the Java
+  tokenizer (Phase T3), `TokenDump` is no longer used by `AstCompare`,
+  `SymtableCompare` or `RecognizerSmoke`, and is deleted.
+
+### Phase T1: the lexer (done, 2026-10-04)
+- [x] `State` (state.h, state.c), `Lexer` (all of lexer.c), `Helpers`
+      (helpers.c), `StringTokenizer` (string_tokenizer.c, utf8_tokenizer.c)
+      and `Tokenizer`, the `TokenSource` adapter, in
+      `org.python.pegen.lexer`. Not used by the parser yet.
+- [x] `TokenCompare` and `compare_tokens.py`: types, text, byte positions
+      and metadata against `dump_tokens.py`. smoke.sh runs it over Lib, the
+      samples and the error corpus (`tokens-*`).
+
+Results:
+- **All of lexer.c went in at once,** f/t-string mode included, since
+  `tok_get_normal_mode` is interleaved with it, so Phase T2's code is in T1.
+- **Generated:** `TokenTypes` now has `_PyToken_OneChar`, `_TwoChars` and
+  `_ThreeChars` (Parser/token.c), built by generate.py the way
+  Tools/build/generate_token.py builds them. `lexer/UnicodeTables.java`
+  holds CPython's XID_Start, XID_Continue and printable ranges (Unicode 17),
+  generated by `src/pegen/tools/generate_unicode.py`, which must run on the
+  3.15 build (`../cpython/python src/pegen/tools/generate_unicode.py`), so
+  identifiers follow CPython's Unicode version, not the JVM's.
+- **Left out:** buffer.c and case 0 of `_PyLexer_update_ftstring_expr`,
+  which only the file and readline tokenizers use. The input is held whole,
+  so a mode's `last_expr_buffer` is an index into it, not a copy.
+- **Gotos:** `nextline` and `again` are labelled loops, `f_string_quote` /
+  `letter_quote` a jump variable, and `fraction` / `exponent` /
+  `imaginary` the method `tok_number_tail`.
+- **Comparison:** 31,048 files (Lib, samples, the error corpus): all match
+  apart from 13 known dump limitations in `compare_known.txt` (mode
+  `tokens`): the dump doesn't set metadata on the `}` that closes a debug
+  or t-string field with a format spec (or a debug field whose `=` isn't
+  last), and a BOM-only file's ENDMARKER line. `dump_tokens.py` now puts an
+  empty file's ENDMARKER on line 0, as C does in every mode.
+
+### Phase T2: f- and t-strings (done with T1)
+- [x] `tok_get_fstring_mode`, the mode stack, `set_ftstring_expr` /
+      `_PyLexer_update_ftstring_expr` (`Token.metadata`). (`Buffer` isn't
+      needed: see T1.)
+- [x] `compare_tokens.py` over every file; the dump's known limitations
+      listed as expected differences.
+
+### Phase T3: errors and warnings; the drivers switch over (done, 2026-10-04)
+- [x] The tokenizer's errors and warnings (ported in T1 with helpers.c):
+      `_PyTokenizer_syntaxerror*`, `indenterror`, `error_ret`,
+      `warn_invalid_escape_sequence`, `parser_warn`, `ensure_utf8`, decode
+      errors and `_PyTokenizer_raise_init_error`; `TokenSource.error()`, and
+      warnings to the parser's `warning_handler`.
+- [x] `Parser.fromString` (the setup half of `_PyPegen_run_parser_from_string`,
+      with `compute_parser_flags`): source bytes, or UTF-8 with
+      `PyCF_IGNORE_COOKIE`. `AstCompare`, `SymtableCompare` and
+      `RecognizerSmoke` read source and use it. compare_ast.py no longer
+      skips files CPython's tokenizer rejects, nor filters tokenizer
+      warnings.
+- [x] `pending/tokenizer/reject/invalid_identifier_char.py` moved to
+      `reject/`; the 9 single-input entries left `compare_known.txt`.
+- [x] `Errors.PyErr_ProgramTextObject` decodes with the encoding
+      `_PyTokenizer_FindEncodingFilename` (in `StringTokenizer`) finds.
+- [x] `TokenDump` deleted; smoke.sh uses the Java tokenizer throughout.
+      `dump_tokens.py` stays as compare_tokens.py's oracle.
+
+Results:
+- **Comparisons:** Lib is 2,025 files now (the 4 CPython's tokenizer rejects
+  included), and the error corpus 37,260 (about 8,000 tokenizer rejects
+  that were skipped before); all match but the `\N{RS}` entry, at
+  every mode and optimize level.
+- **`tok->buf` is not `line_start`:** C reports E_LINECONT at
+  `cur - buf`, and `_PyPegen_raise_error`'s fallback checks `cur == buf`.
+  In the string tokenizer `buf` moves to a new line only between tokens, so
+  after a line continuation it's still on the earlier line. The dump's
+  `cursorColumn()` stood in for both; `TokenSource.bufferOffset()` is now
+  `cur - buf` (single-mode `strings/s11771.py`).
+- **Compile's own check:** `compile()` rejects source with a null byte
+  before parsing (`_Py_SourceAsString`); `AstCompare.parser` does the same,
+  standing in for the builtin.
+- **`SyntaxError` from an init error** has `end_lineno` and `end_offset`
+  None (a 4-tuple): `PythonSyntaxError.noEnd`.
+- `tests/java/org/python/pegen/lexer/TokenizerTest.java`: encoding
+  detection, `SyntaxError.text` through a latin-1 cookie, and
+  `PyCF_IGNORE_COOKIE`.
 
 ## Completed: port the _PyPegen_* helpers
 
@@ -340,9 +446,9 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `build/pegen-smoke/samples` on every run.
 - **Translator tests:** `python3 tests/pegen/test_action_translator.py`.
 - **pegen JUnit tests** (after `ant compile`):
-  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java`,
+  `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java tests/java/org/python/pegen/lexer/*Test.java`,
   then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest org.python.pegen.compile.SymtableTest`.
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest org.python.pegen.compile.SymtableTest org.python.pegen.lexer.TokenizerTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
   `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] [--optimize N] PATH...`
@@ -359,6 +465,13 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `../cpython/python.exe tests/pegen/compare_symtable.py [--mode single] PATH...`
   compares with `_symtable.symtable()` the same way (driver in
   `build/pegen-symtable/`; same `--no-build` and `--known`).
+- **Compare tokens with CPython** (after `ant compile`):
+  `../cpython/python tests/pegen/compare_tokens.py [--known tests/pegen/compare_known.txt] PATH...`
+  diffs the Java tokenizer's tokens with `dump_tokens.py`'s (driver in
+  `build/pegen-tokens/`; same `--no-build`).
+- **Regenerate the Unicode tables:**
+  `../cpython/python src/pegen/tools/generate_unicode.py` (it must run on the
+  3.15 build; it writes `src/org/python/pegen/lexer/UnicodeTables.java`).
 - **Compiling a generated parser** by hand into a scratch directory:
   generate with `--output-dir $D` (and `--skip-actions` for the recognizer),
   then

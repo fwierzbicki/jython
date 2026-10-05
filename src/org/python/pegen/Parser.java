@@ -11,6 +11,8 @@ import java.util.Map;
 
 import org.python.pegen.ast.Complex;
 import org.python.pegen.ast.base.expr;
+import org.python.pegen.compile.Compile;
+import org.python.pegen.lexer.Tokenizer;
 
 import static org.python.pegen.TokenTypes.*;
 
@@ -184,6 +186,65 @@ public class Parser {
     public Parser(TokenSource tok, int start_rule) {
         this.tok = tok;
         this.start_rule = start_rule;
+    }
+
+    /** pegen.c compute_parser_flags: the PyPARSE_* flags for the PyCF_* ones. */
+    static int compute_parser_flags(Compile.PyCompilerFlags flags) {
+        int parser_flags = 0;
+        if (flags == null) {
+            return 0;
+        }
+        if ((flags.cf_flags & Compile.PyCF_DONT_IMPLY_DEDENT) != 0) {
+            parser_flags |= ActionHelpers.PyPARSE_DONT_IMPLY_DEDENT;
+        }
+        if ((flags.cf_flags & Compile.PyCF_IGNORE_COOKIE) != 0) {
+            parser_flags |= ActionHelpers.PyPARSE_IGNORE_COOKIE;
+        }
+        if ((flags.cf_flags & Compile.CO_FUTURE_BARRY_AS_BDFL) != 0) {
+            parser_flags |= ActionHelpers.PyPARSE_BARRY_AS_BDFL;
+        }
+        if ((flags.cf_flags & Compile.PyCF_TYPE_COMMENTS) != 0) {
+            parser_flags |= ActionHelpers.PyPARSE_TYPE_COMMENTS;
+        }
+        if ((flags.cf_flags & Compile.PyCF_ALLOW_INCOMPLETE_INPUT) != 0) {
+            parser_flags |= ActionHelpers.PyPARSE_ALLOW_INCOMPLETE_INPUT;
+        }
+        return parser_flags;
+    }
+
+    /**
+     * The setup half of pegen.c _PyPegen_run_parser_from_string (with
+     * _PyPegen_Parser_New): a parser over source bytes, tokenized by the Java
+     * tokenizer. Run it with {@link #runParser}. str is the source as
+     * compile() passes it: its own encoding (BOM or coding cookie), or UTF-8
+     * with PyCF_IGNORE_COOKIE. A tokenizer that can't start (a bad encoding)
+     * is thrown as the SyntaxError _PyTokenizer_raise_init_error makes.
+     * The tokenizer's warnings go to the parser's warning_handler.
+     */
+    public static Parser fromString(byte[] str, int start_rule, String filename_ob,
+            Compile.PyCompilerFlags flags, String module) {
+        boolean exec_input = start_rule == FILE_INPUT;
+
+        Tokenizer tok;
+        if (flags != null && (flags.cf_flags & Compile.PyCF_IGNORE_COOKIE) != 0) {
+            tok = Tokenizer.fromUTF8(str, exec_input, filename_ob);
+        } else {
+            tok = Tokenizer.fromString(str, exec_input, filename_ob);
+        }
+        tok.setModule(module);
+
+        int parser_flags = compute_parser_flags(flags);
+        int feature_version = flags != null && (flags.cf_flags & Compile.PyCF_ONLY_AST) != 0
+                ? flags.cf_feature_version : Compile.PY_MINOR_VERSION;
+        // _PyPegen_Parser_New
+        tok.setTypeComments((parser_flags & ActionHelpers.PyPARSE_TYPE_COMMENTS) != 0);
+        Parser p = new Parser(tok, start_rule);
+        p.flags = parser_flags;
+        p.feature_version = feature_version;
+        p.filename = filename_ob;
+        p.module = module;
+        tok.setWarningHandler(w -> p.warning_handler.warn(w));
+        return p;
     }
 
     /** _PyPegen_fill_token: append the next token, mapping keyword names. */

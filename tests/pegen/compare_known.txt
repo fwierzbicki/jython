@@ -1,19 +1,28 @@
-# Expected differences for compare_ast.py --known (run by smoke.sh).
+# Expected differences for compare_ast.py, compare_symtable.py and
+# compare_tokens.py --known (run by smoke.sh).
 # MODE SHA1 description; SHA1 is the first 12 hex digits of the file's SHA-1,
 # as compare_ast.py prints it. Remove an entry once it matches.
 
 # \N{RS}: a Unicode name alias; Jython's ucnhash has no aliases.
 file c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
 
-# Single input ending in a whitespace-only line with no newline, after a def
-# or class header: C's non-exec tokenizer handles that line differently from
-# the exec-mode tokens dump_tokens.py starts from. Needs the Java tokenizer.
-single 8b1859e471ed "def foo():\n " (tokens of an unterminated last line)
-single a087a6f45efd "def f():\n  " (tokens of an unterminated last line)
-single ab2e1495cc52 "class X:\n " (tokens of an unterminated last line)
-single 1c634ed16cce def + whitespace-only last line (tokens)
-single 9d95540b0e00 def + whitespace-only last line (tokens)
-single 8d8222af63d8 def + whitespace-only last line (tokens)
-single 3f5e5f946295 class + whitespace-only last line (tokens)
-single 6075b2fe4bae def + whitespace-only last line (tokens)
-single 319dbb827aec def + whitespace-only last line (tokens)
+# compare_tokens.py: dump_tokens.py doesn't set Token.metadata on the '}'
+# closing a debug f-string's or a t-string's replacement field that has a
+# format spec (set_ftstring_expr runs there too, with the spec included).
+# The parser reads the spec's metadata first, so it isn't visible in the AST.
+tokens 38e2bf6cd40d Lib/test/test_annotationlib.py: '}' metadata after a format spec
+tokens 073caf5507f8 Lib/test/test_capi/test_long.py: '}' metadata after a format spec
+tokens 8d1970a278c0 Lib/test/test_fstring.py: '}' metadata after a format spec
+tokens edd039690701 Lib/test/test_pow.py: '}' metadata after a format spec
+tokens 15a7e978b440 Lib/test/test_pprint.py: '}' metadata after a format spec
+tokens 547620b6715f Lib/test/test_string/test_templatelib.py: '}' metadata after a format spec
+tokens a635c3ccead1 Lib/test/test_tstring.py: '}' metadata after a format spec
+tokens 7fa846adff00 strings/s13734.py: '}' metadata after a format spec
+tokens 2fe206535311 strings/s13831.py: '}' metadata of f'{a=b}' ('=' not last)
+tokens 6df25996dc14 strings/s32453.py: '}' metadata after a format spec
+tokens 554d16360633 strings/s32468.py: '}' metadata after a format spec
+tokens ea3925993faf strings/s32470.py: '}' metadata after a format spec
+
+# A file holding only a BOM: C adds exec input's newline before skipping the
+# BOM, so ENDMARKER is on line 1; tokenize sees empty text (line 0).
+tokens 57218c316b69 strings/s07266.py: BOM-only file, ENDMARKER line

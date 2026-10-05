@@ -337,7 +337,7 @@ public final class ActionHelpers {
                 break;
             case E_LINECONT: {
                 // C: p->tok->cur - p->tok->buf - 1
-                col_offset = p.tok.cursorColumn() - 1;
+                col_offset = p.tok.bufferOffset() - 1;
                 msg = "unexpected character after line continuation character";
                 break;
             }
@@ -455,8 +455,12 @@ public final class ActionHelpers {
         int col_offset;
         int end_col_offset = -1;
         if (t.col_offset == -1) {
-            // C: 0 if nothing was read (tok->cur == tok->buf), else tok->cur - tok->line_start
-            col_offset = p.tok.cursorColumn();
+            if (p.tok.bufferOffset() == 0) { // C: p->tok->cur == p->tok->buf
+                col_offset = 0;
+            } else {
+                // C: start = p->tok->buf ? p->tok->line_start : p->tok->buf
+                col_offset = p.tok.cursorColumn();
+            }
         } else {
             col_offset = t.col_offset + 1;
         }

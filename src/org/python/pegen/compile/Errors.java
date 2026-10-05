@@ -2,13 +2,14 @@ package org.python.pegen.compile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 
 import org.python.pegen.Parser;
 import org.python.pegen.PythonSyntaxError;
+import org.python.pegen.lexer.Tokenizer;
 
 /**
  * The parts of CPython's Python/errors.c the compiler stages use to locate a
@@ -71,9 +72,9 @@ public final class Errors {
      * encoding): line lineno of the file filename, with its newline, or null
      * if there's no such file or line.
      *
-     * <p>C asks the tokenizer for the file's coding cookie
-     * (_PyTokenizer_FindEncodingFilename). There's no Java tokenizer yet, so
-     * this always decodes as UTF-8 (C's fallback), with "replace".
+     * <p>The line is decoded with the encoding a BOM or coding cookie
+     * declares (_PyTokenizer_FindEncodingFilename), else UTF-8, with
+     * "replace".
      */
     public static String PyErr_ProgramTextObject(String filename, int lineno) {
         if (filename == null || lineno <= 0) {
@@ -85,7 +86,11 @@ public final class Errors {
         } catch (IOException | InvalidPathException | SecurityException e) {
             return null;
         }
-        return err_programtext(data, lineno);
+        String encoding = Tokenizer.findEncoding(data);
+        if (encoding == null) {
+            encoding = "utf-8";
+        }
+        return err_programtext(data, lineno, encoding);
     }
 
     /**
@@ -93,7 +98,7 @@ public final class Errors {
      * _Py_UniversalNewlineFgetsWithSize into a 1000-byte buffer, so a line
      * longer than that comes back as its last piece.
      */
-    private static String err_programtext(byte[] fp, int lineno) {
+    private static String err_programtext(byte[] fp, int lineno, String encoding) {
         int[] pos = {0};
         ByteArrayOutputStream linebuf = null;
         for (int i = 0; i < lineno;) {
@@ -121,7 +126,12 @@ public final class Errors {
                 && (line[1] & 0xff) == 0xbb && (line[2] & 0xff) == 0xbf) {
             start = 3;
         }
-        return new String(line, start, line.length - start, StandardCharsets.UTF_8);
+        // PyUnicode_Decode(line, line_size, encoding, "replace")
+        try {
+            return new String(line, start, line.length - start, Charset.forName(encoding));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**

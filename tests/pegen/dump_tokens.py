@@ -1,4 +1,4 @@
-"""Dump CPython's tokens for RecognizerSmoke.java (and AstCompare.java).
+"""Dump CPython's tokens, the oracle for the Java tokenizer (compare_tokens.py).
 
 Usage: dump_tokens.py [--all] [--mode file|single|eval] ROOT OUT
 
@@ -175,11 +175,10 @@ def dump_file(path, out, check_parse, exec_input):
         toks = [(t[0], t[1], t[2], t[3]) for t in
                 _tokenize.TokenizerIter(io.StringIO(text).readline, extra_tokens=False)]
     if not toks:
-        # TokenizerIter yields nothing for empty input; C's tokenizer gives ENDMARKER.
-        # (Its line is 0 for non-exec input, as CPython reports for empty
-        # single-mode input.)
-        row = 1 if exec_input else 0
-        toks = [(ENDMARKER, "", (row, -1), (row, -1))]
+        # TokenizerIter yields nothing for empty input; C's tokenizer gives
+        # ENDMARKER on line 0, having read no line (exec input gets no
+        # implicit newline when there's nothing to end).
+        toks = [(ENDMARKER, "", (0, -1), (0, -1))]
     if not exec_input and not text.endswith("\n"):
         # TokenizerIter adds a newline to an unterminated last line, as C's
         # tokenizer does only for exec input; without it there is no NEWLINE
