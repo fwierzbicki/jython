@@ -8,7 +8,7 @@ the approved plan with progress ticked off. **Working notes** has what's
 specific to this work. The parser it builds on, and the commands,
 conventions and traps shared with it, are in plan-pegen-parser.md.
 
-## Status (2026-10-03)
+## Status (2026-10-04)
 
 - **The parser is done** (plan-pegen-parser.md): its output matches
   CPython's `ast.parse()` over Lib and the error corpus, upstream v3.15.0rc2.
@@ -16,9 +16,11 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   (driver and future), B (preprocess) and C (symtable), in
   `org.python.pegen.compile`. `Compile.new_compiler` runs all three, as
   CPython's `compiler_setup` does.
-- **What's left after this plan:** the Java tokenizer (plan-pegen-parser.md),
-  then **backends** (codegen onwards). See ADR 0001 and the open questions
-  below, which are to be decided before codegen starts.
+- **Next: the Java tokenizer,** planned in plan-pegen-parser.md ("Next: the
+  Java tokenizer"). After it comes **the backend** (codegen, flowgraph,
+  assemble), outlined below in **Next plan**. The questions about what comes
+  after the front end were settled with the user on 2026-10-04 (see
+  **Decisions for the backend**).
 - **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 11
   minutes) and the pegen JUnit tests (38 tests, `FutureTest`,
   `AstPreprocessTest` and `SymtableTest` included); commands in
@@ -38,7 +40,7 @@ Each is checked against CPython the way the parser is. Terms are in
 - **One front end, several backends.** CPython bytecode is the first
   backend, not the only one. Nothing in future, preprocess or symtable is
   specialized for it.
-- **Core Jython is not changed:** `org.python.compiler`, the ANTLR parser and
+- **Jython 2 is not changed:** `org.python.compiler`, the ANTLR parser and
   the runtime. `ScopesCompiler` is neither reused nor adapted.
 - **Port rules:** hand-ported into `org.python.pegen.compile`, with C
   function, field and flag names kept, as with `ActionHelpers`.
@@ -184,11 +186,46 @@ Results:
 - smoke.sh passes, with the new comparisons in it, at the end of every
   phase. `compare_known.txt` lists any expected differences.
 
-### Open questions (decide before codegen starts)
-- Where the interpreter comes from: written fresh from ceval.c/bytecodes.c,
-  adopted from Jeff Allen's rt3, or something else.
-- The runtime object model: Jython 2's `PyObject` or a new one.
-- What a code object's constants are made of.
+## Decisions for the backend (made with the user, 2026-10-04)
+
+- **This is a learning spike** (ADR 0001, amended). Whether the work moves to
+  `main`, and in what form, is decided at the end.
+- **It's built here, on the Jython 2 tree,** although the interpreter (the
+  Jython 3 runtime's, on `main`) lives there. It's ported **once, at the
+  end, and only after checking with the user.** `peg-parser-main` and
+  `repl315` stay as they are until then.
+- **Order:** the Java tokenizer first, then codegen.
+- **The backend stops at the code object.** Running code is out of scope for
+  this pass, and the user may revisit that once the code object is done.
+- **The code object is a plain Java value** in `org.python.pegen.compile`,
+  with `PyCodeObject`'s fields. It is neither rt3's `CPython315Code` nor
+  Jython 2's `PyCode`. Its constants are the AST value classes (String,
+  BigInteger, Double, Complex, Bytes, Singleton) plus tuple, frozenset and
+  nested code objects.
+- **The oracle works stage by stage,** through `_testinternalcapi`:
+  `compiler_codegen` (the instruction sequence), `optimize_cfg` (flowgraph)
+  and `assemble_code_object`. Each stage is a phase, compared over the whole
+  corpus.
+- **The end-to-end check is marshal output:** a `marshal.dumps` writer for the
+  code object, diffed against CPython's `marshal.dumps(compile(...))`. That's
+  also how the code would reach rt3, which already reads marshal
+  (`repl315`). Still to check: `FLAG_REF` depends on CPython refcounts, so
+  the diff may need normalizing, or a `marshal.loads` round-trip instead.
+- **Rigor:** the whole-corpus comparisons pass at every checkpoint, as
+  before. Mutation checks are optional spot-checks.
+- **Names:** see `GLOSSARY.md`, which now has Jython 2, Jython 3 runtime,
+  Interpreter and Code object. "Core Jython" is no longer used.
+
+## Next plan: the backend (outline, to be detailed once the tokenizer is done)
+
+- **Phase D, codegen:** `codegen.c` (about 6.5k lines) and the rest of
+  `compile.c` (compiler units, the const cache), which produce the
+  instruction sequence. Compared with `compiler_codegen`.
+- **Phase E, flowgraph:** `flowgraph.c` (about 4.3k lines). Compared with
+  `optimize_cfg`.
+- **Phase F, assemble:** `assemble.c` (about 0.8k lines), which produces the
+  code object. Compared with `assemble_code_object`, then end to end through
+  marshal.
 
 ## Working notes (for a new session)
 

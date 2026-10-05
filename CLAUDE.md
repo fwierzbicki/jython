@@ -11,10 +11,10 @@ that compiles to CPython bytecode. Target: CPython v3.15.0 (../cpython).
 There are two plans; each Status section says where that work stands and
 what is next, and "Working notes" lists the decisions, conventions and traps
 already hit. Update Status and the checkboxes at each checkpoint.
-- plan-cpython-bytecode-compiler.md: the current work (compiler front end,
-  then backends). Read it first.
-- plan-pegen-parser.md: the finished parser, and the commands, conventions
-  and traps both share.
+- plan-cpython-bytecode-compiler.md: the compiler work (front end done, and
+  the decisions and outline for the backend). Read it first.
+- plan-pegen-parser.md: the parser, the Java tokenizer (the next piece of
+  work), and the commands, conventions and traps both share.
 
 ## Ground rules
 - The user makes the git commits: don't commit or stage (use mv, not git mv).

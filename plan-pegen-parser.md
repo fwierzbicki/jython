@@ -41,13 +41,33 @@ kept below for reference.
   - **The Java tokenizer,** a port of Parser/lexer/. It replaces
     `dump_tokens.py` and `TokenDump` as the TokenSource, and it's needed for
     tokenizer errors (untested so far; `pending/tokenizer/`) and for the 9
-    single-input entries in `compare_known.txt`. It comes right after the
-    compiler front end (plan-cpython-bytecode-compiler.md).
+    single-input entries in `compare_known.txt`. **It's next:** see
+    **Next: the Java tokenizer** below.
   - **Name aliases for `\N{...}`** (`ucnhash`).
 - **Committed:** Phase 1 in f59b322e1, Phase 2 in 51ec27f58, Phase 3 in
   13fdf834c, Phase 4 in 2c17a33f7, Phase 5 and stack depth by 676fc3da9,
   the last commit on peg-parser. Later work is on cpython-bytecode-compiler
   (plan-cpython-bytecode-compiler.md).
+
+## Next: the Java tokenizer
+
+Decided with the user, 2026-10-04 (see plan-cpython-bytecode-compiler.md,
+Decisions). It's the next piece of work, ahead of codegen. It's outlined
+here and gets a detailed plan, in phases, when work on it starts.
+
+**Goal:** a port of Parser/lexer/ and Parser/tokenizer/ (about 3.3k lines of
+C) as the parser's `TokenSource`, so the front end runs from source with no
+CPython token dumps. It closes these gaps:
+- tokenizer errors (`pending/tokenizer/`, untested so far);
+- the 9 single-input entries in `compare_known.txt`;
+- the 39 f/t-string debug files (`Token.metadata`) and the escaped-brace end
+  columns, which are limitations of the dump;
+- coding cookies, for `Errors.PyErr_ProgramTextObject` and
+  `SyntaxError.text`.
+
+**Rules:** the same as the rest of this plan: C names kept, CPython's
+`tokenize` and `ast.dump()` as the oracle, and smoke.sh passing over the
+whole corpus at every checkpoint. Mutation checks are optional spot-checks.
 
 ## Completed: port the _PyPegen_* helpers
 

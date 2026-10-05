@@ -35,3 +35,26 @@ _Avoid_: scope (that word means something else here), entry, ScopeInfo
 Where a name in a block resolves: local, global (explicit or implicit), free
 or cell.
 _Avoid_: binding kind, using it for a block
+
+**Code object**:
+What a backend that compiles to **Bytecode** produces for each **Block**
+that has code: the instructions plus their constants, names, line table and
+exception table, with the fields of CPython's `PyCodeObject`.
+_Avoid_: PyCode (that's Jython 2's class), compiled code
+
+## Runtimes
+
+**Jython 2**:
+The released Jython: its runtime, its ANTLR parser and its compiler to
+**JVM bytecode**. This work leaves it unchanged.
+_Avoid_: core Jython, core
+
+**Jython 3 runtime**:
+The new runtime on the `main` branch (rt3): its object model, with
+invokedynamic call sites. Code from every **Backend** runs on it.
+_Avoid_: core, rt3 (except as the branch's nickname), invokedynamic runtime
+
+**Interpreter**:
+The part of the **Jython 3 runtime** that executes **Bytecode**, one frame
+at a time.
+_Avoid_: VM, eval loop, cpython bytecode runtime
