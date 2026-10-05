@@ -10,13 +10,13 @@ file c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
 # closing a debug f-string's or a t-string's replacement field that has a
 # format spec (set_ftstring_expr runs there too, with the spec included).
 # The parser reads the spec's metadata first, so it isn't visible in the AST.
-tokens 38e2bf6cd40d Lib/test/test_annotationlib.py: '}' metadata after a format spec
+tokens 0650c2a2bedd Lib/test/test_annotationlib.py: '}' metadata after a format spec
 tokens 073caf5507f8 Lib/test/test_capi/test_long.py: '}' metadata after a format spec
-tokens 8d1970a278c0 Lib/test/test_fstring.py: '}' metadata after a format spec
+tokens 5d96af3ea2a9 Lib/test/test_fstring.py: '}' metadata after a format spec
 tokens edd039690701 Lib/test/test_pow.py: '}' metadata after a format spec
-tokens 15a7e978b440 Lib/test/test_pprint.py: '}' metadata after a format spec
+tokens 5be895ba7d5d Lib/test/test_pprint.py: '}' metadata after a format spec
 tokens 547620b6715f Lib/test/test_string/test_templatelib.py: '}' metadata after a format spec
-tokens a635c3ccead1 Lib/test/test_tstring.py: '}' metadata after a format spec
+tokens ba89f0608dff Lib/test/test_tstring.py: '}' metadata after a format spec
 tokens 7fa846adff00 strings/s13734.py: '}' metadata after a format spec
 tokens 2fe206535311 strings/s13831.py: '}' metadata of f'{a=b}' ('=' not last)
 tokens 6df25996dc14 strings/s32453.py: '}' metadata after a format spec

@@ -79,7 +79,11 @@ def strip_comments(expr):
     i = 0
     while i < len(expr):
         ch = expr[i]
-        if ch in "\"'":
+        if ch == "\\":
+            # An escaped character is copied, not read as a quote or '#'.
+            out.append(expr[i:i + 2])
+            i += 1
+        elif ch in "\"'":
             if not in_string:
                 in_string, quote_char = True, ch
             elif ch == quote_char:
@@ -103,8 +107,7 @@ class FStringMode:
         self.is_tstring = is_tstring
         self.in_expr = False      # between a field's '{' and its ':' or '}'
         self.depth = 0            # brackets open inside the expression
-        self.expr_start = None    # offset just after the field's '{'
-        self.expr_end = None      # last_expr_end
+        self.expr_start = None    # offset just after the field's '{' (last_expr_start)
         self.in_debug = False
 
 
@@ -129,7 +132,6 @@ def compute_metadata(toks, offset, text):
                 mode.in_expr = True
                 mode.depth = 0
                 mode.expr_start = offset(end)
-                mode.expr_end = None
                 mode.in_debug = False
             continue
         if type_ in (LPAR, LSQB, LBRACE):
@@ -145,10 +147,9 @@ def compute_metadata(toks, offset, text):
             mode.in_debug = True
             continue
         if type_ in (EXCLAMATION, COLON, RBRACE):
-            if type_ != COLON or mode.expr_end is None:
-                mode.expr_end = offset(start)
+            # The expression's text runs up to this token (tok->start).
             if mode.in_debug or mode.is_tstring:
-                metadata[i] = strip_comments(text[mode.expr_start:mode.expr_end])
+                metadata[i] = strip_comments(text[mode.expr_start:offset(start)])
             if type_ in (COLON, RBRACE):
                 mode.in_expr = False
     return metadata
