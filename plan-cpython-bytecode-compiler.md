@@ -31,7 +31,8 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   commands in plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
   d91441d6a, Phase C in ad571bf9a, the tokenizer in bb17abeb6, Phase D
-  (codegen) in 5623f71c7. Check `git status` for anything newer.
+  (codegen) in 5623f71c7, Phase E (flowgraph) in 6de890f52. Check `git
+  status` for anything newer.
 
 ## Current plan: the compiler front end
 
