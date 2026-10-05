@@ -26,3 +26,20 @@ tokens ea3925993faf strings/s32470.py: '}' metadata after a format spec
 # A file holding only a BOM: C adds exec input's newline before skipping the
 # BOM, so ENDMARKER is on line 1; tokenize sees empty text (line 0).
 tokens 57218c316b69 strings/s07266.py: BOM-only file, ENDMARKER line
+
+# compare_codegen.py: a str of lone surrogates that pair up ('\ud801\udca0')
+# is a different constant from the character they spell ('\U000104A0') in
+# Python, but the same Java String, so the const cache merges them. (The AST
+# comparison can't see this: both sides write strings as UTF-16 code units.)
+codegen 6def8f3e00a5 Lib/test/datetimetester.py: surrogate pair constant merged
+codegen a3fc5a932daf Lib/test/test_capi/test_unicode.py: surrogate pair constant merged
+codegen 5c9988c173e4 Lib/test/test_codecs.py: surrogate pair constant merged
+codegen e1f57bd325be Lib/test/test_json/test_scanstring.py: surrogate pair constant merged
+codegen 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
+codegen a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged
+# \N{RS} (see above), which codegen reaches as a SyntaxError.
+codegen c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
+# CPython's codegen stops deep nesting with a RecursionError from its C
+# stack check (Py_EnterRecursiveCall), a platform-dependent limit; Java
+# compiles it on LargeStack's 16 MB stack.
+codegen 0f62eac87715 deep/accept/deep_lambda.py: CPython's C stack limit in codegen

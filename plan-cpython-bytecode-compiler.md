@@ -20,10 +20,12 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   Java tokenizer"): `Parser.fromString` parses source bytes, and every
   comparison runs from source.
 - **Next: the backend** (codegen, flowgraph, assemble), outlined below in
-  **Next plan**, to be detailed into phases before work starts. The
-  questions about it were settled with the user on 2026-10-04 (see
-  **Decisions for the backend**).
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 9
+  **Next plan**. The questions about it were settled with the user on
+  2026-10-04 (see **Decisions for the backend**). Phase D (codegen) is
+  done (**Phase D plan**); next is Phase E, flowgraph, to be detailed
+  before work starts. One question for the user is open: lone surrogates in
+  str constants (see Phase D results).
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 13
   minutes) and the pegen JUnit tests (41 tests, `FutureTest`,
   `AstPreprocessTest`, `SymtableTest` and `TokenizerTest` included);
   commands in plan-pegen-parser.md, Working notes.
@@ -222,12 +224,134 @@ Results:
 
 - **Phase D, codegen:** `codegen.c` (about 6.5k lines) and the rest of
   `compile.c` (compiler units, the const cache), which produce the
-  instruction sequence. Compared with `compiler_codegen`.
+  instruction sequence. Compared with `compiler_codegen`. Detailed below
+  (**Phase D plan**, approved 2026-10-04).
 - **Phase E, flowgraph:** `flowgraph.c` (about 4.3k lines). Compared with
   `optimize_cfg`.
 - **Phase F, assemble:** `assemble.c` (about 0.8k lines), which produces the
   code object. Compared with `assemble_code_object`, then end to end through
   marshal.
+
+## Phase D plan: codegen (approved 2026-10-04, done 2026-10-05)
+
+**Goal:** port Python/codegen.c (6,666 lines), the rest of Python/compile.c
+(1,807 lines, of which the front half is done) and
+Python/instruction_sequence.c (490 lines), so that for any source the Java
+compiler produces the instruction sequence CPython's codegen does: same
+opcodes, opargs, locations and constants, for the module and every nested
+unit, plus codegen's SyntaxErrors and SyntaxWarnings.
+
+**The oracle** (checked on 3.15.0rc2):
+`_testinternalcapi.compiler_codegen(tree, filename, optimize, compile_mode)`
+runs preprocess, symtable and codegen on an AST (compile_mode 0 Module,
+1 Expression, 2 Interactive), adds the final return and applies the label
+map. It returns the instruction sequence and the top unit's metadata:
+argcount, posonlyargcount, kwonlyargcount and `consts` in index order.
+- `get_instructions()` gives `(opcode, oparg, lineno, end_lineno, col,
+  end_col)` per instruction. oparg is None for opcodes without an argument,
+  jump targets are instruction indices (labels resolved), and pseudo-ops
+  are opcodes 256 and up (`ANNOTATIONS_PLACEHOLDER`, `JUMP`,
+  `SETUP_FINALLY`, `LOAD_CLOSURE`, ...).
+- `get_nested()` gives each nested unit's sequence (functions, lambdas,
+  classes, comprehensions, `__annotate__`), recursively, as codegen left it,
+  final return included.
+- **Limit:** only the top unit's `consts` are exposed. A nested unit's
+  `LOAD_CONST` opargs can be compared as indices, not values, as CPython's
+  own test_compiler_codegen does. Phases E and F see every value (through
+  `co_consts` and marshal), so a wrong nested constant can't survive past F.
+- **Code objects as constants:** the top unit's `consts` hold the nested
+  units' code objects, which come from flowgraph and assemble (Phases E and
+  F). Until then, Java's `_PyCompile_OptimizeAndAssemble` returns a
+  placeholder code object carrying `co_name`, `co_qualname` and
+  `co_firstlineno` and its unit's sequence. The canonical form writes a code
+  constant as just those three fields, and compares its contents through
+  the nested sequences.
+
+**Decisions** (approved by the user, 2026-10-04):
+- **Files** in `org.python.pegen.compile`, C names and order kept:
+  `Codegen.java` (codegen.c), `InstructionSequence.java`
+  (instruction_sequence.c), and `Compile.java` grows the rest of compile.c
+  (compiler units, scopes, `_PyCompile_AddConst` and the const cache,
+  `_PyCompile_ResolveNameop`, fblocks, `_PyCompile_CodeGen`).
+- **Opcodes are generated** by a new `src/pegen/tools/generate_opcodes.py`,
+  run on the 3.15 build like generate_unicode.py, into `Opcode.java`:
+  `opcode.opmap` (pseudo-ops included), the `_opcode.has_*` flags, the
+  intrinsic and `NB_*` tables (`_opcode.get_intrinsic1_descs`,
+  `get_nb_ops`, ...). Stack effects wait for Phase E.
+- **Constants and the const cache:** constants are the AST value classes
+  plus a tuple and a frozenset class and the code object. The cache key
+  follows `_PyCode_ConstantKey`: the type is part of the key (`1`, `1.0`
+  and `True` are different constants, and so are `0.0` and `-0.0`), and
+  tuples and frozensets are keyed by their items' keys.
+- **Not yet ported means "unsupported", not a failure.** Until codegen is
+  complete, a construct not yet ported throws an `Unsupported` exception.
+  The comparison counts those files separately (like pending/) and fails
+  only on real differences, and each checkpoint brings the count down. It
+  must reach 0 at the end of D.
+- **New comparison:** `tests/pegen/compare_codegen.py` and
+  `CodegenCompare.java`, the same pattern as compare_symtable.py. Per unit,
+  depth first: name, the metadata ints, the constants (top unit), then one
+  line per instruction (opcode *name*, oparg, location), then the nested
+  units. Errors and warnings as in compare_ast.py. Run by smoke.sh over Lib,
+  the samples and the corpus, at optimize 0 and 1 (asserts and `__debug__`)
+  and 2, in exec, single and eval modes.
+
+### D0–D3 (done, 2026-10-05)
+
+All of codegen.c went in at once, in C's order, as the tokenizer's lexer.c
+did: the expression visitor reaches every construct, so a subset wasn't a
+useful checkpoint. The checkpoints below are what the comparison shows.
+
+- [x] D0: `Opcode.java` (generated by `src/pegen/tools/generate_opcodes.py`,
+      run on the 3.15 build), `OpcodeUtils.java` (pycore_opcode_utils.h),
+      `InstructionSequence.java` (instruction_sequence.c), compile.c's
+      units, scopes, const cache, name resolution and fblocks in
+      `Compile.java`, `PyCodeObject.java` (the placeholder and
+      `_PyCode_ConstantKey`), `PyTuple`, `PyFrozenSet`, `PySlice`,
+      `Repr.java` (C's %R and tp_name), `compare_codegen.py` and
+      `CodegenCompare.java` in smoke.sh.
+- [x] D1: statements and expressions, `try` / `with` / fblocks.
+- [x] D2: functions, classes, annotations (with `AstUnparse.java`, a port
+      of ast_unparse.c, for `from __future__ import annotations`), type
+      parameters.
+- [x] D3: comprehensions, `match`, single and eval input, codegen's errors
+      and warnings (compared by compare_codegen.py, which records the
+      warnings compiler_codegen issues; compare_ast.py's #COMPILE-WARNING
+      lines stay preprocess-only).
+- [x] No construct is unsupported; smoke.sh passes.
+
+Results:
+- **Comparison:** Lib at optimize 0, 1 and 2 (2,025 files each), the
+  samples with `deep/`, and the error corpus in file, single and eval
+  modes (about 37,300 files each): all identical, apart from 8 entries in
+  `compare_known.txt` (mode `codegen`): `\N{RS}`, CPython's C-stack
+  RecursionError on `deep/accept/deep_lambda.py`, and six files below.
+- **Lone surrogates:** Python's `'\ud801\udca0'` (two lone surrogates) and
+  `'\U000104A0'` are different strings, but the same Java String, so the
+  Java const cache merges them (6 Lib test files). The AST comparison
+  can't see it: both sides write strings as UTF-16 code units. **To decide
+  with the user:** how str constants represent lone surrogates; this will
+  matter again for marshal (Phase F) and the runtime.
+- **Code object equality:** the const cache keys a code object by itself,
+  but compares by value (`code_richcompare`), so the generator expression
+  `all()` / `any()` / `tuple()` / `list()` / `set()` compile twice is one
+  constant. The placeholder compares the unit's name, argument counts,
+  flags, first line, instructions, constant keys and names.
+- **CPython bug (not reported yet):** freeing an instruction sequence from
+  `compiler_codegen` whose module has annotations decrefs a list twice
+  (`PyInstructionSequence_Fini` doesn't clear `s_nested`, and runs twice on
+  `s_annotations_code`): it corrupts the heap, or aborts a debug build.
+  compare_codegen.py keeps the results alive and leaves with `os._exit`.
+- **Invisible to the oracle:** module-level annotation code
+  (`s_annotations_code`, spliced in by flowgraph) and nested units'
+  constant values; Phases E and F see both.
+- **Errors:** a thrown SyntaxError aborts the compile, so C's
+  `*_IN_SCOPE` cleanups aren't needed; codegen runs on LargeStack, a
+  StackOverflowError becoming CPython's RecursionError.
+
+**Not in D:** flowgraph (E: stack depth, jump threading, dead code, const
+folding of sequences, `co_consts` order), assemble (F: the exception
+table, line tables, the real code object, marshal).
 
 ## Working notes (for a new session)
 

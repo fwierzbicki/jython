@@ -26,7 +26,7 @@ kept below for reference.
   just past MAXSTACK (CPython rejects it with the same MemoryError).
   smoke.sh checks both on a 1 MB stack and passes. See Working notes.
 - **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about
-  9 minutes: trees, symbol tables and tokens against CPython over Lib, the
+  13 minutes: trees, symbol tables, tokens and codegen against CPython over Lib, the
   samples and the error corpus), `tests/pegen/test_action_translator.py`
   and the pegen JUnit tests (41, `TokenizerTest` included).
 - **Before calling it done:** run `/adversarial-parser-review` (see
@@ -469,6 +469,13 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
   `../cpython/python tests/pegen/compare_tokens.py [--known tests/pegen/compare_known.txt] PATH...`
   diffs the Java tokenizer's tokens with `dump_tokens.py`'s (driver in
   `build/pegen-tokens/`; same `--no-build`).
+- **Compare codegen with CPython** (after `ant compile`):
+  `../cpython/python tests/pegen/compare_codegen.py [--mode single|eval] [--optimize N] [--known tests/pegen/compare_known.txt] PATH...`
+  (driver in `build/pegen-codegen/`). Don't run two at once: they share
+  that directory.
+- **Regenerate the opcode tables:**
+  `../cpython/python src/pegen/tools/generate_opcodes.py` (3.15 build; writes
+  `src/org/python/pegen/compile/Opcode.java`).
 - **Regenerate the Unicode tables:**
   `../cpython/python src/pegen/tools/generate_unicode.py` (it must run on the
   3.15 build; it writes `src/org/python/pegen/lexer/UnicodeTables.java`).

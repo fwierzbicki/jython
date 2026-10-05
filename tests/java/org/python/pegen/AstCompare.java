@@ -246,7 +246,7 @@ public class AstCompare {
         }
     }
 
-    private static String bits(double d) {
+    static String bits(double d) {
         return Long.toHexString(Double.doubleToLongBits(d));
     }
 

@@ -63,7 +63,12 @@ already hit. Update Status and the checkboxes at each checkpoint.
   names: Compile.java (front half of compile.c, and _PyCompile_AstPreprocess,
   which AstCompare runs after parsing), Future.java (future.c),
   AstPreprocess.java (ast_preprocess.c), Symtable.java (symtable.c),
-  Errors.java (errors.c), Ast.java (ast.c), SourceLocation.java. Tests in
+  Errors.java (errors.c), Ast.java (ast.c), SourceLocation.java; the backend
+  so far: Codegen.java (codegen.c; Compile.java has the rest of compile.c),
+  InstructionSequence.java, AstUnparse.java (ast_unparse.c), OpcodeUtils.java,
+  PyCodeObject.java (a placeholder until assemble, and _PyCode_ConstantKey),
+  PyTuple/PyFrozenSet/PySlice constants, Repr.java. Opcode.java is generated
+  by src/pegen/tools/generate_opcodes.py (run with ../cpython/python). Tests in
   tests/java/org/python/pegen/compile/.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
   dirs and the error corpus (compare_known.txt lists expected differences),
@@ -83,6 +88,8 @@ already hit. Update Status and the checkboxes at each checkpoint.
   the same for symbol tables, against CPython's _symtable.symtable().
 - tests/pegen/compare_tokens.py + tests/java/org/python/pegen/TokenCompare.java:
   the Java tokenizer's tokens against dump_tokens.py's.
+- tests/pegen/compare_codegen.py + tests/java/org/python/pegen/CodegenCompare.java:
+  codegen's instruction sequences against _testinternalcapi.compiler_codegen.
 - tests/pegen/test_action_translator.py: translator unit tests
   (python3 tests/pegen/test_action_translator.py).
 

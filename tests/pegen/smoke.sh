@@ -9,8 +9,9 @@
 # preprocess folds constants (ast.parse(..., optimize=N)). The symbol table
 # is compared with CPython's _symtable.symtable() (compare_symtable.py) over
 # the same files and symtable/, which holds samples aimed at it. The Java
-# tokenizer's tokens are compared with CPython's (compare_tokens.py) over
-# the same files.
+# tokenizer's tokens are compared with CPython's (compare_tokens.py), and
+# codegen's instruction sequences with _testinternalcapi.compiler_codegen's
+# (compare_codegen.py), over the same files.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
@@ -105,12 +106,25 @@ compare_tokens() {
         status=1
 }
 
-# The Java drivers of compare_ast.py, compare_symtable.py and
-# compare_tokens.py, compiled once for all the runs below.
+# compare_codegen NAME COMPARE_ARGS...
+# Runs compare_codegen.py; a failure sets status=1.
+compare_codegen() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_codegen.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
+# The Java drivers of compare_ast.py, compare_symtable.py, compare_tokens.py
+# and compare_codegen.py, compiled once for all the runs below.
 mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes" \
-    "$ROOT/build/pegen-tokens/classes"
+    "$ROOT/build/pegen-tokens/classes" "$ROOT/build/pegen-codegen/classes"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-tokens/classes" \
     "$ROOT/tests/java/org/python/pegen/TokenCompare.java"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-codegen/classes" \
+    "$ROOT/tests/java/org/python/pegen/CodegenCompare.java" \
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-compare/classes" \
     "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-symtable/classes" \
@@ -141,6 +155,19 @@ compare_symtable symtable-single-samples --mode single "$HERE/single"
 compare_symtable symtable-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare_symtable symtable-single-corpus --mode single "$OUT/samples/doctests" \
     "$OUT/samples/strings"
+
+# Codegen's instruction sequences, against _testinternalcapi.compiler_codegen.
+compare_codegen codegen-lib "$CPYTHON/Lib"
+compare_codegen codegen-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable" "$HERE/deep"
+compare_codegen codegen-single-samples --mode single "$HERE/single"
+compare_codegen codegen-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_codegen codegen-single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_codegen codegen-eval-corpus --mode eval "$OUT/samples/doctests" "$OUT/samples/strings"
+for level in 1 2; do
+    compare_codegen "codegen-lib-O$level" --optimize $level "$CPYTHON/Lib"
+    compare_codegen "codegen-samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject" \
+        "$HERE/symtable"
+done
 
 # The Java tokenizer's tokens, against CPython's (dump_tokens.py).
 compare_tokens tokens-lib "$CPYTHON/Lib"
