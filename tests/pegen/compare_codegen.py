@@ -92,7 +92,7 @@ def unit(seq, out):
 
 ERRORS = (SyntaxError, ValueError, MemoryError, OverflowError, SystemError, RecursionError)
 
-# The results of compiler_codegen, never freed: on 3.15.0rc2, freeing a
+# The results of compiler_codegen, never freed: on 3.15.0rc2 and rc3, freeing a
 # sequence whose module has annotations decrefs a list twice
 # (PyInstructionSequence_Fini doesn't clear s_nested, and runs twice on
 # s_annotations_code), which corrupts the heap or aborts a debug build. So

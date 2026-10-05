@@ -70,9 +70,8 @@ import org.python.pegen.lexer.State.tokenizer_mode;
  * {@code imaginary}). Characters are the input's bytes, as in C.
  *
  * <p>Only the string tokenizers are ported, which hold the whole input in
- * one buffer, so a tokenizer_mode's {@code last_expr_buffer} is an index
- * into it rather than a copy, and _PyLexer_update_ftstring_expr's case 0
- * (appending a line read by the file and readline tokenizers) is left out.
+ * one buffer, so it never moves: pointers into it, such as a
+ * tokenizer_mode's {@code last_expr_start}, are indexes.
  */
 public final class Lexer {
 
@@ -197,7 +196,10 @@ public final class Lexer {
             return 0;
         }
         byte[] a = tok.input;
-        int buffer = tok_mode.last_expr_buffer;
+        int expression = tok_mode.last_expr_start;
+        assert expression != NULL;
+        assert expression <= tok.start;
+        int expression_size = tok.start - expression;
         String res;
 
         // Look for a # character outside of string literals
@@ -205,8 +207,8 @@ public final class Lexer {
         boolean in_string = false;
         byte quote_char = 0;
 
-        for (int i = 0; i < tok_mode.last_expr_size - tok_mode.last_expr_end; i++) {
-            byte ch = a[buffer + i];
+        for (int i = 0; i < expression_size; i++) {
+            byte ch = a[expression + i];
 
             // Skip escaped characters
             if (ch == '\\') {
@@ -242,7 +244,7 @@ public final class Lexer {
         // If we found a # character in the expression, we need to handle comments
         if (hash_detected) {
             // Allocate buffer for processed result
-            byte[] result = new byte[tok_mode.last_expr_size - tok_mode.last_expr_end + 1];
+            byte[] result = new byte[expression_size + 1];
 
             int i = 0;  // Input position
             int j = 0;  // Output position
@@ -250,11 +252,20 @@ public final class Lexer {
             quote_char = 0;    // Current string quote char
 
             // Process each character
-            while (i < tok_mode.last_expr_size - tok_mode.last_expr_end) {
-                byte ch = a[buffer + i];
+            while (i < expression_size) {
+                byte ch = a[expression + i];
 
+                // Copy escaped characters without interpreting the escaped
+                // character as a quote or comment marker.
+                if (ch == '\\') {
+                    result[j++] = ch;
+                    i++;
+                    if (i < expression_size) {
+                        result[j++] = a[expression + i];
+                    }
+                }
                 // Handle string quotes
-                if (ch == '"' || ch == '\'') {
+                else if (ch == '"' || ch == '\'') {
                     // See comment above to understand this part
                     if (!in_string) {
                         in_string = true;
@@ -266,11 +277,11 @@ public final class Lexer {
                 }
                 // Skip comments
                 else if (ch == '#' && !in_string) {
-                    while (i < tok_mode.last_expr_size - tok_mode.last_expr_end &&
-                           a[buffer + i] != '\n') {
+                    while (i < expression_size &&
+                           a[expression + i] != '\n') {
                         i++;
                     }
-                    if (i < tok_mode.last_expr_size - tok_mode.last_expr_end) {
+                    if (i < expression_size) {
                         result[j++] = '\n';
                     }
                 }
@@ -283,52 +294,11 @@ public final class Lexer {
 
             res = new String(result, 0, j, StandardCharsets.UTF_8);
         } else {
-            res = new String(a, buffer, tok_mode.last_expr_size - tok_mode.last_expr_end,
-                    StandardCharsets.UTF_8);
+            res = new String(a, expression, expression_size, StandardCharsets.UTF_8);
         }
 
         token.metadata = res;
         return 0;
-    }
-
-    /**
-     * C's last_expr_buffer is a copy of the input from the '{' to the end of
-     * the buffer; here it's the index of that '{' in tok.input. Sizes are
-     * C's: last_expr_size is strlen(tok->cur) at the '{', last_expr_end
-     * strlen(tok->start) at the end of the expression.
-     */
-    static boolean _PyLexer_update_ftstring_expr(tok_state tok, char cur) {
-        assert tok.cur != NULL;
-
-        int size = strlen(tok, tok.cur);
-        tokenizer_mode tok_mode = TOK_GET_MODE(tok);
-
-        switch (cur) {
-            // C: case 0, appending a line read by the file and readline
-            // tokenizers, isn't needed by the string tokenizers.
-            case '{':
-                tok_mode.last_expr_buffer = tok.cur;
-                tok_mode.last_expr_size = size;
-                tok_mode.last_expr_end = -1;
-                break;
-            case '}':
-            case '!':
-                tok_mode.last_expr_end = strlen(tok, tok.start);
-                break;
-            case ':':
-                if (tok_mode.last_expr_end == -1) {
-                   tok_mode.last_expr_end = strlen(tok, tok.start);
-                }
-                break;
-            default:
-                throw new IllegalStateException("unreachable");
-        }
-        return true;
-    }
-
-    /** C: strlen(p) for p in the input: the input ends with its only NUL. */
-    private static int strlen(tok_state tok, int p) {
-        return tok.input.length - 1 - p;
     }
 
     private static boolean lookahead(tok_state tok, String test) {
@@ -978,9 +948,8 @@ public final class Lexer {
             the_current_tok.first_line = tok.lineno;
             the_current_tok.start_offset = -1;
             the_current_tok.multi_line_start_offset = -1;
-            the_current_tok.last_expr_buffer = NULL;
-            the_current_tok.last_expr_size = 0;
-            the_current_tok.last_expr_end = -1;
+            the_current_tok.last_expr_start = NULL;
+            the_current_tok.last_expr_start_offset = -1;
             the_current_tok.in_format_spec = false;
             the_current_tok.in_debug = false;
 
@@ -1071,6 +1040,16 @@ public final class Lexer {
                         tokenizer_mode the_current_tok = TOK_GET_MODE(tok);
                         if (the_current_tok.quote == quote &&
                             the_current_tok.quote_size == quote_size) {
+                            int level = tok.level - the_current_tok.curly_bracket_depth
+                                        + the_current_tok.curly_bracket_expr_start_depth;
+                            assert level >= 0 && level < tok.level;
+                            assert tok.parenstack[level] == '{';
+                            int lineno = tok.parenlinenostack[level];
+                            if (lineno != tok.lineno) {
+                                return MAKE_TOKEN(tok, token, _PyTokenizer_syntaxerror(tok,
+                                    "%c-string: expecting '}' to close '{' on line %d",
+                                    TOK_GET_STRING_PREFIX(tok), lineno), p_start, p_end);
+                            }
                             return MAKE_TOKEN(tok, token, _PyTokenizer_syntaxerror(tok,
                                 "%c-string: expecting '}'", TOK_GET_STRING_PREFIX(tok)), p_start, p_end);
                         }
@@ -1145,9 +1124,6 @@ public final class Lexer {
              boolean cursor_in_format_with_debug =
                  cursor == 1 && (current_tok.in_debug || in_format_spec);
              boolean cursor_valid = cursor == 0 || cursor_in_format_with_debug;
-            if ((cursor_valid) && !_PyLexer_update_ftstring_expr(tok, (char) c)) {
-                return MAKE_TOKEN(tok, token, ENDMARKER, p_start, p_end);
-            }
             if ((cursor_valid) && c != '{' && set_ftstring_expr(tok, token, (char) c) != 0) {
                 return MAKE_TOKEN(tok, token, ERRORTOKEN, p_start, p_end);
             }
@@ -1165,6 +1141,9 @@ public final class Lexer {
         {
             int c2 = tok_nextc(tok);
             int current_token = _PyToken_TwoChars(c, c2);
+            if (c == '<' && c2 == '>' && !tok.barry_as_bdfl) {
+                current_token = OP;
+            }
             if (current_token != OP) {
                 int c3 = tok_nextc(tok);
                 int current_token3 = _PyToken_ThreeChars(c, c2, c3);
@@ -1516,6 +1495,9 @@ public final class Lexer {
         if (start_char == '{') {
             int peek1 = tok_nextc(tok);
             tok_backup(tok, peek1);
+            if (peek1 != '{') {
+                current_tok.last_expr_start = tok.cur;
+            }
             tok_backup(tok, start_char);
             if (peek1 != '{') {
                 current_tok.curly_bracket_expr_start_depth++;
@@ -1543,12 +1525,6 @@ public final class Lexer {
         }
 
         if (!f_string_middle) {
-            if (current_tok.last_expr_buffer != NULL) {
-                current_tok.last_expr_buffer = NULL;
-                current_tok.last_expr_size = 0;
-                current_tok.last_expr_end = -1;
-            }
-
             p_start = tok.start;
             p_end = tok.cur;
             tok.tok_mode_stack_index--;
@@ -1634,12 +1610,10 @@ public final class Lexer {
             }
 
             if (c == '{') {
-                if (!_PyLexer_update_ftstring_expr(tok, (char) c)) {
-                    return MAKE_TOKEN(tok, token, ENDMARKER, p_start, p_end);
-                }
                 int peek = tok_nextc(tok);
                 if (peek != '{' || in_format_spec) {
                     tok_backup(tok, peek);
+                    current_tok.last_expr_start = tok.cur;
                     tok_backup(tok, c);
                     current_tok.curly_bracket_expr_start_depth++;
                     if (current_tok.curly_bracket_expr_start_depth >= MAX_EXPR_NESTING) {

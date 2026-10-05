@@ -88,10 +88,10 @@ public final class State {
         int start_offset;
         int multi_line_start_offset;
 
-        int last_expr_size;
-        int last_expr_end;
-        /** C: a copy of the input from the expression's '{'; here, its index in the input. */
-        int last_expr_buffer = NULL;
+        /* Points into tok->buf, which is retained while INSIDE_FSTRING(tok). */
+        int last_expr_start = NULL;
+        int last_expr_start_offset;
+
         boolean in_debug;
         boolean in_format_spec;
 
@@ -159,6 +159,7 @@ public final class State {
         boolean tok_extra_tokens;
         boolean comment_newline;
         boolean implicit_newline;
+        boolean barry_as_bdfl;
 
         /**
          * The exception the tokenizer set (C: the pending exception set by

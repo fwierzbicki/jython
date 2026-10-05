@@ -46,6 +46,18 @@ public final class Helpers {
 
     /* ############## ERRORS ############## */
 
+    /* Convert a 1-based column in bytes into a 1-based column in characters.
+       The line is UTF-8 encoded, so it is enough to skip continuation bytes. */
+    private static int byte_col_to_char_col(byte[] a, int line, int byte_col) {
+        int char_col = 1;
+        for (int i = 0; i < byte_col - 1; i++) {
+            if ((a[line + i] & 0xC0) != 0x80) {
+                char_col++;
+            }
+        }
+        return char_col;
+    }
+
     private static int _syntaxerror_range(tok_state tok, String format, int col_offset,
             int end_col_offset, Object... vargs) {
         // In release builds, we don't want to overwrite a previous error, but in debug builds we
@@ -61,8 +73,14 @@ public final class Helpers {
         if (col_offset == -1) {
             col_offset = errtext.codePointCount(0, errtext.length());
         }
+        else if (col_offset > 0) {
+            col_offset = byte_col_to_char_col(tok.input, tok.line_start, col_offset);
+        }
         if (end_col_offset == -1) {
             end_col_offset = col_offset;
+        }
+        else if (end_col_offset > 0) {
+            end_col_offset = byte_col_to_char_col(tok.input, tok.line_start, end_col_offset);
         }
 
         int line_len = strcspn_newline(tok.input, tok.line_start);
@@ -459,17 +477,14 @@ public final class Helpers {
         int badchar = NULL;
         int c;
         int length;
-        int col_offset = 0;
         int line_start = line;
         for (c = line; a[c] != 0; c += length) {
             if ((length = valid_utf8(a, c)) == 0) {
                 badchar = c;
                 break;
             }
-            col_offset++;
             if (a[c] == '\n') {
                 lineno++;
-                col_offset = 0;
                 line_start = c + 1;
             }
         }
@@ -478,7 +493,8 @@ public final class Helpers {
             tok.line_start = line_start;
             tok.cur = badchar;
             _PyTokenizer_syntaxerror_known_range(tok,
-                    col_offset + 1, col_offset + 1,
+                    badchar - line_start + 1,
+                    badchar - line_start + 1,
                     "Non-UTF-8 code starting with '\\x%02x'"
                     + "%s%s on line %d, "
                     + "but no encoding declared; "

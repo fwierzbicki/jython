@@ -224,6 +224,7 @@ public class Parser {
     public static Parser fromString(byte[] str, int start_rule, String filename_ob,
             Compile.PyCompilerFlags flags, String module) {
         boolean exec_input = start_rule == FILE_INPUT;
+        int parser_flags = compute_parser_flags(flags);
 
         Tokenizer tok;
         if (flags != null && (flags.cf_flags & Compile.PyCF_IGNORE_COOKIE) != 0) {
@@ -231,9 +232,9 @@ public class Parser {
         } else {
             tok = Tokenizer.fromString(str, exec_input, filename_ob);
         }
+        tok.setBarryAsBdfl((parser_flags & ActionHelpers.PyPARSE_BARRY_AS_BDFL) != 0);
         tok.setModule(module);
 
-        int parser_flags = compute_parser_flags(flags);
         int feature_version = flags != null && (flags.cf_flags & Compile.PyCF_ONLY_AST) != 0
                 ? flags.cf_feature_version : Compile.PY_MINOR_VERSION;
         // _PyPegen_Parser_New

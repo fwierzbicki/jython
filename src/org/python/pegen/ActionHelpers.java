@@ -236,6 +236,10 @@ public final class ActionHelpers {
         return null;
     }
 
+    public static boolean _PyPegen_tokens_are_adjacent(Token a, Token b) {
+        return (a.end_lineno == b.lineno) && (a.end_col_offset == b.col_offset);
+    }
+
     /** PyPegen_first_item(seq, type), i.e. _PyPegen_seq_first_item */
     public static Object PyPegen_first_item(List<?> seq) {
         return _PyPegen_seq_first_item(seq);
@@ -1935,20 +1939,37 @@ public final class ActionHelpers {
         return -1;
     }
 
-    private static String _strip_interpolation_expr(String exprstr) {
+    private static String _strip_interpolation_debug_expr(String exprstr) {
         int len = exprstr.length();
 
-        for (int i = len - 1; i >= 0; i--) {
-            char c = exprstr.charAt(i);
-            if (_PyUnicode_IsWhitespace(c) || c == '=') {
+        /* Discard whitespace and explicit line continuations after the debug "="
+           but preserve whitespace before it. */
+        while (len > 0) {
+            boolean has_newline = false;
+            while (len > 0) {
+                char c = exprstr.charAt(len - 1);
+                if (!_PyUnicode_IsWhitespace(c)) {
+                    break;
+                }
+                if (c == '\r' || c == '\n') {
+                    has_newline = true;
+                }
                 len--;
             }
-            else {
+            if (!has_newline || len == 0 ||
+                exprstr.charAt(len - 1) != '\\')
+            {
                 break;
             }
+            len--;
         }
 
-        return exprstr.substring(0, len);
+        /* Preserve unexpected metadata instead of dropping source text. */
+        if (len == 0 || exprstr.charAt(len - 1) != '=') {
+            return exprstr;
+        }
+
+        return exprstr.substring(0, len - 1);
     }
 
     public static expr _PyPegen_interpolation(Parser p, expr expression, Token debug,
@@ -1980,7 +2001,9 @@ public final class ActionHelpers {
         }
 
         assert exprstr != null;
-        String final_exprstr = _strip_interpolation_expr((String) exprstr);
+        String final_exprstr = debug != null
+            ? _strip_interpolation_debug_expr((String) exprstr)
+            : (String) exprstr;
 
         expr interpolation = _PyAST_Interpolation(
             expression, final_exprstr, conversion_val,
@@ -2356,6 +2379,7 @@ public final class ActionHelpers {
                 alias alias = names.get(i);
                 if (alias.name.equals("barry_as_FLUFL")) {
                     p.flags |= PyPARSE_BARRY_AS_BDFL;
+                    p.tok.setBarryAsBdfl(true);
                 }
             }
         }

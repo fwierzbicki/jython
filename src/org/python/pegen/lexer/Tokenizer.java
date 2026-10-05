@@ -79,6 +79,11 @@ public final class Tokenizer implements TokenSource {
         tok.type_comments = type_comments;
     }
 
+    @Override
+    public void setBarryAsBdfl(boolean barry_as_bdfl) {
+        tok.barry_as_bdfl = barry_as_bdfl;
+    }
+
     /** C: tok->encoding, the source encoding (from a BOM or cookie), or null. */
     public String encoding() {
         return tok.encoding;

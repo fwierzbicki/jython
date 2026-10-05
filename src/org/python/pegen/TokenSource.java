@@ -31,6 +31,13 @@ public interface TokenSource {
     default void implyDedents() {
     }
 
+    /**
+     * C: tok->barry_as_bdfl, set when barry_as_FLUFL is in effect: the
+     * tokenizer reads {@code <>} as NOTEQUAL only then.
+     */
+    default void setBarryAsBdfl(boolean barry_as_bdfl) {
+    }
+
     // ---- f- and t-strings ----
 
     /** C: INSIDE_FSTRING(tok), whether the tokenizer is inside an f- or t-string. */

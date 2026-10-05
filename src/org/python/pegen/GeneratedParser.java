@@ -344,186 +344,187 @@ public class GeneratedParser {
     private static final int invalid_arithmetic_type = 1274;
     private static final int invalid_factor_type = 1275;
     private static final int invalid_type_params_type = 1276;
-    private static final int _loop0_1_type = 1277;
-    private static final int _loop1_2_type = 1278;
-    private static final int _loop0_3_type = 1279;
-    private static final int _gather_4_type = 1280;
-    private static final int _tmp_5_type = 1281;
-    private static final int _tmp_6_type = 1282;
-    private static final int _tmp_7_type = 1283;
-    private static final int _tmp_8_type = 1284;
-    private static final int _tmp_9_type = 1285;
-    private static final int _tmp_10_type = 1286;
-    private static final int _tmp_11_type = 1287;
-    private static final int _loop1_12_type = 1288;
-    private static final int _loop0_13_type = 1289;
-    private static final int _gather_14_type = 1290;
-    private static final int _tmp_15_type = 1291;
-    private static final int _tmp_16_type = 1292;
-    private static final int _loop0_17_type = 1293;
-    private static final int _loop1_18_type = 1294;
-    private static final int _loop0_19_type = 1295;
-    private static final int _gather_20_type = 1296;
-    private static final int _tmp_21_type = 1297;
-    private static final int _loop0_22_type = 1298;
-    private static final int _gather_23_type = 1299;
-    private static final int _loop1_24_type = 1300;
-    private static final int _tmp_25_type = 1301;
-    private static final int _tmp_26_type = 1302;
-    private static final int _loop0_27_type = 1303;
-    private static final int _loop0_28_type = 1304;
-    private static final int _loop1_29_type = 1305;
-    private static final int _loop1_30_type = 1306;
-    private static final int _loop0_31_type = 1307;
-    private static final int _loop1_32_type = 1308;
-    private static final int _loop0_33_type = 1309;
-    private static final int _gather_34_type = 1310;
-    private static final int _tmp_35_type = 1311;
-    private static final int _loop1_36_type = 1312;
-    private static final int _loop1_37_type = 1313;
-    private static final int _loop1_38_type = 1314;
-    private static final int _loop0_39_type = 1315;
-    private static final int _gather_40_type = 1316;
-    private static final int _tmp_41_type = 1317;
-    private static final int _tmp_42_type = 1318;
-    private static final int _tmp_43_type = 1319;
-    private static final int _loop0_44_type = 1320;
-    private static final int _gather_45_type = 1321;
-    private static final int _loop0_46_type = 1322;
-    private static final int _gather_47_type = 1323;
-    private static final int _tmp_48_type = 1324;
-    private static final int _loop0_49_type = 1325;
-    private static final int _gather_50_type = 1326;
-    private static final int _loop0_51_type = 1327;
-    private static final int _gather_52_type = 1328;
-    private static final int _loop0_53_type = 1329;
-    private static final int _gather_54_type = 1330;
-    private static final int _loop1_55_type = 1331;
-    private static final int _loop1_56_type = 1332;
-    private static final int _loop0_57_type = 1333;
-    private static final int _gather_58_type = 1334;
-    private static final int _loop0_59_type = 1335;
-    private static final int _gather_60_type = 1336;
-    private static final int _loop1_61_type = 1337;
-    private static final int _loop1_62_type = 1338;
-    private static final int _loop1_63_type = 1339;
-    private static final int _tmp_64_type = 1340;
-    private static final int _loop0_65_type = 1341;
-    private static final int _gather_66_type = 1342;
-    private static final int _tmp_67_type = 1343;
-    private static final int _tmp_68_type = 1344;
-    private static final int _tmp_69_type = 1345;
-    private static final int _tmp_70_type = 1346;
-    private static final int _tmp_71_type = 1347;
-    private static final int _loop0_72_type = 1348;
-    private static final int _loop0_73_type = 1349;
-    private static final int _loop1_74_type = 1350;
-    private static final int _loop1_75_type = 1351;
-    private static final int _loop0_76_type = 1352;
-    private static final int _loop1_77_type = 1353;
-    private static final int _loop0_78_type = 1354;
-    private static final int _loop0_79_type = 1355;
-    private static final int _loop0_80_type = 1356;
-    private static final int _loop0_81_type = 1357;
-    private static final int _loop1_82_type = 1358;
-    private static final int _loop1_83_type = 1359;
-    private static final int _tmp_84_type = 1360;
-    private static final int _loop0_85_type = 1361;
-    private static final int _gather_86_type = 1362;
-    private static final int _loop1_87_type = 1363;
-    private static final int _loop0_88_type = 1364;
-    private static final int _tmp_89_type = 1365;
-    private static final int _loop0_90_type = 1366;
-    private static final int _gather_91_type = 1367;
-    private static final int _tmp_92_type = 1368;
-    private static final int _loop0_93_type = 1369;
-    private static final int _gather_94_type = 1370;
-    private static final int _loop0_95_type = 1371;
-    private static final int _gather_96_type = 1372;
-    private static final int _loop0_97_type = 1373;
-    private static final int _loop0_98_type = 1374;
-    private static final int _gather_99_type = 1375;
-    private static final int _loop1_100_type = 1376;
-    private static final int _tmp_101_type = 1377;
-    private static final int _loop0_102_type = 1378;
-    private static final int _gather_103_type = 1379;
-    private static final int _loop0_104_type = 1380;
-    private static final int _gather_105_type = 1381;
-    private static final int _tmp_106_type = 1382;
-    private static final int _tmp_107_type = 1383;
-    private static final int _loop0_108_type = 1384;
-    private static final int _gather_109_type = 1385;
-    private static final int _tmp_110_type = 1386;
-    private static final int _tmp_111_type = 1387;
-    private static final int _tmp_112_type = 1388;
-    private static final int _tmp_113_type = 1389;
-    private static final int _tmp_114_type = 1390;
-    private static final int _loop1_115_type = 1391;
-    private static final int _tmp_116_type = 1392;
-    private static final int _tmp_117_type = 1393;
-    private static final int _tmp_118_type = 1394;
-    private static final int _tmp_119_type = 1395;
-    private static final int _tmp_120_type = 1396;
-    private static final int _loop0_121_type = 1397;
-    private static final int _loop0_122_type = 1398;
-    private static final int _tmp_123_type = 1399;
-    private static final int _tmp_124_type = 1400;
-    private static final int _tmp_125_type = 1401;
-    private static final int _tmp_126_type = 1402;
-    private static final int _tmp_127_type = 1403;
-    private static final int _tmp_128_type = 1404;
-    private static final int _tmp_129_type = 1405;
-    private static final int _tmp_130_type = 1406;
-    private static final int _loop0_131_type = 1407;
-    private static final int _gather_132_type = 1408;
-    private static final int _tmp_133_type = 1409;
-    private static final int _tmp_134_type = 1410;
-    private static final int _tmp_135_type = 1411;
-    private static final int _tmp_136_type = 1412;
-    private static final int _loop0_137_type = 1413;
-    private static final int _gather_138_type = 1414;
-    private static final int _tmp_139_type = 1415;
-    private static final int _loop0_140_type = 1416;
-    private static final int _gather_141_type = 1417;
-    private static final int _loop0_142_type = 1418;
-    private static final int _gather_143_type = 1419;
-    private static final int _tmp_144_type = 1420;
-    private static final int _loop0_145_type = 1421;
-    private static final int _tmp_146_type = 1422;
-    private static final int _tmp_147_type = 1423;
-    private static final int _tmp_148_type = 1424;
-    private static final int _tmp_149_type = 1425;
-    private static final int _tmp_150_type = 1426;
-    private static final int _tmp_151_type = 1427;
-    private static final int _tmp_152_type = 1428;
-    private static final int _tmp_153_type = 1429;
-    private static final int _tmp_154_type = 1430;
-    private static final int _tmp_155_type = 1431;
-    private static final int _tmp_156_type = 1432;
-    private static final int _tmp_157_type = 1433;
-    private static final int _tmp_158_type = 1434;
-    private static final int _tmp_159_type = 1435;
-    private static final int _tmp_160_type = 1436;
-    private static final int _tmp_161_type = 1437;
-    private static final int _tmp_162_type = 1438;
-    private static final int _tmp_163_type = 1439;
-    private static final int _tmp_164_type = 1440;
-    private static final int _tmp_165_type = 1441;
-    private static final int _tmp_166_type = 1442;
-    private static final int _tmp_167_type = 1443;
-    private static final int _tmp_168_type = 1444;
-    private static final int _tmp_169_type = 1445;
-    private static final int _tmp_170_type = 1446;
-    private static final int _tmp_171_type = 1447;
-    private static final int _tmp_172_type = 1448;
-    private static final int _tmp_173_type = 1449;
-    private static final int _loop0_174_type = 1450;
-    private static final int _tmp_175_type = 1451;
-    private static final int _tmp_176_type = 1452;
-    private static final int _tmp_177_type = 1453;
-    private static final int _tmp_178_type = 1454;
-    private static final int _tmp_179_type = 1455;
-    private static final int _tmp_180_type = 1456;
+    private static final int invalid_noteq_type = 1277;
+    private static final int _loop0_1_type = 1278;
+    private static final int _loop1_2_type = 1279;
+    private static final int _loop0_3_type = 1280;
+    private static final int _gather_4_type = 1281;
+    private static final int _tmp_5_type = 1282;
+    private static final int _tmp_6_type = 1283;
+    private static final int _tmp_7_type = 1284;
+    private static final int _tmp_8_type = 1285;
+    private static final int _tmp_9_type = 1286;
+    private static final int _tmp_10_type = 1287;
+    private static final int _tmp_11_type = 1288;
+    private static final int _loop1_12_type = 1289;
+    private static final int _loop0_13_type = 1290;
+    private static final int _gather_14_type = 1291;
+    private static final int _tmp_15_type = 1292;
+    private static final int _tmp_16_type = 1293;
+    private static final int _loop0_17_type = 1294;
+    private static final int _loop1_18_type = 1295;
+    private static final int _loop0_19_type = 1296;
+    private static final int _gather_20_type = 1297;
+    private static final int _tmp_21_type = 1298;
+    private static final int _loop0_22_type = 1299;
+    private static final int _gather_23_type = 1300;
+    private static final int _loop1_24_type = 1301;
+    private static final int _tmp_25_type = 1302;
+    private static final int _tmp_26_type = 1303;
+    private static final int _loop0_27_type = 1304;
+    private static final int _loop0_28_type = 1305;
+    private static final int _loop1_29_type = 1306;
+    private static final int _loop1_30_type = 1307;
+    private static final int _loop0_31_type = 1308;
+    private static final int _loop1_32_type = 1309;
+    private static final int _loop0_33_type = 1310;
+    private static final int _gather_34_type = 1311;
+    private static final int _tmp_35_type = 1312;
+    private static final int _loop1_36_type = 1313;
+    private static final int _loop1_37_type = 1314;
+    private static final int _loop1_38_type = 1315;
+    private static final int _loop0_39_type = 1316;
+    private static final int _gather_40_type = 1317;
+    private static final int _tmp_41_type = 1318;
+    private static final int _tmp_42_type = 1319;
+    private static final int _tmp_43_type = 1320;
+    private static final int _loop0_44_type = 1321;
+    private static final int _gather_45_type = 1322;
+    private static final int _loop0_46_type = 1323;
+    private static final int _gather_47_type = 1324;
+    private static final int _tmp_48_type = 1325;
+    private static final int _loop0_49_type = 1326;
+    private static final int _gather_50_type = 1327;
+    private static final int _loop0_51_type = 1328;
+    private static final int _gather_52_type = 1329;
+    private static final int _loop0_53_type = 1330;
+    private static final int _gather_54_type = 1331;
+    private static final int _loop1_55_type = 1332;
+    private static final int _loop1_56_type = 1333;
+    private static final int _loop0_57_type = 1334;
+    private static final int _gather_58_type = 1335;
+    private static final int _loop0_59_type = 1336;
+    private static final int _gather_60_type = 1337;
+    private static final int _loop1_61_type = 1338;
+    private static final int _loop1_62_type = 1339;
+    private static final int _loop1_63_type = 1340;
+    private static final int _tmp_64_type = 1341;
+    private static final int _loop0_65_type = 1342;
+    private static final int _gather_66_type = 1343;
+    private static final int _tmp_67_type = 1344;
+    private static final int _tmp_68_type = 1345;
+    private static final int _tmp_69_type = 1346;
+    private static final int _tmp_70_type = 1347;
+    private static final int _tmp_71_type = 1348;
+    private static final int _loop0_72_type = 1349;
+    private static final int _loop0_73_type = 1350;
+    private static final int _loop1_74_type = 1351;
+    private static final int _loop1_75_type = 1352;
+    private static final int _loop0_76_type = 1353;
+    private static final int _loop1_77_type = 1354;
+    private static final int _loop0_78_type = 1355;
+    private static final int _loop0_79_type = 1356;
+    private static final int _loop0_80_type = 1357;
+    private static final int _loop0_81_type = 1358;
+    private static final int _loop1_82_type = 1359;
+    private static final int _loop1_83_type = 1360;
+    private static final int _tmp_84_type = 1361;
+    private static final int _loop0_85_type = 1362;
+    private static final int _gather_86_type = 1363;
+    private static final int _loop1_87_type = 1364;
+    private static final int _loop0_88_type = 1365;
+    private static final int _tmp_89_type = 1366;
+    private static final int _loop0_90_type = 1367;
+    private static final int _gather_91_type = 1368;
+    private static final int _tmp_92_type = 1369;
+    private static final int _loop0_93_type = 1370;
+    private static final int _gather_94_type = 1371;
+    private static final int _loop0_95_type = 1372;
+    private static final int _gather_96_type = 1373;
+    private static final int _loop0_97_type = 1374;
+    private static final int _loop0_98_type = 1375;
+    private static final int _gather_99_type = 1376;
+    private static final int _loop1_100_type = 1377;
+    private static final int _tmp_101_type = 1378;
+    private static final int _loop0_102_type = 1379;
+    private static final int _gather_103_type = 1380;
+    private static final int _loop0_104_type = 1381;
+    private static final int _gather_105_type = 1382;
+    private static final int _tmp_106_type = 1383;
+    private static final int _tmp_107_type = 1384;
+    private static final int _loop0_108_type = 1385;
+    private static final int _gather_109_type = 1386;
+    private static final int _tmp_110_type = 1387;
+    private static final int _tmp_111_type = 1388;
+    private static final int _tmp_112_type = 1389;
+    private static final int _tmp_113_type = 1390;
+    private static final int _tmp_114_type = 1391;
+    private static final int _loop1_115_type = 1392;
+    private static final int _tmp_116_type = 1393;
+    private static final int _tmp_117_type = 1394;
+    private static final int _tmp_118_type = 1395;
+    private static final int _tmp_119_type = 1396;
+    private static final int _tmp_120_type = 1397;
+    private static final int _loop0_121_type = 1398;
+    private static final int _loop0_122_type = 1399;
+    private static final int _tmp_123_type = 1400;
+    private static final int _tmp_124_type = 1401;
+    private static final int _tmp_125_type = 1402;
+    private static final int _tmp_126_type = 1403;
+    private static final int _tmp_127_type = 1404;
+    private static final int _tmp_128_type = 1405;
+    private static final int _tmp_129_type = 1406;
+    private static final int _tmp_130_type = 1407;
+    private static final int _loop0_131_type = 1408;
+    private static final int _gather_132_type = 1409;
+    private static final int _tmp_133_type = 1410;
+    private static final int _tmp_134_type = 1411;
+    private static final int _tmp_135_type = 1412;
+    private static final int _tmp_136_type = 1413;
+    private static final int _loop0_137_type = 1414;
+    private static final int _gather_138_type = 1415;
+    private static final int _tmp_139_type = 1416;
+    private static final int _loop0_140_type = 1417;
+    private static final int _gather_141_type = 1418;
+    private static final int _loop0_142_type = 1419;
+    private static final int _gather_143_type = 1420;
+    private static final int _tmp_144_type = 1421;
+    private static final int _loop0_145_type = 1422;
+    private static final int _tmp_146_type = 1423;
+    private static final int _tmp_147_type = 1424;
+    private static final int _tmp_148_type = 1425;
+    private static final int _tmp_149_type = 1426;
+    private static final int _tmp_150_type = 1427;
+    private static final int _tmp_151_type = 1428;
+    private static final int _tmp_152_type = 1429;
+    private static final int _tmp_153_type = 1430;
+    private static final int _tmp_154_type = 1431;
+    private static final int _tmp_155_type = 1432;
+    private static final int _tmp_156_type = 1433;
+    private static final int _tmp_157_type = 1434;
+    private static final int _tmp_158_type = 1435;
+    private static final int _tmp_159_type = 1436;
+    private static final int _tmp_160_type = 1437;
+    private static final int _tmp_161_type = 1438;
+    private static final int _tmp_162_type = 1439;
+    private static final int _tmp_163_type = 1440;
+    private static final int _tmp_164_type = 1441;
+    private static final int _tmp_165_type = 1442;
+    private static final int _tmp_166_type = 1443;
+    private static final int _tmp_167_type = 1444;
+    private static final int _tmp_168_type = 1445;
+    private static final int _tmp_169_type = 1446;
+    private static final int _tmp_170_type = 1447;
+    private static final int _tmp_171_type = 1448;
+    private static final int _tmp_172_type = 1449;
+    private static final int _tmp_173_type = 1450;
+    private static final int _loop0_174_type = 1451;
+    private static final int _tmp_175_type = 1452;
+    private static final int _tmp_176_type = 1453;
+    private static final int _tmp_177_type = 1454;
+    private static final int _tmp_178_type = 1455;
+    private static final int _tmp_179_type = 1456;
+    private static final int _tmp_180_type = 1457;
 
     private final Parser p;
 
@@ -7616,7 +7617,14 @@ public class GeneratedParser {
                     (number = p.numberToken()) != null  // NUMBER
                 )
                 {
-                    _res = (expr) (number);
+                    Token _token = p.getLastNonWhitespaceToken();
+                    if (_token == null) {
+                        p.level--;
+                        return null;
+                    }
+                    int _end_lineno = _token.end_lineno;
+                    int _end_col_offset = _token.end_col_offset;
+                    _res = (expr) (_PyAST_UnaryOp(UAdd, number, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
                     if ((_res == null || p.error_indicator) && p.errorOccurred()) {
                         p.error_indicator = true;
                         p.level--;
@@ -7710,7 +7718,14 @@ public class GeneratedParser {
                     (real = real_number_rule()) != null  // real_number
                 )
                 {
-                    _res = (expr) (real);
+                    Token _token = p.getLastNonWhitespaceToken();
+                    if (_token == null) {
+                        p.level--;
+                        return null;
+                    }
+                    int _end_lineno = _token.end_lineno;
+                    int _end_col_offset = _token.end_col_offset;
+                    _res = (expr) (_PyAST_UnaryOp(UAdd, real, _start_lineno, _start_col_offset, _end_lineno, _end_col_offset, p.arena));
                     if ((_res == null || p.error_indicator) && p.errorOccurred()) {
                         p.error_indicator = true;
                         p.level--;
@@ -10834,6 +10849,7 @@ public class GeneratedParser {
     //     | eq_bitwise_or
     //     | noteq_bitwise_or
     //     | lte_bitwise_or
+    //     | invalid_noteq
     //     | lt_bitwise_or
     //     | gte_bitwise_or
     //     | gt_bitwise_or
@@ -10894,6 +10910,21 @@ public class GeneratedParser {
                 )
                 {
                     _res = (CmpopExprPair) lte_bitwise_or_var;
+                    break done;
+                }
+                p.mark = _mark;
+            }
+            if (p.call_invalid_rules) { // invalid_noteq
+                if (p.error_indicator) {
+                    p.level--;
+                    return null;
+                }
+                Object invalid_noteq_var = null;
+                if (
+                    (invalid_noteq_var = invalid_noteq_rule()) != null  // invalid_noteq
+                )
+                {
+                    _res = voidAs(CmpopExprPair.class, invalid_noteq_var);
                     break done;
                 }
                 p.mark = _mark;
@@ -24661,6 +24692,48 @@ public class GeneratedParser {
                 )
                 {
                     _res = RAISE_SYNTAX_ERROR_STARTING_FROM(p, token, "Type parameter list cannot be empty");
+                    if ((_res == null || p.error_indicator) && p.errorOccurred()) {
+                        p.error_indicator = true;
+                        p.level--;
+                        return null;
+                    }
+                    break done;
+                }
+                p.mark = _mark;
+            }
+            _res = null;
+        }
+        p.level--;
+        return _res;
+    }
+
+    // invalid_noteq: '<' '>'
+    private Object invalid_noteq_rule()
+    {
+        if (p.level++ == MAXSTACK) {
+            p.stackOverflow();
+        }
+        if (p.error_indicator) {
+            p.level--;
+            return null;
+        }
+        Object _res = null;
+        int _mark = p.mark;
+        done: {
+            { // '<' '>'
+                if (p.error_indicator) {
+                    p.level--;
+                    return null;
+                }
+                Token a = null;
+                Token b = null;
+                if (
+                    (a = p.expectToken(20)) != null  // token='<'
+                    &&
+                    (b = p.expectToken(21)) != null  // token='>'
+                )
+                {
+                    _res = _PyPegen_tokens_are_adjacent(a, b) ? RAISE_SYNTAX_ERROR_KNOWN_RANGE(p, a, b, "invalid syntax.  Maybe you meant '!=' instead of '<>'?") : null;
                     if ((_res == null || p.error_indicator) && p.errorOccurred()) {
                         p.error_indicator = true;
                         p.level--;

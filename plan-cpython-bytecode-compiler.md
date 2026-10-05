@@ -11,7 +11,8 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
 ## Status (2026-10-05)
 
 - **The parser is done** (plan-pegen-parser.md): its output matches
-  CPython's `ast.parse()` over Lib and the error corpus, upstream v3.15.0rc2.
+  CPython's `ast.parse()` over Lib and the error corpus, upstream v3.15.0rc3
+  (synced from rc2 on 2026-10-05; see plan-pegen-parser.md, Status).
 - **The compiler front end is done** (see **Current plan**): Phases A
   (driver and future), B (preprocess) and C (symtable), in
   `org.python.pegen.compile`. `Compile.new_compiler` runs all three, as
@@ -246,7 +247,7 @@ compiler produces the instruction sequence CPython's codegen does: same
 opcodes, opargs, locations and constants, for the module and every nested
 unit, plus codegen's SyntaxErrors and SyntaxWarnings.
 
-**The oracle** (checked on 3.15.0rc2):
+**The oracle** (checked on 3.15.0rc2; unchanged in rc3):
 `_testinternalcapi.compiler_codegen(tree, filename, optimize, compile_mode)`
 runs preprocess, symtable and codegen on an AST (compile_mode 0 Module,
 1 Expression, 2 Interactive), adds the final return and applies the label
@@ -371,7 +372,7 @@ Java compiler turns each unit's instruction sequence into the optimized
 one CPython's flowgraph does: same opcodes, opargs, locations and final
 constants, for the module and every nested unit.
 
-**The oracle** (checked on 3.15.0rc2):
+**The oracle** (checked on 3.15.0rc2; unchanged in rc3):
 `_testinternalcapi.optimize_cfg(seq, consts, nlocals)` is
 `_PyCompile_OptimizeCfg`: it builds the CFG from a codegen sequence
 (splicing in the module's annotation code), runs `_PyCfg_OptimizeCodeUnit`
@@ -466,7 +467,7 @@ Results:
   New samples: `accept/const_folding.py` (folding's edge cases, about 320
   expressions) and `accept/many_locals.py` (more than 64 locals, `del`,
   superinstructions).
-- **CPython bugs in the oracle (3.15.0rc2, not reported yet):**
+- **CPython bugs in the oracle (3.15.0rc2, still in rc3, not reported yet):**
   `optimize_cfg` fails an assertion, aborting a debug build (ours is one),
   on two kinds of unit; `compile()` is fine with both. (1)
   `load_fast_push_block`, on any unit with an `async for`: optimize_cfg
@@ -531,7 +532,7 @@ Results:
   (1-based UTF-8 byte offsets, as in C's `PyErr_RangedSyntaxLocationObject`),
   and `text` comes from reading `filename`, so it's None for `<unknown>`.
   That is a CPython bug (SyntaxError offsets are characters; the parser and,
-  since gh-156894, the tokenizer convert), seen on 3.15.0rc2 and not yet
+  since gh-156894 in rc3, the tokenizer convert), seen on 3.15.0rc2 and rc3 and not yet
   reported upstream as of 2026-10-04. Keep matching CPython; if it's fixed
   there, follow the fix in Symtable, AstPreprocess and Errors.
   `Errors.PyErr_ProgramTextObject` decodes the line with the file's coding

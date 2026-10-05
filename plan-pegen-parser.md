@@ -12,7 +12,7 @@ kept below for reference.
 
 - **Done: the Java parser generator** (steps 1–4 of the original design below).
   `ant pegen-gen` regenerates the checked-in parser from `../cpython`, which is
-  at v3.15.0rc2. It translates all 538 grammar actions by default, so the
+  at v3.15.0rc3. It translates all 539 grammar actions by default, so the
   checked-in `GeneratedParser.java` builds the Python 3 AST; `--skip-actions`
   gives a recognizer instead.
 - **Done: porting the `_PyPegen_*` helpers** (Phases 1–5 below). The parser's
@@ -31,11 +31,20 @@ kept below for reference.
   and the pegen JUnit tests (41, `TokenizerTest` included).
 - **Before calling it done:** run `/adversarial-parser-review` (see
   Verification).
-- **Upstream stays at v3.15.0rc2** (`../cpython` checked out at the tag,
-  rebuilt). rc3 changed `python.gram`, `action_helpers.c`, `pegen.c/h`,
-  `asdl_c.py` and the lexer (`<>` tokenizing as `<` `>` without
-  barry_as_FLUFL, gh-151464; unary `+` in match patterns, gh-152708;
-  f-string debug text). Syncing to rc3 or later is a separate task.
+- **Upstream is v3.15.0rc3** (`../cpython` checked out at the tag,
+  rebuilt), synced from rc2 on 2026-10-05. The rc3 commits that touch
+  what's ported: `<>` tokenizes as `<` `>` without barry_as_FLUFL, with
+  the new `invalid_noteq` rule (gh-151464; `tok_state.barry_as_bdfl`,
+  `TokenSource.setBarryAsBdfl`); unary `+` in match patterns
+  (gh-152708: grammar, ast_preprocess.c; ast.c's validation isn't
+  ported); f-string expressions as `last_expr_start` (gh-155525) and the
+  debug text's trailing whitespace (gh-154719); "expecting '}' to close
+  '{' on line N" (gh-157778); tokenizer error columns in characters
+  (gh-156894, gh-157378). gh-156689 (`PyAst_CheckMode`) isn't ported.
+  compile.c, codegen.c, flowgraph.c, symtable.c and the opcodes are
+  unchanged. To sync again: `git diff` the tags over `Grammar`, `Parser`
+  and the ported `Python/` files, regenerate (`ant pegen-gen`,
+  generate_opcodes.py, generate_unicode.py), port, and rerun smoke.sh.
 - **Done: the Java tokenizer** (`org.python.pegen.lexer`, see **Completed:
   the Java tokenizer**): the parser now reads source through it
   (`Parser.fromString`), and every comparison runs from source; token

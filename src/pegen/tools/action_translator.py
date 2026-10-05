@@ -54,7 +54,8 @@ FUNCTION_PREFIXES = ("_PyPegen_", "_PyAST_", "asdl_seq_")
 FUNCTIONS = {"NEW_TYPE_COMMENT", "RAISE_ERROR_KNOWN_LOCATION"}
 
 # Helpers returning C int that the Java helpers declare boolean.
-BOOLEAN_FUNCTIONS = {"_PyPegen_check_legacy_stmt", "_PyPegen_check_barry_as_flufl", "PyErr_Occurred"}
+BOOLEAN_FUNCTIONS = {"_PyPegen_check_legacy_stmt", "_PyPegen_check_barry_as_flufl",
+                     "_PyPegen_tokens_are_adjacent", "PyErr_Occurred"}
 
 # Rewritten calls: C function -> Java expression taking no arguments.
 NULLARY_CALLS = {"PyErr_Occurred": "p.errorOccurred()"}

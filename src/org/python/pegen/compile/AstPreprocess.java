@@ -982,9 +982,11 @@ public final class AstPreprocess {
         switch (node.kind()) {
             case UnaryOp: {
                 UnaryOp n = (UnaryOp) node;
-                if (n.op == unaryopType.USub && n.operand.kind() == expr.Kind.Constant) {
+                if ((n.op == unaryopType.USub || n.op == unaryopType.UAdd) &&
+                    n.operand.kind() == expr.Kind.Constant)
+                {
                     Object operand = ((Constant) n.operand).value;
-                    Object folded = PyNumber_Negative(operand);
+                    Object folded = n.op == unaryopType.USub ? PyNumber_Negative(operand) : PyNumber_Positive(operand);
                     return make_const(node, folded);
                 }
                 break;
@@ -1117,6 +1119,15 @@ public final class AstPreprocess {
             // complex_neg
             Complex c = (Complex) v;
             return new Complex(-c.real, -c.imag);
+        }
+        return null;
+    }
+
+    /** PyNumber_Positive */
+    static Object PyNumber_Positive(Object v) {
+        if (v instanceof BigInteger || v instanceof Double || v instanceof Complex) {
+            // long_long, float_float, complex_pos: an exact number is returned itself
+            return v;
         }
         return null;
     }

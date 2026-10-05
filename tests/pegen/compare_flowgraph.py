@@ -23,7 +23,7 @@ becomes a stand-in carrying its name, qualname and first line: flowgraph
 only ever loads it). A wrong one would be fed to both sides alike; Phase F
 (co_consts, co_nlocals) catches those.
 
-CPython bugs (3.15.0rc2, not reported yet): optimize_cfg fails an
+CPython bugs (3.15.0rc2 and rc3, not reported yet): optimize_cfg fails an
 assertion, aborting a debug build, on two kinds of unit; compile() is fine
 with both.
 - load_fast_push_block, on any unit with an `async for`: optimize_cfg runs
