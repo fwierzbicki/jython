@@ -14,11 +14,13 @@ import org.python.pegen.ast.Singleton;
  * The code object (C: PyCodeObject), and _PyCode_ConstantKey from
  * Objects/codeobject.c.
  *
- * <p>Phase D (codegen) has no flowgraph or assembler yet, so
- * _PyCompile_OptimizeAndAssemble makes a placeholder: the fields codegen
- * itself reads from a nested unit's code object (its names, first line and
- * free variables, for the qualname and codegen_make_closure). The rest of
- * PyCodeObject's fields come with Phase F.
+ * <p>There is no assembler yet (Phase F), so _PyAssemble_MakeCodeObject
+ * makes a placeholder: the fields codegen itself reads from a nested
+ * unit's code object (its names, first line and free variables, for the
+ * qualname and codegen_make_closure), and what flowgraph hands the
+ * assembler (the optimized instruction sequence, the constants, the stack
+ * depth and the number of locals plus cells and free variables). The rest
+ * of PyCodeObject's fields come with Phase F.
  */
 public final class PyCodeObject {
 
@@ -33,21 +35,41 @@ public final class PyCodeObject {
      */
     public final List<String> co_freevars;
 
+    /** The constants, in index order (after flowgraph). */
+    public final List<Object> co_consts;
+
+    /** Flowgraph's optimized instructions, which assemble will encode. */
+    public final InstructionSequence instrs;
+
+    public final int co_stacksize;
+
+    /** The number of locals, cells and free variables (C: co_nlocalsplus). */
+    public final int co_nlocalsplus;
+
+    public final int co_flags;
+
     /**
      * What code_richcompare compares, but for the placeholder: name,
-     * argument counts, flags, first line, then the unit's instructions
-     * (standing for the bytecode, line table and exception table), its
-     * constants' keys, names and local variable names.
+     * argument counts, flags, first line, stack depth, then the optimized
+     * instructions with their exception handlers (standing for the
+     * bytecode, line table and exception table), the constants' keys,
+     * names and local variable names.
      */
     private final List<Object> identity;
 
     public PyCodeObject(String co_name, String co_qualname, int co_firstlineno,
-            List<String> co_freevars, List<Object> identity) {
+            List<String> co_freevars, List<Object> identity, List<Object> co_consts,
+            InstructionSequence instrs, int co_stacksize, int co_nlocalsplus, int co_flags) {
         this.co_name = co_name;
         this.co_qualname = co_qualname;
         this.co_firstlineno = co_firstlineno;
         this.co_freevars = co_freevars;
         this.identity = identity;
+        this.co_consts = co_consts;
+        this.instrs = instrs;
+        this.co_stacksize = co_stacksize;
+        this.co_nlocalsplus = co_nlocalsplus;
+        this.co_flags = co_flags;
     }
 
     /**
@@ -77,8 +99,10 @@ public final class PyCodeObject {
      * compares it too, but op is equal whenever the parts are).
      *
      * <p>Parts compare with Java's equals, so a float compares by its bits:
-     * 0.0 and -0.0 differ (as in C, where the key tags -0.0), and so do two
-     * NaNs only if their bits differ (in C, unless they're the same object).
+     * 0.0 and -0.0 differ (as in C, where the key tags -0.0). A float or
+     * complex with a NaN in it is keyed by its identity instead: C compares
+     * the values (with ==, under which a NaN is equal to nothing) unless
+     * they're the same object.
      */
     public static final class ConstantKey {
         private final Object[] parts;
@@ -133,6 +157,13 @@ public final class PyCodeObject {
         else if (op instanceof Bytes) {
             /* Avoid BytesWarning from comparing bytes with strings. */
             return new ConstantKey(op, Type.BYTES, op);
+        }
+        else if (op instanceof Double && Double.isNaN((Double) op)
+                || op instanceof Complex
+                        && (Double.isNaN(((Complex) op).real) || Double.isNaN(((Complex) op).imag))) {
+            // Equal only to itself (see ConstantKey).
+            Type type = op instanceof Double ? Type.FLOAT : Type.COMPLEX;
+            return new ConstantKey(op, type, new Identity(op));
         }
         else if (op instanceof Double) {
             double d = (Double) op;

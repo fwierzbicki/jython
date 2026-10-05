@@ -74,12 +74,20 @@ def constant(v):
 
 
 def unit(seq, out):
-    out.append("#UNIT\n")
-    for op, arg, lineno, end_lineno, col, end_col in seq.get_instructions():
-        out.append("%s %s %d %d %d %d\n" % (OPNAME[op], arg, lineno, end_lineno, col, end_col))
-    for nested in seq.get_nested():
-        unit(nested, out)
-    out.append("#END\n")
+    """A unit's instructions, then its nested units, depth first (iteratively:
+    lambdas nest deeper than Python's recursion limit)."""
+    stack = [seq]
+    while stack:
+        seq = stack.pop()
+        if seq is None:
+            out.append("#END\n")
+            continue
+        out.append("#UNIT\n")
+        for op, arg, lineno, end_lineno, col, end_col in seq.get_instructions():
+            out.append("%s %s %d %d %d %d\n" % (OPNAME[op], arg, lineno, end_lineno, col,
+                                                end_col))
+        stack.append(None)
+        stack.extend(reversed(seq.get_nested()))
 
 
 ERRORS = (SyntaxError, ValueError, MemoryError, OverflowError, SystemError, RecursionError)

@@ -8,13 +8,18 @@ opcode.opmap (pseudo-instructions included), the per-opcode flags of
 pycore_opcode_metadata.h that _opcode exposes (OPCODE_HAS_ARG, _CONST, _NAME,
 _JUMP, _FREE, _LOCAL, IS_PSEUDO's exception-handler flag), the NB_* operand
 kinds of BINARY_OP, the CALL_INTRINSIC_1/2 operands, and the SPECIAL_*
-operands of LOAD_SPECIAL. Must run on the Python version the compiler
-targets.
+operands of LOAD_SPECIAL; and, read from the source tree's
+pycore_opcode_metadata.h, OPCODE_HAS_EVAL_BREAK, _PyOpcode_Deopt and the
+stack effects _PyOpcode_num_popped / _PyOpcode_num_pushed (their return
+expressions copied as they are: they're valid Java). Must run on the Python
+version the compiler targets.
 """
 
 import argparse
 import os
+import re
 import sys
+import sysconfig
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 JYTHON_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -30,6 +35,43 @@ FLAGS = [
     ("HAS_LOCAL", "has_local"),
     ("HAS_EXC", "has_exc"),
 ]
+
+
+def read_metadata():
+    """pycore_opcode_metadata.h from the build's source tree."""
+    path = os.path.join(sysconfig.get_config_var("srcdir"), "Include",
+                        "internal", "pycore_opcode_metadata.h")
+    with open(path) as f:
+        return f.read()
+
+
+def stack_effect_cases(header, func, opmap):
+    """{opcode name: return expression} of the switch in func."""
+    m = re.search(r"int %s\(int opcode, int oparg\)\s*\{\s*switch\(opcode\) \{(.*?)"
+                  r"default:" % func, header, re.S)
+    cases = re.findall(r"case (\w+):\s*return ([^;]+);", m.group(1))
+    return [(name, expr) for name, expr in cases if name in opmap]
+
+
+def eval_break_opcodes(header, opmap):
+    """The opcodes whose _PyOpcode_opcode_metadata entry has HAS_EVAL_BREAK_FLAG."""
+    m = re.search(r"_PyOpcode_opcode_metadata\[\w+\] = \{(.*?)\n\};", header, re.S)
+    return [name for name, flags in re.findall(r"\[(\w+)\] = \{[^,]*,[^,]*, ([^}]*)\}",
+                                                m.group(1))
+            if name in opmap and "HAS_EVAL_BREAK_FLAG" in flags]
+
+
+def deopt_table(header, opmap):
+    """_PyOpcode_Deopt as (opcode number, deoptimized number) pairs."""
+    import opcode
+    allops = dict(opcode._specialized_opmap)
+    allops.update(opmap)
+    m = re.search(r"const uint8_t _PyOpcode_Deopt\[256\] = \{(.*?)\n\};", header, re.S)
+    pairs = []
+    for k, v in re.findall(r"\[(\w+)\] = (\w+),", m.group(1)):
+        pairs.append((int(k) if k.isdigit() else allops[k],
+                      int(v) if v.isdigit() else allops[v]))
+    return pairs
 
 
 def main():
@@ -87,6 +129,37 @@ def main():
         w(f"    /** C: OPCODE_{flag}(op). */\n")
         w(f"    public static boolean OPCODE_{flag}(int op) {{\n")
         w(f"        return (FLAGS[op] & {flag}_FLAG) != 0;\n")
+        w("    }\n\n")
+
+    header = read_metadata()
+    w("    /** C: OPCODE_HAS_EVAL_BREAK(op). */\n")
+    w("    public static boolean OPCODE_HAS_EVAL_BREAK(int op) {\n")
+    w("        switch (op) {\n")
+    for name in eval_break_opcodes(header, opmap):
+        w(f"            case {name}:\n")
+    w("                return true;\n")
+    w("            default:\n")
+    w("                return false;\n")
+    w("        }\n")
+    w("    }\n\n")
+
+    w("    /** C: _PyOpcode_Deopt (0 for an opcode that doesn't exist). */\n")
+    w("    public static final int[] _PyOpcode_Deopt = new int[256];\n")
+    w("    static {\n")
+    for k, v in deopt_table(header, opmap):
+        w(f"        _PyOpcode_Deopt[{k}] = {v};\n")
+    w("    }\n\n")
+
+    for func in ("_PyOpcode_num_popped", "_PyOpcode_num_pushed"):
+        w(f"    /** C: {func} (-1 for an opcode it doesn't know). */\n")
+        w(f"    public static int {func}(int opcode, int oparg) {{\n")
+        w("        switch (opcode) {\n")
+        for name, expr in stack_effect_cases(header, func, opmap):
+            w(f"            case {name}:\n")
+            w(f"                return {expr};\n")
+        w("            default:\n")
+        w("                return -1;\n")
+        w("        }\n")
         w("    }\n\n")
 
     w("    /* BINARY_OP operands (Include/internal/pycore_code.h NB_*) */\n")

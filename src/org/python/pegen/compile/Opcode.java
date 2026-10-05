@@ -589,6 +589,917 @@ public final class Opcode {
         return (FLAGS[op] & HAS_EXC_FLAG) != 0;
     }
 
+    /** C: OPCODE_HAS_EVAL_BREAK(op). */
+    public static boolean OPCODE_HAS_EVAL_BREAK(int op) {
+        switch (op) {
+            case CALL:
+            case CALL_FUNCTION_EX:
+            case INSTRUMENTED_CALL:
+            case INSTRUMENTED_CALL_FUNCTION_EX:
+            case INSTRUMENTED_JUMP_BACKWARD:
+            case INSTRUMENTED_RESUME:
+            case JUMP_BACKWARD:
+            case RESUME:
+            case JUMP:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /** C: _PyOpcode_Deopt (0 for an opcode that doesn't exist). */
+    public static final int[] _PyOpcode_Deopt = new int[256];
+    static {
+        _PyOpcode_Deopt[120] = 120;
+        _PyOpcode_Deopt[121] = 121;
+        _PyOpcode_Deopt[122] = 122;
+        _PyOpcode_Deopt[123] = 123;
+        _PyOpcode_Deopt[124] = 124;
+        _PyOpcode_Deopt[125] = 125;
+        _PyOpcode_Deopt[126] = 126;
+        _PyOpcode_Deopt[127] = 127;
+        _PyOpcode_Deopt[219] = 219;
+        _PyOpcode_Deopt[220] = 220;
+        _PyOpcode_Deopt[221] = 221;
+        _PyOpcode_Deopt[222] = 222;
+        _PyOpcode_Deopt[223] = 223;
+        _PyOpcode_Deopt[224] = 224;
+        _PyOpcode_Deopt[225] = 225;
+        _PyOpcode_Deopt[226] = 226;
+        _PyOpcode_Deopt[227] = 227;
+        _PyOpcode_Deopt[228] = 228;
+        _PyOpcode_Deopt[229] = 229;
+        _PyOpcode_Deopt[230] = 230;
+        _PyOpcode_Deopt[231] = 231;
+        _PyOpcode_Deopt[232] = 232;
+        _PyOpcode_Deopt[42] = 42;
+        _PyOpcode_Deopt[129] = 42;
+        _PyOpcode_Deopt[130] = 42;
+        _PyOpcode_Deopt[131] = 42;
+        _PyOpcode_Deopt[132] = 42;
+        _PyOpcode_Deopt[3] = 42;
+        _PyOpcode_Deopt[133] = 42;
+        _PyOpcode_Deopt[134] = 42;
+        _PyOpcode_Deopt[135] = 42;
+        _PyOpcode_Deopt[136] = 42;
+        _PyOpcode_Deopt[137] = 42;
+        _PyOpcode_Deopt[138] = 42;
+        _PyOpcode_Deopt[139] = 42;
+        _PyOpcode_Deopt[140] = 42;
+        _PyOpcode_Deopt[141] = 42;
+        _PyOpcode_Deopt[142] = 42;
+        _PyOpcode_Deopt[143] = 42;
+        _PyOpcode_Deopt[1] = 1;
+        _PyOpcode_Deopt[43] = 43;
+        _PyOpcode_Deopt[44] = 44;
+        _PyOpcode_Deopt[45] = 45;
+        _PyOpcode_Deopt[46] = 46;
+        _PyOpcode_Deopt[47] = 47;
+        _PyOpcode_Deopt[48] = 48;
+        _PyOpcode_Deopt[2] = 2;
+        _PyOpcode_Deopt[49] = 49;
+        _PyOpcode_Deopt[0] = 0;
+        _PyOpcode_Deopt[50] = 50;
+        _PyOpcode_Deopt[144] = 50;
+        _PyOpcode_Deopt[145] = 50;
+        _PyOpcode_Deopt[146] = 50;
+        _PyOpcode_Deopt[147] = 50;
+        _PyOpcode_Deopt[148] = 50;
+        _PyOpcode_Deopt[149] = 50;
+        _PyOpcode_Deopt[150] = 50;
+        _PyOpcode_Deopt[151] = 4;
+        _PyOpcode_Deopt[152] = 4;
+        _PyOpcode_Deopt[4] = 4;
+        _PyOpcode_Deopt[51] = 51;
+        _PyOpcode_Deopt[52] = 52;
+        _PyOpcode_Deopt[153] = 50;
+        _PyOpcode_Deopt[53] = 53;
+        _PyOpcode_Deopt[154] = 53;
+        _PyOpcode_Deopt[155] = 53;
+        _PyOpcode_Deopt[156] = 53;
+        _PyOpcode_Deopt[157] = 50;
+        _PyOpcode_Deopt[158] = 50;
+        _PyOpcode_Deopt[159] = 50;
+        _PyOpcode_Deopt[160] = 50;
+        _PyOpcode_Deopt[161] = 50;
+        _PyOpcode_Deopt[162] = 50;
+        _PyOpcode_Deopt[163] = 50;
+        _PyOpcode_Deopt[164] = 50;
+        _PyOpcode_Deopt[165] = 50;
+        _PyOpcode_Deopt[166] = 50;
+        _PyOpcode_Deopt[167] = 50;
+        _PyOpcode_Deopt[168] = 50;
+        _PyOpcode_Deopt[5] = 5;
+        _PyOpcode_Deopt[6] = 6;
+        _PyOpcode_Deopt[7] = 7;
+        _PyOpcode_Deopt[54] = 54;
+        _PyOpcode_Deopt[169] = 54;
+        _PyOpcode_Deopt[170] = 54;
+        _PyOpcode_Deopt[171] = 54;
+        _PyOpcode_Deopt[55] = 55;
+        _PyOpcode_Deopt[172] = 55;
+        _PyOpcode_Deopt[173] = 55;
+        _PyOpcode_Deopt[56] = 56;
+        _PyOpcode_Deopt[57] = 57;
+        _PyOpcode_Deopt[58] = 58;
+        _PyOpcode_Deopt[59] = 59;
+        _PyOpcode_Deopt[60] = 60;
+        _PyOpcode_Deopt[61] = 61;
+        _PyOpcode_Deopt[62] = 62;
+        _PyOpcode_Deopt[63] = 63;
+        _PyOpcode_Deopt[8] = 8;
+        _PyOpcode_Deopt[64] = 64;
+        _PyOpcode_Deopt[65] = 65;
+        _PyOpcode_Deopt[66] = 66;
+        _PyOpcode_Deopt[9] = 9;
+        _PyOpcode_Deopt[10] = 10;
+        _PyOpcode_Deopt[254] = 254;
+        _PyOpcode_Deopt[11] = 11;
+        _PyOpcode_Deopt[67] = 67;
+        _PyOpcode_Deopt[12] = 12;
+        _PyOpcode_Deopt[13] = 13;
+        _PyOpcode_Deopt[68] = 68;
+        _PyOpcode_Deopt[174] = 68;
+        _PyOpcode_Deopt[175] = 68;
+        _PyOpcode_Deopt[176] = 68;
+        _PyOpcode_Deopt[177] = 68;
+        _PyOpcode_Deopt[178] = 68;
+        _PyOpcode_Deopt[14] = 14;
+        _PyOpcode_Deopt[15] = 15;
+        _PyOpcode_Deopt[69] = 69;
+        _PyOpcode_Deopt[70] = 70;
+        _PyOpcode_Deopt[179] = 70;
+        _PyOpcode_Deopt[180] = 70;
+        _PyOpcode_Deopt[16] = 16;
+        _PyOpcode_Deopt[71] = 71;
+        _PyOpcode_Deopt[72] = 72;
+        _PyOpcode_Deopt[249] = 249;
+        _PyOpcode_Deopt[251] = 251;
+        _PyOpcode_Deopt[250] = 250;
+        _PyOpcode_Deopt[247] = 247;
+        _PyOpcode_Deopt[233] = 233;
+        _PyOpcode_Deopt[235] = 235;
+        _PyOpcode_Deopt[236] = 236;
+        _PyOpcode_Deopt[237] = 237;
+        _PyOpcode_Deopt[252] = 252;
+        _PyOpcode_Deopt[238] = 238;
+        _PyOpcode_Deopt[253] = 253;
+        _PyOpcode_Deopt[248] = 248;
+        _PyOpcode_Deopt[239] = 239;
+        _PyOpcode_Deopt[234] = 234;
+        _PyOpcode_Deopt[241] = 241;
+        _PyOpcode_Deopt[242] = 242;
+        _PyOpcode_Deopt[243] = 243;
+        _PyOpcode_Deopt[240] = 240;
+        _PyOpcode_Deopt[244] = 244;
+        _PyOpcode_Deopt[245] = 245;
+        _PyOpcode_Deopt[246] = 246;
+        _PyOpcode_Deopt[18] = 18;
+        _PyOpcode_Deopt[73] = 73;
+        _PyOpcode_Deopt[74] = 74;
+        _PyOpcode_Deopt[181] = 74;
+        _PyOpcode_Deopt[75] = 75;
+        _PyOpcode_Deopt[182] = 74;
+        _PyOpcode_Deopt[76] = 76;
+        _PyOpcode_Deopt[77] = 77;
+        _PyOpcode_Deopt[78] = 78;
+        _PyOpcode_Deopt[79] = 79;
+        _PyOpcode_Deopt[183] = 79;
+        _PyOpcode_Deopt[184] = 79;
+        _PyOpcode_Deopt[185] = 79;
+        _PyOpcode_Deopt[186] = 79;
+        _PyOpcode_Deopt[187] = 79;
+        _PyOpcode_Deopt[188] = 79;
+        _PyOpcode_Deopt[189] = 79;
+        _PyOpcode_Deopt[190] = 79;
+        _PyOpcode_Deopt[191] = 79;
+        _PyOpcode_Deopt[192] = 79;
+        _PyOpcode_Deopt[193] = 79;
+        _PyOpcode_Deopt[194] = 79;
+        _PyOpcode_Deopt[195] = 79;
+        _PyOpcode_Deopt[19] = 19;
+        _PyOpcode_Deopt[80] = 80;
+        _PyOpcode_Deopt[81] = 81;
+        _PyOpcode_Deopt[82] = 82;
+        _PyOpcode_Deopt[83] = 83;
+        _PyOpcode_Deopt[84] = 84;
+        _PyOpcode_Deopt[85] = 85;
+        _PyOpcode_Deopt[86] = 86;
+        _PyOpcode_Deopt[87] = 87;
+        _PyOpcode_Deopt[88] = 88;
+        _PyOpcode_Deopt[89] = 89;
+        _PyOpcode_Deopt[90] = 90;
+        _PyOpcode_Deopt[91] = 91;
+        _PyOpcode_Deopt[196] = 91;
+        _PyOpcode_Deopt[197] = 91;
+        _PyOpcode_Deopt[20] = 20;
+        _PyOpcode_Deopt[92] = 92;
+        _PyOpcode_Deopt[93] = 93;
+        _PyOpcode_Deopt[94] = 94;
+        _PyOpcode_Deopt[95] = 95;
+        _PyOpcode_Deopt[198] = 95;
+        _PyOpcode_Deopt[199] = 95;
+        _PyOpcode_Deopt[96] = 96;
+        _PyOpcode_Deopt[21] = 21;
+        _PyOpcode_Deopt[97] = 97;
+        _PyOpcode_Deopt[98] = 98;
+        _PyOpcode_Deopt[22] = 22;
+        _PyOpcode_Deopt[23] = 23;
+        _PyOpcode_Deopt[24] = 24;
+        _PyOpcode_Deopt[25] = 25;
+        _PyOpcode_Deopt[26] = 26;
+        _PyOpcode_Deopt[27] = 27;
+        _PyOpcode_Deopt[28] = 28;
+        _PyOpcode_Deopt[99] = 99;
+        _PyOpcode_Deopt[100] = 100;
+        _PyOpcode_Deopt[101] = 101;
+        _PyOpcode_Deopt[102] = 102;
+        _PyOpcode_Deopt[29] = 29;
+        _PyOpcode_Deopt[30] = 30;
+        _PyOpcode_Deopt[31] = 31;
+        _PyOpcode_Deopt[103] = 103;
+        _PyOpcode_Deopt[104] = 104;
+        _PyOpcode_Deopt[17] = 17;
+        _PyOpcode_Deopt[128] = 128;
+        _PyOpcode_Deopt[200] = 128;
+        _PyOpcode_Deopt[201] = 128;
+        _PyOpcode_Deopt[32] = 32;
+        _PyOpcode_Deopt[33] = 33;
+        _PyOpcode_Deopt[105] = 105;
+        _PyOpcode_Deopt[202] = 105;
+        _PyOpcode_Deopt[203] = 105;
+        _PyOpcode_Deopt[204] = 105;
+        _PyOpcode_Deopt[34] = 34;
+        _PyOpcode_Deopt[106] = 106;
+        _PyOpcode_Deopt[107] = 107;
+        _PyOpcode_Deopt[108] = 108;
+        _PyOpcode_Deopt[109] = 109;
+        _PyOpcode_Deopt[205] = 109;
+        _PyOpcode_Deopt[206] = 109;
+        _PyOpcode_Deopt[207] = 109;
+        _PyOpcode_Deopt[110] = 110;
+        _PyOpcode_Deopt[111] = 111;
+        _PyOpcode_Deopt[112] = 112;
+        _PyOpcode_Deopt[113] = 113;
+        _PyOpcode_Deopt[114] = 114;
+        _PyOpcode_Deopt[115] = 115;
+        _PyOpcode_Deopt[35] = 35;
+        _PyOpcode_Deopt[36] = 36;
+        _PyOpcode_Deopt[208] = 36;
+        _PyOpcode_Deopt[209] = 36;
+        _PyOpcode_Deopt[116] = 116;
+        _PyOpcode_Deopt[37] = 37;
+        _PyOpcode_Deopt[210] = 37;
+        _PyOpcode_Deopt[211] = 37;
+        _PyOpcode_Deopt[212] = 37;
+        _PyOpcode_Deopt[213] = 37;
+        _PyOpcode_Deopt[214] = 37;
+        _PyOpcode_Deopt[215] = 37;
+        _PyOpcode_Deopt[255] = 255;
+        _PyOpcode_Deopt[38] = 38;
+        _PyOpcode_Deopt[39] = 39;
+        _PyOpcode_Deopt[40] = 40;
+        _PyOpcode_Deopt[117] = 117;
+        _PyOpcode_Deopt[118] = 118;
+        _PyOpcode_Deopt[216] = 118;
+        _PyOpcode_Deopt[217] = 118;
+        _PyOpcode_Deopt[218] = 118;
+        _PyOpcode_Deopt[41] = 41;
+        _PyOpcode_Deopt[119] = 119;
+    }
+
+    /** C: _PyOpcode_num_popped (-1 for an opcode it doesn't know). */
+    public static int _PyOpcode_num_popped(int opcode, int oparg) {
+        switch (opcode) {
+            case ANNOTATIONS_PLACEHOLDER:
+                return 0;
+            case BINARY_OP:
+                return 2;
+            case BINARY_SLICE:
+                return 3;
+            case BUILD_INTERPOLATION:
+                return 2 + (oparg & 1);
+            case BUILD_LIST:
+                return oparg;
+            case BUILD_MAP:
+                return oparg*2;
+            case BUILD_SET:
+                return oparg;
+            case BUILD_SLICE:
+                return oparg;
+            case BUILD_STRING:
+                return oparg;
+            case BUILD_TEMPLATE:
+                return 2;
+            case BUILD_TUPLE:
+                return oparg;
+            case CACHE:
+                return 0;
+            case CALL:
+                return 2 + oparg;
+            case CALL_FUNCTION_EX:
+                return 4;
+            case CALL_INTRINSIC_1:
+                return 1;
+            case CALL_INTRINSIC_2:
+                return 2;
+            case CALL_KW:
+                return 3 + oparg;
+            case CHECK_EG_MATCH:
+                return 2;
+            case CHECK_EXC_MATCH:
+                return 2;
+            case CLEANUP_THROW:
+                return 4;
+            case COMPARE_OP:
+                return 2;
+            case CONTAINS_OP:
+                return 2;
+            case CONVERT_VALUE:
+                return 1;
+            case COPY:
+                return 1 + (oparg-1);
+            case COPY_FREE_VARS:
+                return 0;
+            case DELETE_ATTR:
+                return 1;
+            case DELETE_DEREF:
+                return 0;
+            case DELETE_FAST:
+                return 0;
+            case DELETE_GLOBAL:
+                return 0;
+            case DELETE_NAME:
+                return 0;
+            case DELETE_SUBSCR:
+                return 2;
+            case DICT_MERGE:
+                return 5 + (oparg - 1);
+            case DICT_UPDATE:
+                return 2 + (oparg - 1);
+            case END_ASYNC_FOR:
+                return 2;
+            case END_FOR:
+                return 1;
+            case END_SEND:
+                return 3;
+            case ENTER_EXECUTOR:
+                return 0;
+            case EXIT_INIT_CHECK:
+                return 1;
+            case EXTENDED_ARG:
+                return 0;
+            case FORMAT_SIMPLE:
+                return 1;
+            case FORMAT_WITH_SPEC:
+                return 2;
+            case FOR_ITER:
+                return 2;
+            case GET_AITER:
+                return 1;
+            case GET_ANEXT:
+                return 1;
+            case GET_AWAITABLE:
+                return 1;
+            case GET_ITER:
+                return 1;
+            case GET_LEN:
+                return 1;
+            case IMPORT_FROM:
+                return 1;
+            case IMPORT_NAME:
+                return 2;
+            case INSTRUMENTED_CALL:
+                return 2 + oparg;
+            case INSTRUMENTED_CALL_FUNCTION_EX:
+                return 4;
+            case INSTRUMENTED_CALL_KW:
+                return 3 + oparg;
+            case INSTRUMENTED_END_ASYNC_FOR:
+                return 2;
+            case INSTRUMENTED_END_FOR:
+                return 3;
+            case INSTRUMENTED_END_SEND:
+                return 3;
+            case INSTRUMENTED_FOR_ITER:
+                return 2;
+            case INSTRUMENTED_INSTRUCTION:
+                return 0;
+            case INSTRUMENTED_JUMP_BACKWARD:
+                return 0;
+            case INSTRUMENTED_JUMP_FORWARD:
+                return 0;
+            case INSTRUMENTED_LINE:
+                return 0;
+            case INSTRUMENTED_LOAD_SUPER_ATTR:
+                return 3;
+            case INSTRUMENTED_NOT_TAKEN:
+                return 0;
+            case INSTRUMENTED_POP_ITER:
+                return 2;
+            case INSTRUMENTED_POP_JUMP_IF_FALSE:
+                return 1;
+            case INSTRUMENTED_POP_JUMP_IF_NONE:
+                return 1;
+            case INSTRUMENTED_POP_JUMP_IF_NOT_NONE:
+                return 1;
+            case INSTRUMENTED_POP_JUMP_IF_TRUE:
+                return 1;
+            case INSTRUMENTED_RESUME:
+                return 0;
+            case INSTRUMENTED_RETURN_VALUE:
+                return 1;
+            case INSTRUMENTED_YIELD_VALUE:
+                return 1;
+            case INTERPRETER_EXIT:
+                return 1;
+            case IS_OP:
+                return 2;
+            case JUMP:
+                return 0;
+            case JUMP_BACKWARD:
+                return 0;
+            case JUMP_BACKWARD_NO_INTERRUPT:
+                return 0;
+            case JUMP_FORWARD:
+                return 0;
+            case JUMP_IF_FALSE:
+                return 1;
+            case JUMP_IF_TRUE:
+                return 1;
+            case JUMP_NO_INTERRUPT:
+                return 0;
+            case LIST_APPEND:
+                return 2 + (oparg-1);
+            case LIST_EXTEND:
+                return 2 + (oparg-1);
+            case LOAD_ATTR:
+                return 1;
+            case LOAD_BUILD_CLASS:
+                return 0;
+            case LOAD_CLOSURE:
+                return 0;
+            case LOAD_COMMON_CONSTANT:
+                return 0;
+            case LOAD_CONST:
+                return 0;
+            case LOAD_DEREF:
+                return 0;
+            case LOAD_FAST:
+                return 0;
+            case LOAD_FAST_AND_CLEAR:
+                return 0;
+            case LOAD_FAST_BORROW:
+                return 0;
+            case LOAD_FAST_BORROW_LOAD_FAST_BORROW:
+                return 0;
+            case LOAD_FAST_CHECK:
+                return 0;
+            case LOAD_FAST_LOAD_FAST:
+                return 0;
+            case LOAD_FROM_DICT_OR_DEREF:
+                return 1;
+            case LOAD_FROM_DICT_OR_GLOBALS:
+                return 1;
+            case LOAD_GLOBAL:
+                return 0;
+            case LOAD_LOCALS:
+                return 0;
+            case LOAD_NAME:
+                return 0;
+            case LOAD_SMALL_INT:
+                return 0;
+            case LOAD_SPECIAL:
+                return 1;
+            case LOAD_SUPER_ATTR:
+                return 3;
+            case MAKE_CELL:
+                return 0;
+            case MAKE_FUNCTION:
+                return 1;
+            case MAP_ADD:
+                return 3 + (oparg - 1);
+            case MATCH_CLASS:
+                return 3;
+            case MATCH_KEYS:
+                return 2;
+            case MATCH_MAPPING:
+                return 1;
+            case MATCH_SEQUENCE:
+                return 1;
+            case NOP:
+                return 0;
+            case NOT_TAKEN:
+                return 0;
+            case POP_BLOCK:
+                return 0;
+            case POP_EXCEPT:
+                return 1;
+            case POP_ITER:
+                return 2;
+            case POP_JUMP_IF_FALSE:
+                return 1;
+            case POP_JUMP_IF_NONE:
+                return 1;
+            case POP_JUMP_IF_NOT_NONE:
+                return 1;
+            case POP_JUMP_IF_TRUE:
+                return 1;
+            case POP_TOP:
+                return 1;
+            case PUSH_EXC_INFO:
+                return 1;
+            case PUSH_NULL:
+                return 0;
+            case RAISE_VARARGS:
+                return oparg;
+            case RERAISE:
+                return 1 + oparg;
+            case RESERVED:
+                return 0;
+            case RESUME:
+                return 0;
+            case RETURN_GENERATOR:
+                return 0;
+            case RETURN_VALUE:
+                return 1;
+            case SEND:
+                return 3;
+            case SETUP_ANNOTATIONS:
+                return 0;
+            case SETUP_CLEANUP:
+                return 0;
+            case SETUP_FINALLY:
+                return 0;
+            case SETUP_WITH:
+                return 0;
+            case SET_ADD:
+                return 2 + (oparg-1);
+            case SET_FUNCTION_ATTRIBUTE:
+                return 2;
+            case SET_UPDATE:
+                return 2 + (oparg-1);
+            case STORE_ATTR:
+                return 2;
+            case STORE_DEREF:
+                return 1;
+            case STORE_FAST:
+                return 1;
+            case STORE_FAST_LOAD_FAST:
+                return 1;
+            case STORE_FAST_MAYBE_NULL:
+                return 1;
+            case STORE_FAST_STORE_FAST:
+                return 2;
+            case STORE_GLOBAL:
+                return 1;
+            case STORE_NAME:
+                return 1;
+            case STORE_SLICE:
+                return 4;
+            case STORE_SUBSCR:
+                return 3;
+            case SWAP:
+                return 2 + (oparg-2);
+            case TO_BOOL:
+                return 1;
+            case TRACE_RECORD:
+                return 0;
+            case UNARY_INVERT:
+                return 1;
+            case UNARY_NEGATIVE:
+                return 1;
+            case UNARY_NOT:
+                return 1;
+            case UNPACK_EX:
+                return 1;
+            case UNPACK_SEQUENCE:
+                return 1;
+            case WITH_EXCEPT_START:
+                return 5;
+            case YIELD_VALUE:
+                return 1;
+            default:
+                return -1;
+        }
+    }
+
+    /** C: _PyOpcode_num_pushed (-1 for an opcode it doesn't know). */
+    public static int _PyOpcode_num_pushed(int opcode, int oparg) {
+        switch (opcode) {
+            case ANNOTATIONS_PLACEHOLDER:
+                return 0;
+            case BINARY_OP:
+                return 1;
+            case BINARY_SLICE:
+                return 1;
+            case BUILD_INTERPOLATION:
+                return 1;
+            case BUILD_LIST:
+                return 1;
+            case BUILD_MAP:
+                return 1;
+            case BUILD_SET:
+                return 1;
+            case BUILD_SLICE:
+                return 1;
+            case BUILD_STRING:
+                return 1;
+            case BUILD_TEMPLATE:
+                return 1;
+            case BUILD_TUPLE:
+                return 1;
+            case CACHE:
+                return 0;
+            case CALL:
+                return 1;
+            case CALL_FUNCTION_EX:
+                return 1;
+            case CALL_INTRINSIC_1:
+                return 1;
+            case CALL_INTRINSIC_2:
+                return 1;
+            case CALL_KW:
+                return 1;
+            case CHECK_EG_MATCH:
+                return 2;
+            case CHECK_EXC_MATCH:
+                return 2;
+            case CLEANUP_THROW:
+                return 3;
+            case COMPARE_OP:
+                return 1;
+            case CONTAINS_OP:
+                return 1;
+            case CONVERT_VALUE:
+                return 1;
+            case COPY:
+                return 2 + (oparg-1);
+            case COPY_FREE_VARS:
+                return 0;
+            case DELETE_ATTR:
+                return 0;
+            case DELETE_DEREF:
+                return 0;
+            case DELETE_FAST:
+                return 0;
+            case DELETE_GLOBAL:
+                return 0;
+            case DELETE_NAME:
+                return 0;
+            case DELETE_SUBSCR:
+                return 0;
+            case DICT_MERGE:
+                return 4 + (oparg - 1);
+            case DICT_UPDATE:
+                return 1 + (oparg - 1);
+            case END_ASYNC_FOR:
+                return 0;
+            case END_FOR:
+                return 0;
+            case END_SEND:
+                return 1;
+            case ENTER_EXECUTOR:
+                return 0;
+            case EXIT_INIT_CHECK:
+                return 0;
+            case EXTENDED_ARG:
+                return 0;
+            case FORMAT_SIMPLE:
+                return 1;
+            case FORMAT_WITH_SPEC:
+                return 1;
+            case FOR_ITER:
+                return 3;
+            case GET_AITER:
+                return 1;
+            case GET_ANEXT:
+                return 2;
+            case GET_AWAITABLE:
+                return 1;
+            case GET_ITER:
+                return 2;
+            case GET_LEN:
+                return 2;
+            case IMPORT_FROM:
+                return 2;
+            case IMPORT_NAME:
+                return 1;
+            case INSTRUMENTED_CALL:
+                return 1;
+            case INSTRUMENTED_CALL_FUNCTION_EX:
+                return 1;
+            case INSTRUMENTED_CALL_KW:
+                return 1;
+            case INSTRUMENTED_END_ASYNC_FOR:
+                return 0;
+            case INSTRUMENTED_END_FOR:
+                return 2;
+            case INSTRUMENTED_END_SEND:
+                return 1;
+            case INSTRUMENTED_FOR_ITER:
+                return 3;
+            case INSTRUMENTED_INSTRUCTION:
+                return 0;
+            case INSTRUMENTED_JUMP_BACKWARD:
+                return 0;
+            case INSTRUMENTED_JUMP_FORWARD:
+                return 0;
+            case INSTRUMENTED_LINE:
+                return 0;
+            case INSTRUMENTED_LOAD_SUPER_ATTR:
+                return 1 + (oparg & 1);
+            case INSTRUMENTED_NOT_TAKEN:
+                return 0;
+            case INSTRUMENTED_POP_ITER:
+                return 0;
+            case INSTRUMENTED_POP_JUMP_IF_FALSE:
+                return 0;
+            case INSTRUMENTED_POP_JUMP_IF_NONE:
+                return 0;
+            case INSTRUMENTED_POP_JUMP_IF_NOT_NONE:
+                return 0;
+            case INSTRUMENTED_POP_JUMP_IF_TRUE:
+                return 0;
+            case INSTRUMENTED_RESUME:
+                return 0;
+            case INSTRUMENTED_RETURN_VALUE:
+                return 1;
+            case INSTRUMENTED_YIELD_VALUE:
+                return 1;
+            case INTERPRETER_EXIT:
+                return 0;
+            case IS_OP:
+                return 1;
+            case JUMP:
+                return 0;
+            case JUMP_BACKWARD:
+                return 0;
+            case JUMP_BACKWARD_NO_INTERRUPT:
+                return 0;
+            case JUMP_FORWARD:
+                return 0;
+            case JUMP_IF_FALSE:
+                return 1;
+            case JUMP_IF_TRUE:
+                return 1;
+            case JUMP_NO_INTERRUPT:
+                return 0;
+            case LIST_APPEND:
+                return 1 + (oparg-1);
+            case LIST_EXTEND:
+                return 1 + (oparg-1);
+            case LOAD_ATTR:
+                return 1 + (oparg&1);
+            case LOAD_BUILD_CLASS:
+                return 1;
+            case LOAD_CLOSURE:
+                return 1;
+            case LOAD_COMMON_CONSTANT:
+                return 1;
+            case LOAD_CONST:
+                return 1;
+            case LOAD_DEREF:
+                return 1;
+            case LOAD_FAST:
+                return 1;
+            case LOAD_FAST_AND_CLEAR:
+                return 1;
+            case LOAD_FAST_BORROW:
+                return 1;
+            case LOAD_FAST_BORROW_LOAD_FAST_BORROW:
+                return 2;
+            case LOAD_FAST_CHECK:
+                return 1;
+            case LOAD_FAST_LOAD_FAST:
+                return 2;
+            case LOAD_FROM_DICT_OR_DEREF:
+                return 1;
+            case LOAD_FROM_DICT_OR_GLOBALS:
+                return 1;
+            case LOAD_GLOBAL:
+                return 1 + (oparg & 1);
+            case LOAD_LOCALS:
+                return 1;
+            case LOAD_NAME:
+                return 1;
+            case LOAD_SMALL_INT:
+                return 1;
+            case LOAD_SPECIAL:
+                return 2;
+            case LOAD_SUPER_ATTR:
+                return 1 + (oparg & 1);
+            case MAKE_CELL:
+                return 0;
+            case MAKE_FUNCTION:
+                return 1;
+            case MAP_ADD:
+                return 1 + (oparg - 1);
+            case MATCH_CLASS:
+                return 1;
+            case MATCH_KEYS:
+                return 3;
+            case MATCH_MAPPING:
+                return 2;
+            case MATCH_SEQUENCE:
+                return 2;
+            case NOP:
+                return 0;
+            case NOT_TAKEN:
+                return 0;
+            case POP_BLOCK:
+                return 0;
+            case POP_EXCEPT:
+                return 0;
+            case POP_ITER:
+                return 0;
+            case POP_JUMP_IF_FALSE:
+                return 0;
+            case POP_JUMP_IF_NONE:
+                return 0;
+            case POP_JUMP_IF_NOT_NONE:
+                return 0;
+            case POP_JUMP_IF_TRUE:
+                return 0;
+            case POP_TOP:
+                return 0;
+            case PUSH_EXC_INFO:
+                return 2;
+            case PUSH_NULL:
+                return 1;
+            case RAISE_VARARGS:
+                return 0;
+            case RERAISE:
+                return oparg;
+            case RESERVED:
+                return 0;
+            case RESUME:
+                return 0;
+            case RETURN_GENERATOR:
+                return 1;
+            case RETURN_VALUE:
+                return 1;
+            case SEND:
+                return 3;
+            case SETUP_ANNOTATIONS:
+                return 0;
+            case SETUP_CLEANUP:
+                return 2;
+            case SETUP_FINALLY:
+                return 1;
+            case SETUP_WITH:
+                return 1;
+            case SET_ADD:
+                return 1 + (oparg-1);
+            case SET_FUNCTION_ATTRIBUTE:
+                return 1;
+            case SET_UPDATE:
+                return 1 + (oparg-1);
+            case STORE_ATTR:
+                return 0;
+            case STORE_DEREF:
+                return 0;
+            case STORE_FAST:
+                return 0;
+            case STORE_FAST_LOAD_FAST:
+                return 1;
+            case STORE_FAST_MAYBE_NULL:
+                return 0;
+            case STORE_FAST_STORE_FAST:
+                return 0;
+            case STORE_GLOBAL:
+                return 0;
+            case STORE_NAME:
+                return 0;
+            case STORE_SLICE:
+                return 0;
+            case STORE_SUBSCR:
+                return 0;
+            case SWAP:
+                return 2 + (oparg-2);
+            case TO_BOOL:
+                return 1;
+            case TRACE_RECORD:
+                return 0;
+            case UNARY_INVERT:
+                return 1;
+            case UNARY_NEGATIVE:
+                return 1;
+            case UNARY_NOT:
+                return 1;
+            case UNPACK_EX:
+                return 1 + (oparg & 0xFF) + (oparg >> 8);
+            case UNPACK_SEQUENCE:
+                return oparg;
+            case WITH_EXCEPT_START:
+                return 6;
+            case YIELD_VALUE:
+                return 1;
+            default:
+                return -1;
+        }
+    }
+
     /* BINARY_OP operands (Include/internal/pycore_code.h NB_*) */
     public static final int NB_ADD = 0;
     public static final int NB_AND = 1;

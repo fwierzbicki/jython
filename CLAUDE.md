@@ -66,8 +66,11 @@ already hit. Update Status and the checkboxes at each checkpoint.
   Errors.java (errors.c), Ast.java (ast.c), SourceLocation.java; the backend
   so far: Codegen.java (codegen.c; Compile.java has the rest of compile.c),
   InstructionSequence.java, AstUnparse.java (ast_unparse.c), OpcodeUtils.java,
-  PyCodeObject.java (a placeholder until assemble, and _PyCode_ConstantKey),
-  PyTuple/PyFrozenSet/PySlice constants, Repr.java. Opcode.java is generated
+  Flowgraph.java (flowgraph.c), Abstract.java (the operations on constants
+  constant folding calls, from Objects/), LibM.java (correctly rounded pow,
+  exp, log, sin, cos, atan2, hypot), PyCodeObject.java (a placeholder until
+  assemble, and _PyCode_ConstantKey), PyTuple/PyFrozenSet/PySlice
+  constants, Repr.java. Opcode.java (with the stack effects) is generated
   by src/pegen/tools/generate_opcodes.py (run with ../cpython/python). Tests in
   tests/java/org/python/pegen/compile/.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
@@ -90,6 +93,8 @@ already hit. Update Status and the checkboxes at each checkpoint.
   the Java tokenizer's tokens against dump_tokens.py's.
 - tests/pegen/compare_codegen.py + tests/java/org/python/pegen/CodegenCompare.java:
   codegen's instruction sequences against _testinternalcapi.compiler_codegen.
+- tests/pegen/compare_flowgraph.py + tests/java/org/python/pegen/FlowgraphCompare.java:
+  flowgraph's optimized sequences against _testinternalcapi.optimize_cfg.
 - tests/pegen/test_action_translator.py: translator unit tests
   (python3 tests/pegen/test_action_translator.py).
 

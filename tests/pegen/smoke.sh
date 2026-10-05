@@ -11,7 +11,9 @@
 # the same files and symtable/, which holds samples aimed at it. The Java
 # tokenizer's tokens are compared with CPython's (compare_tokens.py), and
 # codegen's instruction sequences with _testinternalcapi.compiler_codegen's
-# (compare_codegen.py), over the same files.
+# (compare_codegen.py), and flowgraph's optimized ones with
+# _testinternalcapi.optimize_cfg's (compare_flowgraph.py), over the same
+# files.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
@@ -116,13 +118,29 @@ compare_codegen() {
         status=1
 }
 
-# The Java drivers of compare_ast.py, compare_symtable.py, compare_tokens.py
-# and compare_codegen.py, compiled once for all the runs below.
+# compare_flowgraph NAME COMPARE_ARGS...
+# Runs compare_flowgraph.py; a failure sets status=1.
+compare_flowgraph() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_flowgraph.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
+# The Java drivers of compare_ast.py, compare_symtable.py, compare_tokens.py,
+# compare_codegen.py and compare_flowgraph.py, compiled once for all the runs
+# below.
 mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes" \
-    "$ROOT/build/pegen-tokens/classes" "$ROOT/build/pegen-codegen/classes"
+    "$ROOT/build/pegen-tokens/classes" "$ROOT/build/pegen-codegen/classes" \
+    "$ROOT/build/pegen-flowgraph/classes"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-tokens/classes" \
     "$ROOT/tests/java/org/python/pegen/TokenCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-codegen/classes" \
+    "$ROOT/tests/java/org/python/pegen/CodegenCompare.java" \
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-flowgraph/classes" \
+    "$ROOT/tests/java/org/python/pegen/FlowgraphCompare.java" \
     "$ROOT/tests/java/org/python/pegen/CodegenCompare.java" \
     "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-compare/classes" \
@@ -167,6 +185,20 @@ for level in 1 2; do
     compare_codegen "codegen-lib-O$level" --optimize $level "$CPYTHON/Lib"
     compare_codegen "codegen-samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject" \
         "$HERE/symtable"
+done
+
+# Flowgraph's optimized sequences, against _testinternalcapi.optimize_cfg.
+compare_flowgraph flowgraph-lib "$CPYTHON/Lib"
+compare_flowgraph flowgraph-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable" "$HERE/deep"
+compare_flowgraph flowgraph-single-samples --mode single "$HERE/single"
+compare_flowgraph flowgraph-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_flowgraph flowgraph-single-corpus --mode single "$OUT/samples/doctests" \
+    "$OUT/samples/strings"
+compare_flowgraph flowgraph-eval-corpus --mode eval "$OUT/samples/doctests" "$OUT/samples/strings"
+for level in 1 2; do
+    compare_flowgraph "flowgraph-lib-O$level" --optimize $level "$CPYTHON/Lib"
+    compare_flowgraph "flowgraph-samples-O$level" --optimize $level "$HERE/accept" \
+        "$HERE/reject" "$HERE/symtable"
 done
 
 # The Java tokenizer's tokens, against CPython's (dump_tokens.py).

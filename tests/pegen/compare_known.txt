@@ -39,7 +39,11 @@ codegen 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
 codegen a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged
 # \N{RS} (see above), which codegen reaches as a SyntaxError.
 codegen c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias
-# CPython's codegen stops deep nesting with a RecursionError from its C
-# stack check (Py_EnterRecursiveCall), a platform-dependent limit; Java
-# compiles it on LargeStack's 16 MB stack.
-codegen 0f62eac87715 deep/accept/deep_lambda.py: CPython's C stack limit in codegen
+# compare_flowgraph.py: the codegen differences above, seen again.
+flowgraph 6def8f3e00a5 Lib/test/datetimetester.py: surrogate pair constant merged
+flowgraph a3fc5a932daf Lib/test/test_capi/test_unicode.py: surrogate pair constant merged
+flowgraph 5c9988c173e4 Lib/test/test_codecs.py: surrogate pair constant merged
+flowgraph e1f57bd325be Lib/test/test_json/test_scanstring.py: surrogate pair constant merged
+flowgraph 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
+flowgraph a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged
+flowgraph c305d393b1f4 Lib/test/test_configparser.py: \N{RS} alias

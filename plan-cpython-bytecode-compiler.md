@@ -8,7 +8,7 @@ the approved plan with progress ticked off. **Working notes** has what's
 specific to this work. The parser it builds on, and the commands,
 conventions and traps shared with it, are in plan-pegen-parser.md.
 
-## Status (2026-10-04)
+## Status (2026-10-05)
 
 - **The parser is done** (plan-pegen-parser.md): its output matches
   CPython's `ast.parse()` over Lib and the error corpus, upstream v3.15.0rc2.
@@ -22,15 +22,16 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
 - **Next: the backend** (codegen, flowgraph, assemble), outlined below in
   **Next plan**. The questions about it were settled with the user on
   2026-10-04 (see **Decisions for the backend**). Phase D (codegen) is
-  done (**Phase D plan**); next is Phase E, flowgraph, to be detailed
-  before work starts. One question for the user is open: lone surrogates in
-  str constants (see Phase D results).
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 13
-  minutes) and the pegen JUnit tests (41 tests, `FutureTest`,
-  `AstPreprocessTest`, `SymtableTest` and `TokenizerTest` included);
+  done (**Phase D plan**), and so is Phase E, flowgraph (**Phase E
+  plan**). Next is Phase F, assemble, to be detailed before work starts.
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 17
+  minutes) and the pegen JUnit tests (48 tests, `FutureTest`,
+  `AstPreprocessTest`, `SymtableTest`, `TokenizerTest` and `FlowgraphTest`
+  included);
   commands in plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
-  d91441d6a, Phase C in ad571bf9a. Check `git status` for anything newer.
+  d91441d6a, Phase C in ad571bf9a, the tokenizer in bb17abeb6, Phase D
+  (codegen) in 5623f71c7. Check `git status` for anything newer.
 
 ## Current plan: the compiler front end
 
@@ -227,10 +228,13 @@ Results:
   instruction sequence. Compared with `compiler_codegen`. Detailed below
   (**Phase D plan**, approved 2026-10-04).
 - **Phase E, flowgraph:** `flowgraph.c` (about 4.3k lines). Compared with
-  `optimize_cfg`.
+  `optimize_cfg`. Detailed below (**Phase E plan**).
 - **Phase F, assemble:** `assemble.c` (about 0.8k lines), which produces the
   code object. Compared with `assemble_code_object`, then end to end through
-  marshal.
+  marshal. Also to consider (from Phase E): comparing `compile()`'s code
+  objects directly (decoded `co_code`, `co_consts`, `co_stacksize`, the
+  exception table, positions), which covers the real path of flowgraph,
+  including the units optimize_cfg can't run (see Phase E results).
 
 ## Phase D plan: codegen (approved 2026-10-04, done 2026-10-05)
 
@@ -323,15 +327,21 @@ useful checkpoint. The checkpoints below are what the comparison shows.
 Results:
 - **Comparison:** Lib at optimize 0, 1 and 2 (2,025 files each), the
   samples with `deep/`, and the error corpus in file, single and eval
-  modes (about 37,300 files each): all identical, apart from 8 entries in
-  `compare_known.txt` (mode `codegen`): `\N{RS}`, CPython's C-stack
-  RecursionError on `deep/accept/deep_lambda.py`, and six files below.
+  modes (about 37,300 files each): all identical, apart from 7 entries in
+  `compare_known.txt` (mode `codegen`): `\N{RS}` and six files below. (An
+  eighth, a RecursionError on `deep/accept/deep_lambda.py` put down to
+  CPython's C stack, turned out in Phase E to come from compare_codegen.py's
+  own recursive walk of the nested units; it now walks them iteratively,
+  and the file matches.)
 - **Lone surrogates:** Python's `'\ud801\udca0'` (two lone surrogates) and
   `'\U000104A0'` are different strings, but the same Java String, so the
   Java const cache merges them (6 Lib test files). The AST comparison
   can't see it: both sides write strings as UTF-16 code units. **To decide
   with the user:** how str constants represent lone surrogates; this will
-  matter again for marshal (Phase F) and the runtime.
+  matter again for marshal (Phase F) and the runtime. **Decided
+  (2026-10-05):** deferred. str constants stay `java.lang.String`, the
+  files stay in `compare_known.txt`, and the representation is settled
+  when the work is ported to `main`, where rt3's str type decides it.
 - **Code object equality:** the const cache keys a code object by itself,
   but compares by value (`code_richcompare`), so the generator expression
   `all()` / `any()` / `tuple()` / `list()` / `set()` compile twice is one
@@ -353,9 +363,168 @@ Results:
 folding of sequences, `co_consts` order), assemble (F: the exception
 table, line tables, the real code object, marshal).
 
+## Phase E plan: flowgraph (approved 2026-10-05, done 2026-10-05)
+
+**Goal:** port Python/flowgraph.c (4,255 lines), so that for any source the
+Java compiler turns each unit's instruction sequence into the optimized
+one CPython's flowgraph does: same opcodes, opargs, locations and final
+constants, for the module and every nested unit.
+
+**The oracle** (checked on 3.15.0rc2):
+`_testinternalcapi.optimize_cfg(seq, consts, nlocals)` is
+`_PyCompile_OptimizeCfg`: it builds the CFG from a codegen sequence
+(splicing in the module's annotation code), runs `_PyCfg_OptimizeCodeUnit`
+with `nparams = 0` and `firstlineno = 1`, then `calculate_stackdepth`
+(result discarded) and `optimize_load_fast`, and returns the sequence.
+It works on `consts` in place: folded constants are appended, and
+`remove_unused_consts` compacts it, so afterwards the list is the unit's
+final constants in index order.
+- **Not run by it:** `convert_pseudo_conditional_jumps`,
+  `prepare_localsplus` (cell and free offsets, `MAKE_CELL`,
+  `COPY_FREE_VARS`), `convert_pseudo_ops` and `normalize_jumps`, which
+  `_PyCfg_OptimizedCfgToInstructionSequence` runs on the real path; and
+  the stack depth isn't returned. Phase F sees all of these (`co_code`,
+  `co_stacksize`, `co_nlocalsplus`).
+- **Nested units:** compiler_codegen gives their sequences but not their
+  constants, which optimize_cfg needs (folding reads the values). So the
+  Java side writes each nested unit's codegen constants and `nlocals`
+  (`len(u_varnames)`), and compare_flowgraph.py rebuilds them as Python
+  objects and runs optimize_cfg on CPython's nested sequence with them. A
+  code object constant becomes a unique placeholder object (it's only ever
+  loaded for `MAKE_FUNCTION`, never folded). Codegen's comparison already
+  shows the sequences match; a wrong nested constant or `nlocals` would be
+  fed to both sides alike, so those two are left for Phase F (`co_consts`,
+  `co_nlocals`) to catch.
+
+**Decisions** (approved by the user, 2026-10-05):
+- **Files** in `org.python.pegen.compile`, C names and order kept:
+  `Flowgraph.java` (flowgraph.c: `cfg_builder`, `basicblock`,
+  `cfg_instr`), and `Compile.java` grows `optimize_and_assemble_code_unit`
+  up to the call to assemble. All of flowgraph.c goes in at once, as
+  codegen.c did; the checkpoints are what the comparison shows.
+- **Stack effects are generated:** `generate_opcodes.py` adds
+  `_PyOpcode_num_popped` / `_PyOpcode_num_pushed` to `Opcode.java`,
+  copied from `pycore_opcode_metadata.h` (the return expressions, such as
+  `2 + (oparg-1)` or `1 + (oparg & 0xFF) + (oparg >> 8)`, are valid Java),
+  plus `_PyOpcode_Deopt` and whatever other tables flowgraph reads.
+- **Constant folding needs Python's operations on constants**
+  (`fold_const_binop`, `fold_const_unaryop`, the tuple / list / set
+  folding): `+ - * / // % ** << >> | ^ &`, subscripts, unary `- + ~ not`,
+  truth, over int, float, complex, bool, str, bytes, tuple and frozenset,
+  with the `const_folding_safe_*` limits; an operation that raises means
+  "don't fold". Hand-ported from Objects/ (abstract.c's `PyNumber_*`,
+  then the `long_*`, `float_*`, `complex_*`, `unicode_*`, `bytes_*`,
+  `tuple_*` slots they reach) into `Abstract.java`, over the AST value
+  classes, C names kept, only the paths folding can reach. Not reused from
+  Jython 2's `org.python.core`: that's Python 2 semantics, and the code
+  object stays a plain Java value. Risky spots: int / int true division
+  (correctly rounded, `long_true_divide`), float `**` (C's `pow` against
+  Java's `StrictMath.pow`), float `%` and `//`, complex `/` and `**`,
+  int-to-float overflow, frozenset building (dedup by Python equality:
+  `{1, 1.0, True}` has one element).
+- **New comparison:** `tests/pegen/compare_flowgraph.py` and
+  `FlowgraphCompare.java`, the same pattern as compare_codegen.py: per
+  unit, depth first, the optimized instructions and the final constants
+  (every unit's, now). Java runs exactly what `_PyCompile_OptimizeCfg`
+  does (`nparams = 0`, `firstlineno = 1`). Run by smoke.sh over Lib, the
+  samples and the corpus, at optimize 0, 1 and 2, in exec, single and
+  eval modes (a file codegen rejects is skipped: compare_codegen.py
+  covers it).
+- **The real path** (`_PyCfg_OptimizedCfgToInstructionSequence`,
+  `prepare_localsplus`, the real `nparams` and `firstlineno`) is ported
+  in E and wired into `_PyCompile_OptimizeAndAssemble`, whose placeholder
+  code object then carries the optimized sequence, final constants, stack
+  depth and `nlocalsplus`. It's compared in F, which is the first oracle
+  to see it.
+
+**Checkpoints** (all of flowgraph.c went in at once, so E0 to E2 were
+checked together):
+- [x] E0: `Opcode.java` stack effects; `Flowgraph.java`'s CFG building
+      and flattening (`_PyCfg_FromInstructionSequence`,
+      `translate_jump_labels_to_targets`, `mark_except_handlers`,
+      `label_exception_targets`, `calculate_stackdepth`,
+      `_PyCfg_ToInstructionSequence`); compare_flowgraph.py and
+      FlowgraphCompare.java in smoke.sh.
+- [x] E1: optimize_cfg without constant folding: unreachable code, NOPs,
+      jump threading, small-block inlining, `swaptimize`,
+      `remove_unused_consts`, uninitialized-variable checks,
+      superinstructions, cold blocks, line numbers, `optimize_load_fast`.
+- [x] E2: constant folding (`Abstract.java`, `LibM.java`),
+      `LOAD_SMALL_INT`, `LOAD_COMMON_CONSTANT`, list and set to tuple and
+      frozenset.
+- [x] E3: the real path wired into `_PyCompile_OptimizeAndAssemble`
+      (`optimize_and_assemble_code_unit`; the placeholder code object is
+      made by a `_PyAssemble_MakeCodeObject` stand-in in Compile.java).
+- [x] smoke.sh passes, with the flowgraph comparison in it.
+
+Results:
+- **Comparison:** Lib at optimize 0, 1 and 2 (2,025 files each), the
+  samples with `deep/`, and the error corpus in file, single and eval
+  modes (37,455 files each): all identical, apart from 7 entries in
+  `compare_known.txt` (mode `flowgraph`), the codegen ones seen again.
+  New samples: `accept/const_folding.py` (folding's edge cases, about 320
+  expressions) and `accept/many_locals.py` (more than 64 locals, `del`,
+  superinstructions).
+- **CPython bugs in the oracle (3.15.0rc2, not reported yet):**
+  `optimize_cfg` fails an assertion, aborting a debug build (ours is one),
+  on two kinds of unit; `compile()` is fine with both. (1)
+  `load_fast_push_block`, on any unit with an `async for`: optimize_cfg
+  runs `optimize_load_fast` on a CFG that still has the pseudo-instructions
+  the real path converts first. (2) `_PyCfg_FromInstructionSequence`, on a
+  module with annotations: with compiler_codegen's `c_save_nested_seqs`,
+  the annotation code has the `__annotate__` unit as a nested sequence,
+  which the assertion forbids. FlowgraphCompare, which ports the
+  assertions, writes such a unit as `#ABORT`, and compare_flowgraph.py
+  then leaves it out: 125 units in Lib, 5 in the samples. Phase F compares
+  them.
+- **Real path:** every Lib file compiles through `_PyAST_Compile` with
+  assertions on (2,013, and the 12 SyntaxErrors CPython's has too). The
+  codegen and flowgraph comparisons run it on every nested unit (C's
+  compiler_codegen optimizes and assembles nested units for their code
+  objects). Its results are first compared in Phase F.
+- **The platform's libm:** CPython's float `**` (non-integral exponent)
+  and complex `**` (unless the exponent is an integer up to 100) call
+  libm's pow, exp, log, sin, cos, atan2 and hypot, whose last bit varies
+  across platforms. glibc's are correctly rounded in about 99.95% of
+  cases; StrictMath (fdlibm) differed from glibc in 3% to 10% of random
+  arguments. `LibM.java` computes them correctly rounded (BigDecimal,
+  Ziv's method), which matches glibc in about 99.9%; the rest are glibc's
+  own rounding errors. C's errno also decides folding: glibc's
+  `cos(inf)` sets EDOM, so `(2+3j) ** 1e999` raises (ZeroDivisionError)
+  and isn't folded; Abstract emulates it.
+- **Object identity:** flowgraph's constants index (`consts_index`) is
+  keyed by address, so whether a folded value reuses an existing constant
+  depends on whether C returns the same object. `Abstract.Py_Is` treats as
+  one object what C shares (small ints, `''`, one-character Latin-1 str,
+  `b''`, one-byte bytes, `()`), and Abstract returns an operand itself
+  where C does (`+x`, `s + ''`, `t * 1`, full slices). Not modelled: C's
+  `bytes_repeat` and stepped bytes slices make new empty or one-byte
+  bytes. On the real path this can't show (add_const merges through the
+  const cache first, which every constant is in); in optimize_cfg's mode
+  (a fresh cache) `0 * b'ab'` next to a `b''` literal would get a
+  different index. const_folding.py avoids that pairing.
+- **NaN constants:** C's const cache merges a NaN only with the same
+  object (`_PyCode_ConstantKey` compares values, and a NaN equals
+  nothing); the Java key compared bits, so it merged equal NaNs. Fixed in
+  `PyCodeObject._PyCode_ConstantKey` (floats and complexes with a NaN are
+  keyed by identity). AstCompare's float form now writes raw bits, as
+  compare_ast.py does (`doubleToLongBits` dropped a NaN's sign).
+
 ## Working notes (for a new session)
 
 ### Traps already hit
+- **_testinternalcapi aborts on some input** (our CPython is a debug
+  build): optimize_cfg on `async for` units and on modules with
+  annotations (Phase E results). A test script that dies with an
+  assertion message in C may be hitting a CPython bug, not ours: check
+  `compile()` on the same source.
+- **`os._exit` drops buffered output:** the compare scripts leave with
+  `os._exit` (see compare_codegen.py's KEEP), so a quick probe script that
+  does the same must run with `python -u` or flush, or print nothing.
+- **A `WarningHandler` returning false** turns the warning into an error.
+- **Folding's results depend on object identity** in C (see Phase E
+  results, "Object identity"): return an operand itself exactly where C
+  does.
 - **Compiler-stage errors** are thrown as `PythonSyntaxError`, where C sets
   the exception and returns 0. Their offsets are passed through unconverted
   (1-based UTF-8 byte offsets, as in C's `PyErr_RangedSyntaxLocationObject`),

@@ -247,7 +247,7 @@ public class AstCompare {
     }
 
     static String bits(double d) {
-        return Long.toHexString(Double.doubleToLongBits(d));
+        return Long.toHexString(Double.doubleToRawLongBits(d));
     }
 
     /** A string as printable ASCII, other UTF-16 code units (and \\ and ") as \\uXXXX. */

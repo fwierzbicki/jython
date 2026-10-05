@@ -448,7 +448,7 @@ because a file that fails C's tokenizer can't be dumped. For the same reason,
 - **pegen JUnit tests** (after `ant compile`):
   `javac --release 8 -cp build/classes:extlibs/junit-4.10.jar -d $T tests/java/org/python/pegen/*Test.java tests/java/org/python/pegen/compile/*Test.java tests/java/org/python/pegen/lexer/*Test.java`,
   then
-  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest org.python.pegen.compile.SymtableTest org.python.pegen.lexer.TokenizerTest`.
+  `java -ea -cp build/classes:extlibs/junit-4.10.jar:$T org.junit.runner.JUnitCore org.python.pegen.StringParserTest org.python.pegen.ParsenumberTest org.python.pegen.compile.FutureTest org.python.pegen.compile.AstPreprocessTest org.python.pegen.compile.SymtableTest org.python.pegen.lexer.TokenizerTest org.python.pegen.compile.FlowgraphTest`.
   `ant javatest` also picks them up (`**/*Test*.java`).
 - **Compare with CPython** (after `ant compile`; run with the 3.15 build):
   `../cpython/python.exe tests/pegen/compare_ast.py [--mode single] [--optimize N] PATH...`

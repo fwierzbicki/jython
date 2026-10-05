@@ -51,7 +51,8 @@ import org.python.pegen.compile.Symtable.PySTEntryObject;
  * SUCCESS or ERROR returns void.
  *
  * <p>Until flowgraph and assemble are ported (Phases E and F),
- * _PyCompile_OptimizeAndAssemble returns a placeholder code object.
+ * _PyCompile_OptimizeAndAssemble returns a placeholder code object (no
+ * assembler until Phase F).
  */
 public final class Compile {
 
@@ -288,6 +289,13 @@ public final class Compile {
      * instructions for nested code objects)
      */
     boolean c_save_nested_seqs;
+    /**
+     * Not in C: when c_save_nested_seqs, what flowgraph is given for each
+     * nested unit (its constants and number of locals), by the unit's
+     * instruction sequence. Tests feed them to _PyCompile_OptimizeCfg, as
+     * compiler_codegen exposes neither for a nested unit.
+     */
+    final Map<InstructionSequence, UnitInputs> c_nested_inputs = new java.util.IdentityHashMap<>();
     int c_disable_warning;
     /** module name, for warnings; may be null */
     public String c_module;
@@ -1140,40 +1148,68 @@ public final class Compile {
         return flags;
     }
 
-    /**
-     * C: optimize_and_assemble_code_unit. Phase D: no flowgraph or
-     * assembler yet, so this makes the placeholder code object (see
-     * {@link PyCodeObject}): its free variables are u_freevars' keys in
-     * index order, where compute_localsplus_info puts them.
-     */
     private static PyCodeObject optimize_and_assemble_code_unit(compiler_unit u,
-            int code_flags, String filename) {
-        String[] freevars = new String[u.u_metadata.u_freevars.size()];
-        int offset = u.u_metadata.u_cellvars.size();
-        for (Map.Entry<Object, Integer> kv : u.u_metadata.u_freevars.entrySet()) {
+            Map<Object, Object> const_cache, int code_flags, String filename) {
+        List<Object> consts = consts_dict_keys_inorder(u.u_metadata.u_consts);
+        Flowgraph.cfg_builder g = Flowgraph._PyCfg_FromInstructionSequence(u.u_instr_sequence);
+        int nlocals = u.u_metadata.u_varnames.size();
+        int nparams = u.u_ste.ste_varnames.size();
+        assert u.u_metadata.u_firstlineno != 0;
+
+        Flowgraph._PyCfg_OptimizeCodeUnit(g, consts, const_cache, nlocals, nparams,
+                u.u_metadata.u_firstlineno);
+
+        int[] stackdepth_nlocalsplus = new int[2];
+        InstructionSequence optimized_instrs = new InstructionSequence();
+        Flowgraph._PyCfg_OptimizedCfgToInstructionSequence(g, u.u_metadata,
+                stackdepth_nlocalsplus, optimized_instrs);
+
+        /** Assembly **/
+        return _PyAssemble_MakeCodeObject(u.u_metadata, const_cache, consts,
+                stackdepth_nlocalsplus[0], optimized_instrs, stackdepth_nlocalsplus[1],
+                code_flags, filename);
+    }
+
+    /**
+     * C: _PyAssemble_MakeCodeObject (Python/assemble.c). Phase E: no
+     * assembler yet, so this makes the placeholder code object (see
+     * {@link PyCodeObject}), which keeps flowgraph's results for Phase F.
+     * Its free variables are u_freevars' keys in index order, where
+     * compute_localsplus_info puts them.
+     */
+    static PyCodeObject _PyAssemble_MakeCodeObject(_PyCompile_CodeUnitMetadata umd,
+            Map<Object, Object> const_cache, List<Object> consts, int maxdepth,
+            InstructionSequence instrs, int nlocalsplus, int code_flags, String filename) {
+        String[] freevars = new String[umd.u_freevars.size()];
+        int offset = umd.u_cellvars.size();
+        for (Map.Entry<Object, Integer> kv : umd.u_freevars.entrySet()) {
             freevars[kv.getValue() - offset] = (String) kv.getKey();
         }
         List<String> co_freevars = new ArrayList<>();
         Collections.addAll(co_freevars, freevars);
 
         // What code_richcompare compares (see PyCodeObject).
-        u.u_instr_sequence._PyInstructionSequence_ApplyLabelMap();
         List<Object> identity = new ArrayList<>();
-        _PyCompile_CodeUnitMetadata umd = u.u_metadata;
         Collections.addAll(identity, umd.u_name, umd.u_argcount, umd.u_posonlyargcount,
-                umd.u_kwonlyargcount, code_flags, umd.u_firstlineno);
-        for (InstructionSequence._PyInstruction instr : u.u_instr_sequence.s_instrs) {
+                umd.u_kwonlyargcount, code_flags, umd.u_firstlineno, maxdepth, nlocalsplus);
+        for (InstructionSequence._PyInstruction instr : instrs.s_instrs) {
             SourceLocation loc = instr.i_loc;
+            InstructionSequence._PyExceptHandlerInfo hi = instr.i_except_handler_info;
             Collections.addAll(identity, instr.i_opcode, instr.i_oparg, loc.lineno,
-                    loc.end_lineno, loc.col_offset, loc.end_col_offset);
+                    loc.end_lineno, loc.col_offset, loc.end_col_offset, hi.h_label,
+                    hi.h_startdepth, hi.h_preserve_lasti);
         }
-        identity.add(new ArrayList<>(umd.u_consts.keySet()));
+        List<Object> constKeys = new ArrayList<>();
+        for (Object c : consts) {
+            constKeys.add(PyCodeObject._PyCode_ConstantKey(c));
+        }
+        identity.add(constKeys);
         identity.add(new ArrayList<>(umd.u_names.keySet()));
         identity.add(new ArrayList<>(umd.u_varnames.keySet()));
         identity.add(new ArrayList<>(umd.u_cellvars.keySet()));
         identity.add(co_freevars);
-        return new PyCodeObject(u.u_metadata.u_name, u.u_metadata.u_qualname,
-                u.u_metadata.u_firstlineno, co_freevars, identity);
+        return new PyCodeObject(umd.u_name, umd.u_qualname, umd.u_firstlineno, co_freevars,
+                identity, consts, instrs, maxdepth, nlocalsplus, code_flags);
     }
 
     public PyCodeObject _PyCompile_OptimizeAndAssemble(boolean addNone) {
@@ -1184,12 +1220,18 @@ public final class Compile {
 
         Codegen._PyCodegen_AddReturnAtEnd(this, addNone);
 
-        return optimize_and_assemble_code_unit(u, code_flags, filename);
+        if (c_save_nested_seqs) {
+            c_nested_inputs.put(u.u_instr_sequence, new UnitInputs(
+                    consts_dict_keys_inorder(u.u_metadata.u_consts),
+                    u.u_metadata.u_varnames.size()));
+        }
+
+        return optimize_and_assemble_code_unit(u, c_const_cache, code_flags, filename);
     }
 
     /**
      * _PyAST_Compile: the code object for mod. Throws the SyntaxError a
-     * stage raises. (Phase D: a placeholder code object; see
+     * stage raises. (Until Phase F: a placeholder code object; see
      * {@link PyCodeObject}.)
      */
     public static PyCodeObject _PyAST_Compile(mod mod, String filename, PyCompilerFlags pflags,
@@ -1347,14 +1389,35 @@ public final class Compile {
         public final int kwonlyargcount;
         /** The constants in LOAD_CONST index order. */
         public final List<Object> consts;
+        /** Not in C: the number of locals (len(u_varnames)). */
+        public final int nlocals;
+        /** Not in C: each nested unit's flowgraph inputs, by its sequence. */
+        public final Map<InstructionSequence, UnitInputs> nested;
 
         CodeGenResult(InstructionSequence seq, _PyCompile_CodeUnitMetadata umd,
-                List<Object> consts) {
+                List<Object> consts, Map<InstructionSequence, UnitInputs> nested) {
             this.seq = seq;
             this.argcount = umd.u_argcount;
             this.posonlyargcount = umd.u_posonlyargcount;
             this.kwonlyargcount = umd.u_kwonlyargcount;
             this.consts = consts;
+            this.nlocals = umd.u_varnames.size();
+            this.nested = nested;
+        }
+    }
+
+    /**
+     * Not in C: what flowgraph is given for a unit besides its sequence:
+     * its constants in index order (after the final return is added) and
+     * its number of locals.
+     */
+    public static final class UnitInputs {
+        public final List<Object> consts;
+        public final int nlocals;
+
+        public UnitInputs(List<Object> consts, int nlocals) {
+            this.consts = consts;
+            this.nlocals = nlocals;
         }
     }
 
@@ -1386,7 +1449,8 @@ public final class Compile {
 
             /* After AddReturnAtEnd: co_consts indices match the final instruction stream. */
             List<Object> consts_list = consts_dict_keys_inorder(umd.u_consts);
-            return new CodeGenResult(c._PyCompile_InstrSequence(), umd, consts_list);
+            return new CodeGenResult(c._PyCompile_InstrSequence(), umd, consts_list,
+                    c.c_nested_inputs);
         } finally {
             if (c.u != null) {
                 c._PyCompile_ExitScope();
