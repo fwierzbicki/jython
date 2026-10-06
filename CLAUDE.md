@@ -68,9 +68,10 @@ already hit. Update Status and the checkboxes at each checkpoint.
   InstructionSequence.java, AstUnparse.java (ast_unparse.c), OpcodeUtils.java,
   Flowgraph.java (flowgraph.c), Abstract.java (the operations on constants
   constant folding calls, from Objects/), LibM.java (correctly rounded pow,
-  exp, log, sin, cos, atan2, hypot), PyCodeObject.java (a placeholder until
-  assemble, and _PyCode_ConstantKey), PyTuple/PyFrozenSet/PySlice
-  constants, Repr.java. Opcode.java (with the stack effects) is generated
+  exp, log, sin, cos, atan2, hypot), Assemble.java (assemble.c),
+  PyCodeObject.java (the code object, from codeobject.c, and
+  _PyCode_ConstantKey), Marshal.java (marshal.c's writer),
+  PyTuple/PyFrozenSet/PySlice constants, Repr.java. Opcode.java (with the stack effects) is generated
   by src/pegen/tools/generate_opcodes.py (run with ../cpython/python). Tests in
   tests/java/org/python/pegen/compile/.
 - tests/pegen/smoke.sh: the test suite: compare_ast.py over Lib, the sample
@@ -95,6 +96,8 @@ already hit. Update Status and the checkboxes at each checkpoint.
   codegen's instruction sequences against _testinternalcapi.compiler_codegen.
 - tests/pegen/compare_flowgraph.py + tests/java/org/python/pegen/FlowgraphCompare.java:
   flowgraph's optimized sequences against _testinternalcapi.optimize_cfg.
+- tests/pegen/compare_code.py + tests/java/org/python/pegen/CodeCompare.java:
+  code objects against compile()'s; --marshal loads Java's marshal output.
 - tests/pegen/test_action_translator.py: translator unit tests
   (python3 tests/pegen/test_action_translator.py).
 
@@ -118,5 +121,6 @@ translates actions by default, --skip-actions gives a recognizer)
 (see plan-pegen-parser.md, Commands)
 
 ## Smoke test (after ant compile)
-tests/pegen/smoke.sh   (needs Python 3.15: uses ../cpython/python.exe if built,
+tests/pegen/smoke.sh [--skip-stages]   (--skip-stages leaves out the codegen
+and flowgraph comparisons; needs Python 3.15: uses ../cpython/python.exe if built,
 else set PYTHON=/path/to/python3.15)

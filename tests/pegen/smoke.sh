@@ -11,9 +11,10 @@
 # the same files and symtable/, which holds samples aimed at it. The Java
 # tokenizer's tokens are compared with CPython's (compare_tokens.py), and
 # codegen's instruction sequences with _testinternalcapi.compiler_codegen's
-# (compare_codegen.py), and flowgraph's optimized ones with
-# _testinternalcapi.optimize_cfg's (compare_flowgraph.py), over the same
-# files.
+# (compare_codegen.py), flowgraph's optimized ones with
+# _testinternalcapi.optimize_cfg's (compare_flowgraph.py), and the code
+# objects with compile()'s (compare_code.py), directly and through the
+# Java marshal writer and marshal.loads, over the same files.
 # Differences listed in compare_known.txt are reported but don't fail.
 #
 # deep/ holds input nested close to (accept/) and past (reject/) the parser's
@@ -23,10 +24,24 @@
 # run and reported but do not fail the script (none at present). Move a
 # sample out once it passes.
 #
+# Usage: smoke.sh [--skip-stages]
+#
+# --skip-stages leaves out the codegen and flowgraph comparisons (about 40%
+# of the run). compare_code.py still checks what they produce, through the
+# code objects; they show which stage a difference comes from.
+#
 # Needs: `ant compile` already run and a CPython checkout (default ../cpython;
 # override with CPYTHON=...). PYTHON must be Python >= 3.15; by default an
 # in-tree build in $CPYTHON is used if present, else python3.
 set -eu
+
+SKIP_STAGES=0
+for arg in "$@"; do
+    case $arg in
+        --skip-stages) SKIP_STAGES=1 ;;
+        *) echo "usage: smoke.sh [--skip-stages]" >&2; exit 2 ;;
+    esac
+done
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CPYTHON=${CPYTHON:-$ROOT/../cpython}
@@ -129,11 +144,14 @@ compare_flowgraph() {
 }
 
 # The Java drivers of compare_ast.py, compare_symtable.py, compare_tokens.py,
-# compare_codegen.py and compare_flowgraph.py, compiled once for all the runs
-# below.
+# compare_codegen.py, compare_flowgraph.py and compare_code.py, compiled once
+# for all the runs below.
 mkdir -p "$ROOT/build/pegen-compare/classes" "$ROOT/build/pegen-symtable/classes" \
     "$ROOT/build/pegen-tokens/classes" "$ROOT/build/pegen-codegen/classes" \
-    "$ROOT/build/pegen-flowgraph/classes"
+    "$ROOT/build/pegen-flowgraph/classes" "$ROOT/build/pegen-code/classes"
+javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-code/classes" \
+    "$ROOT/tests/java/org/python/pegen/CodeCompare.java" \
+    "$ROOT/tests/java/org/python/pegen/AstCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-tokens/classes" \
     "$ROOT/tests/java/org/python/pegen/TokenCompare.java"
 javac -nowarn -cp "$ROOT/build/classes" -d "$ROOT/build/pegen-codegen/classes" \
@@ -167,6 +185,16 @@ compare corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
 
 # The symbol table, as _symtable.symtable() builds it (no preprocess).
+# compare_code NAME COMPARE_ARGS...
+# Runs compare_code.py; a failure sets status=1.
+compare_code() {
+    name=$1
+    shift
+    echo "== $name"
+    "$PYTHON" "$HERE/compare_code.py" --no-build --known "$HERE/compare_known.txt" "$@" ||
+        status=1
+}
+
 compare_symtable symtable-lib "$CPYTHON/Lib"
 compare_symtable symtable-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable"
 compare_symtable symtable-single-samples --mode single "$HERE/single"
@@ -174,6 +202,7 @@ compare_symtable symtable-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
 compare_symtable symtable-single-corpus --mode single "$OUT/samples/doctests" \
     "$OUT/samples/strings"
 
+if [ "$SKIP_STAGES" = 0 ]; then
 # Codegen's instruction sequences, against _testinternalcapi.compiler_codegen.
 compare_codegen codegen-lib "$CPYTHON/Lib"
 compare_codegen codegen-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable" "$HERE/deep"
@@ -200,6 +229,26 @@ for level in 1 2; do
     compare_flowgraph "flowgraph-samples-O$level" --optimize $level "$HERE/accept" \
         "$HERE/reject" "$HERE/symtable"
 done
+else
+    echo "== codegen and flowgraph comparisons skipped (--skip-stages)"
+fi
+
+# The code objects, against compile()'s; then through marshal.
+compare_code code-lib "$CPYTHON/Lib"
+compare_code code-samples "$HERE/accept" "$HERE/reject" "$HERE/symtable" "$HERE/deep"
+compare_code code-single-samples --mode single "$HERE/single"
+compare_code code-corpus "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_code code-single-corpus --mode single "$OUT/samples/doctests" "$OUT/samples/strings"
+compare_code code-eval-corpus --mode eval "$OUT/samples/doctests" "$OUT/samples/strings"
+for level in 1 2; do
+    compare_code "code-lib-O$level" --optimize $level "$CPYTHON/Lib"
+    compare_code "code-samples-O$level" --optimize $level "$HERE/accept" "$HERE/reject" \
+        "$HERE/symtable"
+done
+compare_code marshal-lib --marshal "$CPYTHON/Lib"
+compare_code marshal-samples --marshal "$HERE/accept" "$HERE/reject" "$HERE/symtable" \
+    "$HERE/single" "$HERE/deep"
+compare_code marshal-corpus --marshal "$OUT/samples/doctests" "$OUT/samples/strings"
 
 # The Java tokenizer's tokens, against CPython's (dump_tokens.py).
 compare_tokens tokens-lib "$CPYTHON/Lib"

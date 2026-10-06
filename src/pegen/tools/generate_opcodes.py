@@ -9,8 +9,8 @@ pycore_opcode_metadata.h that _opcode exposes (OPCODE_HAS_ARG, _CONST, _NAME,
 _JUMP, _FREE, _LOCAL, IS_PSEUDO's exception-handler flag), the NB_* operand
 kinds of BINARY_OP, the CALL_INTRINSIC_1/2 operands, and the SPECIAL_*
 operands of LOAD_SPECIAL; and, read from the source tree's
-pycore_opcode_metadata.h, OPCODE_HAS_EVAL_BREAK, _PyOpcode_Deopt and the
-stack effects _PyOpcode_num_popped / _PyOpcode_num_pushed (their return
+pycore_opcode_metadata.h, OPCODE_HAS_EVAL_BREAK, _PyOpcode_Deopt,
+_PyOpcode_Caches and the stack effects _PyOpcode_num_popped / _PyOpcode_num_pushed (their return
 expressions copied as they are: they're valid Java). Must run on the Python
 version the compiler targets.
 """
@@ -72,6 +72,13 @@ def deopt_table(header, opmap):
         pairs.append((int(k) if k.isdigit() else allops[k],
                       int(v) if v.isdigit() else allops[v]))
     return pairs
+
+
+def caches_table(header, opmap):
+    """_PyOpcode_Caches as (opcode name, cache entries) pairs."""
+    m = re.search(r"const uint8_t _PyOpcode_Caches\[256\] = \{(.*?)\n\};", header, re.S)
+    return [(name, int(n)) for name, n in re.findall(r"\[(\w+)\] = (\d+),", m.group(1))
+            if name in opmap]
 
 
 def main():
@@ -148,6 +155,13 @@ def main():
     w("    static {\n")
     for k, v in deopt_table(header, opmap):
         w(f"        _PyOpcode_Deopt[{k}] = {v};\n")
+    w("    }\n\n")
+
+    w("    /** C: _PyOpcode_Caches, the cache entries after each opcode. */\n")
+    w("    public static final int[] _PyOpcode_Caches = new int[256];\n")
+    w("    static {\n")
+    for name, n in caches_table(header, opmap):
+        w(f"        _PyOpcode_Caches[{name}] = {n};\n")
     w("    }\n\n")
 
     for func in ("_PyOpcode_num_popped", "_PyOpcode_num_pushed"):

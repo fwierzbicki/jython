@@ -672,7 +672,14 @@ public final class Codegen {
         // "format" appears in the annotations, it doesn't get clobbered
         // by this name.  This code is essentially:
         // co->co_localsplusnames = ("format", *co->co_localsplusnames[1:])
-        // (Phase D: the placeholder code object has no co_localsplusnames.)
+        final int size = co.co_localsplusnames.size();
+        Object[] new_names = new Object[size];
+        new_names[0] = "format";
+        for (int i = 1; i < size; i++) {
+            Object item = co.co_localsplusnames.items[i];
+            new_names[i] = item;
+        }
+        co.co_localsplusnames = new PyTuple(new_names);
 
         c._PyCompile_ExitScope();
         codegen_make_closure(c, loc, co, 0);
@@ -825,18 +832,18 @@ public final class Codegen {
 
     private static void codegen_make_closure(Compile c, SourceLocation loc, PyCodeObject co,
             int flags) {
-        if (co.co_nfreevars() != 0) {
-            // C: for i from PyUnstable_Code_GetFirstFree(co) to co_nlocalsplus,
-            // the free variables' names.
-            for (String name : co.co_freevars) {
+        if (co.co_nfreevars != 0) {
+            int i = co.PyUnstable_Code_GetFirstFree();
+            for (; i < co.co_nlocalsplus; ++i) {
                 /* Bypass com_addop_varname because it will generate
                    LOAD_DEREF but LOAD_CLOSURE is needed.
                 */
+                String name = (String) co.co_localsplusnames.items[i];
                 int arg = c._PyCompile_LookupArg(co, name);
                 ADDOP_I(c, loc, LOAD_CLOSURE, arg);
             }
             flags |= MAKE_FUNCTION_CLOSURE;
-            ADDOP_I(c, loc, BUILD_TUPLE, co.co_nfreevars());
+            ADDOP_I(c, loc, BUILD_TUPLE, co.co_nfreevars);
         }
         ADDOP_LOAD_CONST(c, loc, co);
 

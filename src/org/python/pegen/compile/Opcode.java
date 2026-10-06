@@ -868,6 +868,33 @@ public final class Opcode {
         _PyOpcode_Deopt[119] = 119;
     }
 
+    /** C: _PyOpcode_Caches, the cache entries after each opcode. */
+    public static final int[] _PyOpcode_Caches = new int[256];
+    static {
+        _PyOpcode_Caches[RESUME] = 1;
+        _PyOpcode_Caches[TO_BOOL] = 3;
+        _PyOpcode_Caches[STORE_SUBSCR] = 1;
+        _PyOpcode_Caches[SEND] = 1;
+        _PyOpcode_Caches[FOR_ITER] = 1;
+        _PyOpcode_Caches[UNPACK_SEQUENCE] = 1;
+        _PyOpcode_Caches[STORE_ATTR] = 4;
+        _PyOpcode_Caches[LOAD_GLOBAL] = 4;
+        _PyOpcode_Caches[LOAD_SUPER_ATTR] = 1;
+        _PyOpcode_Caches[LOAD_ATTR] = 9;
+        _PyOpcode_Caches[COMPARE_OP] = 1;
+        _PyOpcode_Caches[CONTAINS_OP] = 1;
+        _PyOpcode_Caches[JUMP_BACKWARD] = 1;
+        _PyOpcode_Caches[POP_JUMP_IF_TRUE] = 1;
+        _PyOpcode_Caches[POP_JUMP_IF_FALSE] = 1;
+        _PyOpcode_Caches[POP_JUMP_IF_NONE] = 1;
+        _PyOpcode_Caches[POP_JUMP_IF_NOT_NONE] = 1;
+        _PyOpcode_Caches[GET_ITER] = 1;
+        _PyOpcode_Caches[CALL] = 3;
+        _PyOpcode_Caches[CALL_KW] = 3;
+        _PyOpcode_Caches[CALL_FUNCTION_EX] = 1;
+        _PyOpcode_Caches[BINARY_OP] = 5;
+    }
+
     /** C: _PyOpcode_num_popped (-1 for an opcode it doesn't know). */
     public static int _PyOpcode_num_popped(int opcode, int oparg) {
         switch (opcode) {

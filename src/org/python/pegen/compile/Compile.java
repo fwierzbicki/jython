@@ -49,10 +49,6 @@ import org.python.pegen.compile.Symtable.PySTEntryObject;
  * <p>C's names are kept. Errors are thrown as PythonSyntaxError where C sets
  * one and returns ERROR (or NULL); a C function whose only result is
  * SUCCESS or ERROR returns void.
- *
- * <p>Until flowgraph and assemble are ported (Phases E and F),
- * _PyCompile_OptimizeAndAssemble returns a placeholder code object (no
- * assembler until Phase F).
  */
 public final class Compile {
 
@@ -827,7 +823,7 @@ public final class Compile {
         if (arg == -1) {
             throw new IllegalStateException("compiler_lookup_arg(name='" + name
                     + "') with reftype=" + reftype + " failed in " + u.u_metadata.u_name
-                    + "; freevars of code " + co.co_name + ": " + co.co_freevars);
+                    + "; freevars of code " + co.co_name + ": " + co.co_freevars());
         }
         return arg;
     }
@@ -1165,51 +1161,9 @@ public final class Compile {
                 stackdepth_nlocalsplus, optimized_instrs);
 
         /** Assembly **/
-        return _PyAssemble_MakeCodeObject(u.u_metadata, const_cache, consts,
+        return Assemble._PyAssemble_MakeCodeObject(u.u_metadata, const_cache, consts,
                 stackdepth_nlocalsplus[0], optimized_instrs, stackdepth_nlocalsplus[1],
                 code_flags, filename);
-    }
-
-    /**
-     * C: _PyAssemble_MakeCodeObject (Python/assemble.c). Phase E: no
-     * assembler yet, so this makes the placeholder code object (see
-     * {@link PyCodeObject}), which keeps flowgraph's results for Phase F.
-     * Its free variables are u_freevars' keys in index order, where
-     * compute_localsplus_info puts them.
-     */
-    static PyCodeObject _PyAssemble_MakeCodeObject(_PyCompile_CodeUnitMetadata umd,
-            Map<Object, Object> const_cache, List<Object> consts, int maxdepth,
-            InstructionSequence instrs, int nlocalsplus, int code_flags, String filename) {
-        String[] freevars = new String[umd.u_freevars.size()];
-        int offset = umd.u_cellvars.size();
-        for (Map.Entry<Object, Integer> kv : umd.u_freevars.entrySet()) {
-            freevars[kv.getValue() - offset] = (String) kv.getKey();
-        }
-        List<String> co_freevars = new ArrayList<>();
-        Collections.addAll(co_freevars, freevars);
-
-        // What code_richcompare compares (see PyCodeObject).
-        List<Object> identity = new ArrayList<>();
-        Collections.addAll(identity, umd.u_name, umd.u_argcount, umd.u_posonlyargcount,
-                umd.u_kwonlyargcount, code_flags, umd.u_firstlineno, maxdepth, nlocalsplus);
-        for (InstructionSequence._PyInstruction instr : instrs.s_instrs) {
-            SourceLocation loc = instr.i_loc;
-            InstructionSequence._PyExceptHandlerInfo hi = instr.i_except_handler_info;
-            Collections.addAll(identity, instr.i_opcode, instr.i_oparg, loc.lineno,
-                    loc.end_lineno, loc.col_offset, loc.end_col_offset, hi.h_label,
-                    hi.h_startdepth, hi.h_preserve_lasti);
-        }
-        List<Object> constKeys = new ArrayList<>();
-        for (Object c : consts) {
-            constKeys.add(PyCodeObject._PyCode_ConstantKey(c));
-        }
-        identity.add(constKeys);
-        identity.add(new ArrayList<>(umd.u_names.keySet()));
-        identity.add(new ArrayList<>(umd.u_varnames.keySet()));
-        identity.add(new ArrayList<>(umd.u_cellvars.keySet()));
-        identity.add(co_freevars);
-        return new PyCodeObject(umd.u_name, umd.u_qualname, umd.u_firstlineno, co_freevars,
-                identity, consts, instrs, maxdepth, nlocalsplus, code_flags);
     }
 
     public PyCodeObject _PyCompile_OptimizeAndAssemble(boolean addNone) {
@@ -1231,8 +1185,7 @@ public final class Compile {
 
     /**
      * _PyAST_Compile: the code object for mod. Throws the SyntaxError a
-     * stage raises. (Until Phase F: a placeholder code object; see
-     * {@link PyCodeObject}.)
+     * stage raises.
      */
     public static PyCodeObject _PyAST_Compile(mod mod, String filename, PyCompilerFlags pflags,
             int optimize, String module, Parser.WarningHandler warnings) {

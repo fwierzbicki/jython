@@ -20,20 +20,25 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
 - **The Java tokenizer is done** (plan-pegen-parser.md, "Completed: the
   Java tokenizer"): `Parser.fromString` parses source bytes, and every
   comparison runs from source.
-- **Next: the backend** (codegen, flowgraph, assemble), outlined below in
+- **The backend is done** (codegen, flowgraph, assemble), outlined below in
   **Next plan**. The questions about it were settled with the user on
   2026-10-04 (see **Decisions for the backend**). Phase D (codegen) is
   done (**Phase D plan**), and so is Phase E, flowgraph (**Phase E
-  plan**). Next is Phase F, assemble, to be detailed before work starts.
-- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 17
+  plan**), and so is Phase F, assemble (**Phase F plan**): the Java
+  compiler's code objects match `compile()`'s, directly and through its
+  marshal writer. The backend now reaches the code object, where this
+  pass stops. The codegen and flowgraph comparisons stay in smoke.sh
+  (they show which stage a difference comes from); `smoke.sh
+  --skip-stages` leaves them out (decided with the user, 2026-10-05).
+- **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 35
   minutes) and the pegen JUnit tests (48 tests, `FutureTest`,
   `AstPreprocessTest`, `SymtableTest`, `TokenizerTest` and `FlowgraphTest`
   included);
   commands in plan-pegen-parser.md, Working notes.
 - **Committed:** Phase A (and the plan split) in c5e31fdb9, Phase B in
   d91441d6a, Phase C in ad571bf9a, the tokenizer in bb17abeb6, Phase D
-  (codegen) in 5623f71c7, Phase E (flowgraph) in 6de890f52. Check `git
-  status` for anything newer.
+  (codegen) in 5623f71c7, Phase E (flowgraph) in 6de890f52; Phase F
+  (assemble, marshal) not yet. Check `git status` for anything newer.
 
 ## Current plan: the compiler front end
 
@@ -212,12 +217,13 @@ Results:
 - **The oracle works stage by stage,** through `_testinternalcapi`:
   `compiler_codegen` (the instruction sequence), `optimize_cfg` (flowgraph)
   and `assemble_code_object`. Each stage is a phase, compared over the whole
-  corpus.
+  corpus. (Amended 2026-10-05: assemble is compared with `compile()`
+  instead; see **Phase F plan**.)
 - **The end-to-end check is marshal output:** a `marshal.dumps` writer for the
-  code object, diffed against CPython's `marshal.dumps(compile(...))`. That's
-  also how the code would reach rt3, which already reads marshal
-  (`repl315`). Still to check: `FLAG_REF` depends on CPython refcounts, so
-  the diff may need normalizing, or a `marshal.loads` round-trip instead.
+  code object. That's also how the code would reach rt3, which already
+  reads marshal (`repl315`). (Settled 2026-10-05: `FLAG_REF` depends on
+  CPython refcounts, so it's checked by `marshal.loads` in CPython, not by
+  diffing bytes; see **Phase F plan**.)
 - **Rigor:** the whole-corpus comparisons pass at every checkpoint, as
   before. Mutation checks are optional spot-checks.
 - **Names:** see `GLOSSARY.md`, which now has Jython 2, Jython 3 runtime,
@@ -232,11 +238,8 @@ Results:
 - **Phase E, flowgraph:** `flowgraph.c` (about 4.3k lines). Compared with
   `optimize_cfg`. Detailed below (**Phase E plan**).
 - **Phase F, assemble:** `assemble.c` (about 0.8k lines), which produces the
-  code object. Compared with `assemble_code_object`, then end to end through
-  marshal. Also to consider (from Phase E): comparing `compile()`'s code
-  objects directly (decoded `co_code`, `co_consts`, `co_stacksize`, the
-  exception table, positions), which covers the real path of flowgraph,
-  including the units optimize_cfg can't run (see Phase E results).
+  code object, and a marshal writer. Compared with `compile()`'s code
+  objects, and through `marshal.loads` (see **Phase F plan**).
 
 ## Phase D plan: codegen (approved 2026-10-04, done 2026-10-05)
 
@@ -512,6 +515,135 @@ Results:
   keyed by identity). AstCompare's float form now writes raw bits, as
   compare_ast.py does (`doubleToLongBits` dropped a NaN's sign).
 
+## Phase F plan: assemble (approved 2026-10-05)
+
+**Goal:** port Python/assemble.c (803 lines) and the parts of
+Objects/codeobject.c that build a code object, so that for any source the
+Java compiler produces the code objects CPython's `compile()` does, nested
+ones included: every field `marshal` writes. Then a `marshal.dumps` writer
+for them, checked by loading its output in CPython.
+
+**The oracle** (checked on 3.15.0rc3): `compile(source, filename, mode,
+dont_inherit=True, optimize=N)`, walked recursively through `co_consts`.
+Per code object, the fields marshal writes (marshal.c `w_object`,
+`TYPE_CODE`): `co_argcount`, `co_posonlyargcount`, `co_kwonlyargcount`,
+`co_stacksize`, `co_flags`, `co_code`, `co_consts`, `co_names`,
+`co_localsplusnames` and `co_localspluskinds` (through
+`co_varnames`/`co_cellvars`/`co_freevars` plus `_varname_from_oparg`, or
+`marshal.dumps` of the object itself), `co_filename`, `co_name`,
+`co_qualname`, `co_firstlineno`, `co_linetable`, `co_exceptiontable`.
+- `co_code` is `_PyCode_GetCode`: deoptimized, with cache entries zeroed,
+  which is what assemble writes (`write_instr`: `CACHE`, arg 0).
+- `co_linetable` is the full form: `code_debug_ranges` is on by default,
+  so `_PyCode_New` doesn't run `remove_column_info`. Not ported (no
+  `-X no_debug_ranges`).
+- This replaces `assemble_code_object` as F's oracle (decided with the
+  user, 2026-10-05): it needs each unit's metadata dicts (`varnames`,
+  `cellvars`, `fasthidden`, ...), which CPython doesn't expose for compiled
+  units, so it could only re-assemble Java's own inputs. `compile()` also
+  runs flowgraph's real path (`_PyCfg_OptimizedCfgToInstructionSequence`,
+  `prepare_localsplus`, the real `nparams` and `firstlineno`) and the
+  units `optimize_cfg` aborts on (Phase E results), so it's the first
+  comparison to see those. Flowgraph's own comparison already matches, so
+  a difference here points at assemble or that real path.
+
+**Decisions** (approved by the user, 2026-10-05):
+- **Files** in `org.python.pegen.compile`, C names and order kept:
+  `Assemble.java` (assemble.c: `struct assembler`, the exception and
+  location tables, `write_instr`, `resolve_jump_offsets`,
+  `resolve_unconditional_jumps`, `compute_localsplus_info`, `makecode`,
+  `_PyAssemble_MakeCodeObject`); `PyCodeObject.java` becomes the real
+  code object: `_PyCodeConstructor`, `_PyCode_Validate`, `init_code`'s
+  derived fields (`co_nlocals`, `co_ncellvars`, `co_nfreevars`,
+  `co_framesize`, stack size 0 made 1), `_Py_set_localsplus_info`,
+  `get_localsplus_counts`, `code_richcompare` (base code units, so caches
+  count; `_PyCode_ConstantKey` of the constants), and `co_varnames` /
+  `co_cellvars` / `co_freevars` as `code_getvarnames` etc. compute them.
+  `Marshal.java` (marshal.c's writer). The placeholder and the
+  `_PyAssemble_MakeCodeObject` stand-in in Compile.java go;
+  `optimize_and_assemble_code_unit` calls Assemble.
+- **The code object stays a plain Java value:** `co_code`,
+  `co_linetable`, `co_exceptiontable` and `co_localspluskinds` are
+  `byte[]` (C's bytes), the rest as now. Codegen's reads (`co_name`,
+  `co_qualname`, `co_firstlineno`, the free variables for
+  `codegen_make_closure`) stay as they are, so CodegenCompare and
+  FlowgraphCompare don't change.
+- **Generated tables:** `generate_opcodes.py` adds `_PyOpcode_Caches`
+  (and anything else assemble reads, such as `_PyOpcode_Deopt` for
+  `code_richcompare`) to `Opcode.java`.
+- **Not ported:** quickening (`_PyCode_Quicken`, `_co_firsttraceable`,
+  `co_version`, monitoring), which `co_code` doesn't show; interning
+  (`intern_strings`, `intern_constants`), which only changes identity;
+  `remove_column_info`. `_PyCompile_ConstCacheMergeOne` on names,
+  constants and `localsplusnames` is kept, as in C. (Amended in F0: one
+  part of quickening does show, `fixup_getiter`; see Results.)
+- **New comparison:** `tests/pegen/compare_code.py` and
+  `CodeCompare.java`, the pattern of compare_codegen.py. Per code object,
+  depth first: the fields above in marshal's order, `co_code` decoded one
+  code unit per line (opcode name, arg; `CACHE` lines included) so a diff
+  reads like `dis`, the line and exception tables as hex plus their
+  decoded entries (`co_positions()`, `_parse_exception_table`), and the
+  constants in compare_flowgraph.py's form with a nested code object
+  written as its full dump. Errors and warnings as compare_ast.py.
+  Run by smoke.sh over Lib, the samples and the corpus, at optimize 0, 1
+  and 2, in exec, single and eval modes. The 7 known codegen differences
+  appear here too.
+- **Marshal, checked by loading** (decided with the user, 2026-10-05):
+  `Marshal.java` writes version 6 (`marshal.version` on 3.15): the
+  constant types the compiler makes (None, True, False, Ellipsis, int as
+  `TYPE_INT` or `TYPE_LONG` in 15-bit digits, float and complex as
+  binary, str in its ASCII / short-ASCII / UTF-8 forms, bytes, tuple and
+  small tuple, frozenset, slice, code). compare_code.py's `--marshal` mode
+  has Java write those bytes, CPython `marshal.loads()` them, and the
+  loaded code object must give the same dump as `compile()`'s. The bytes
+  aren't compared with CPython's `marshal.dumps`: C decides `FLAG_REF` by
+  refcount (`_PyObject_IsUniquelyReferenced`) and interning, which Java
+  can't reproduce. Java sets `FLAG_REF` on an object it writes more than
+  once (by identity) and writes `TYPE_REF` after, which `loads` accepts.
+- **Lone surrogates:** a str written as UTF-8 with `surrogatepass`; the
+  known surrogate-pair differences (compare_known.txt) carry over.
+
+**Checkpoints:**
+- [x] F0: `Opcode.java` cache counts; `Assemble.java` and the real
+      `PyCodeObject` wired into `optimize_and_assemble_code_unit`; the
+      codegen and flowgraph comparisons unchanged.
+- [x] F1: compare_code.py and CodeCompare.java in smoke.sh, matching over
+      Lib, the samples and the corpus (all modes and levels).
+- [x] F2: `Marshal.java` and compare_code.py `--marshal` in smoke.sh.
+- [x] smoke.sh passes (exit 0, about 35 minutes); Status updated. The
+      codegen and flowgraph comparisons stay in it, as they localize
+      differences; `smoke.sh --skip-stages` leaves them out, about 19
+      minutes (decided with the user, 2026-10-05).
+
+Results (2026-10-05):
+- **Comparison:** `compile()`'s code objects over Lib at optimize 0, 1
+  and 2 (2,052 files each), the samples with `deep/` in exec, single and
+  eval modes, and the error corpus in all three modes (37,455 files
+  each): all identical, apart from the 7 entries in `compare_known.txt`
+  (mode `code`), the codegen ones seen again. So flowgraph's real path
+  and the units optimize_cfg aborts on (Phase E results) match too.
+  Through marshal (`--marshal`): the same over Lib, the samples and the
+  corpus; one `deep/` file is too deeply nested to marshal (2,000 levels,
+  `MAX_MARSHAL_STACK_DEPTH`), on both sides.
+- **Quickening shows in `co_code`:** `_PyCode_Quicken`'s `fixup_getiter`
+  rewrites a `yield from`'s `GET_ITER` oparg (1 becomes 2 or 3, by
+  `CO_COROUTINE` / `CO_ITERABLE_COROUTINE`), and `_PyCode_GetCode` keeps
+  it. Ported in `PyCodeObject` (`_PyCode_Quicken`, that part only); the
+  warmup counters it also writes are zeroed again by `_PyCode_GetCode`.
+- **`codegen_leave_annotations_scope`** renames `__annotate__`'s first
+  local to `format` in `co_localsplusnames` (Phase D had left it out, for
+  lack of a code object); ported, so that field isn't final.
+- **`code_hash`:** a weak hash (name, first line, size) put lambdas nested
+  a thousand deep in one bucket of the const cache, and each `equals`
+  walked the nest: eval mode on `deep/` ran for minutes. Now C's hash
+  (constants, names, tables, code units), computed once per object.
+- **Reading the kinds:** `co_localspluskinds` isn't a Python attribute,
+  and `_testinternalcapi.get_co_localskinds` returns a dict, which shows
+  a name that is both a local and a free variable (`__class__`, a type
+  parameter) once; `code.replace()` recomputes the kinds (dropping the
+  argument bits). compare_code.py reads them from `marshal.dumps` of the
+  module with a small reader instead.
+
 ## Working notes (for a new session)
 
 ### Traps already hit
@@ -524,6 +656,10 @@ Results:
   `os._exit` (see compare_codegen.py's KEEP), so a quick probe script that
   does the same must run with `python -u` or flush, or print nothing.
 - **A `WarningHandler` returning false** turns the warning into an error.
+- **Don't run two comparisons of one kind at once:** each compare script
+  writes its file list and Java output to a fixed `build/pegen-*/`
+  directory, so a second run overwrites the first's files (a run then
+  reports nonsense, such as Lib at 321 files).
 - **Folding's results depend on object identity** in C (see Phase E
   results, "Object identity"): return an operand itself exactly where C
   does.
