@@ -25,3 +25,13 @@ code, gets decided then.
 - **CPython's instruction set in a Java-friendly encoding.** Rejected,
   because it can't be diffed against CPython byte for byte. An interpreter can
   decode the exact format at load time if it needs to.
+
+## Amendment (2026-10-05)
+
+The backend is done: its code objects match `compile()`'s, and its marshal
+output loads in CPython. Decided with the user: the backend goes on to run
+code, on the Jython 3 runtime's interpreter, and for that the parser and
+compiler are ported to `main` now (the `invokedynamic-compiler` branch, from
+`repl315`), as one `compiler` Gradle subproject whose generated code is built,
+not checked in. Jython 2, including its ANTLR AST, is still left alone. See
+plan-invokedynamic-compiler.md.

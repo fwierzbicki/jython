@@ -8,13 +8,16 @@ with the compiler front end (future, preprocess, symtable) and then a backend
 that compiles to CPython bytecode. Target: CPython v3.15.0 (../cpython).
 
 ## Resuming work
-There are two plans; each Status section says where that work stands and
+There are three plans; each Status section says where that work stands and
 what is next, and "Working notes" lists the decisions, conventions and traps
 already hit. Update Status and the checkboxes at each checkpoint.
 - plan-cpython-bytecode-compiler.md: the compiler work (front end done, and
   the decisions and outline for the backend). Read it first.
 - plan-pegen-parser.md: the parser, the Java tokenizer (the next piece of
   work), and the commands, conventions and traps both share.
+- plan-invokedynamic-compiler.md: running the compiled code on the Jython 3
+  runtime, by porting the parser and compiler to `main` (the
+  invokedynamic-compiler branch). The work continues there.
 
 ## Ground rules
 - The user makes the git commits: don't commit or stage (use mv, not git mv).
@@ -28,7 +31,8 @@ already hit. Update Status and the checkboxes at each checkpoint.
   diffed against our output over a source corpus.
 
 ## Layout
-- plan-pegen-parser.md, plan-cpython-bytecode-compiler.md: plans and status.
+- plan-pegen-parser.md, plan-cpython-bytecode-compiler.md,
+  plan-invokedynamic-compiler.md: plans and status.
 - GLOSSARY.md: canonical terms (CPython's); docs/adr/: architecture decisions.
 - src/pegen/tools/java_generator.py: JavaParserGenerator, a port of pegen's c_generator.py.
 - src/pegen/tools/action_translator.py: C grammar actions -> Java (fails loudly

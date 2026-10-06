@@ -30,6 +30,9 @@ conventions and traps shared with it, are in plan-pegen-parser.md.
   pass stops. The codegen and flowgraph comparisons stay in smoke.sh
   (they show which stage a difference comes from); `smoke.sh
   --skip-stages` leaves them out (decided with the user, 2026-10-05).
+- **Next: running code** on the Jython 3 runtime, by porting the compiler
+  to `main` (decided with the user, 2026-10-05): see
+  plan-invokedynamic-compiler.md, which carries the work on from here.
 - **Checks passing:** `ant compile`, `tests/pegen/smoke.sh` (exit 0, about 35
   minutes) and the pegen JUnit tests (48 tests, `FutureTest`,
   `AstPreprocessTest`, `SymtableTest`, `TokenizerTest` and `FlowgraphTest`
