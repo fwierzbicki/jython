@@ -36,6 +36,27 @@ version = '3.11.0a1'
 
 group = 'org.python'
 
+// ---------------- The CPython we follow ---------------------------------------
+
+/*
+ * Code is generated from, and tests compare with, CPython 3.15. Specify its
+ * executable with -Pcpython=<executable>, otherwise we use a sibling CPython
+ * build (../cpython/python.exe on macOS, ../cpython/python elsewhere) if
+ * present, and finally "python" from the path. A relative path is resolved
+ * here, not in the sub-project. The compiler also reads CPython's source tree
+ * (the grammar, Python.asdl, opcode metadata): specify it with
+ * -PcpythonSource=<dir>, by default ../cpython.
+ */
+ext.cpythonExecutable = findProperty('cpython')?.with {
+    // A path is relative to this directory, a bare name found on the path.
+    it.contains('/') ? file(it).path : it
+} ?: {
+    def build = ['python.exe', 'python'].collect {
+        file("../cpython/$it") }.find { it.isFile() && it.canExecute() }
+    build ? build.path : 'python'
+}()
+ext.cpythonSource = file(findProperty('cpythonSource') ?: '../cpython')
+
 // ---------------- Miscellaneous configuration --------------------------------
 
 allprojects {

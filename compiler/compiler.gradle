@@ -1,0 +1,133 @@
+/*
+ * compiler.gradle
+ *
+ * Sub-project of Jython: the Python 3 compiler, a port of CPython's parser
+ * (pegen, the tokenizer, the AST) and compiler (future, preprocess,
+ * symtable, codegen, flowgraph, assemble) that makes CPython 3.15 code
+ * objects. Parts of it are generated from CPython's own definitions.
+ */
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    // JUnit 5 dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.+'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.+'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.+'
+}
+
+
+test {
+    useJUnitPlatform {  // JUnit5 as standard
+        includeEngines 'junit-jupiter'
+    }
+}
+
+
+// Sources and destinations when generating the parser and compiler tables
+
+def genJavaDir = "$buildDir/generated/sources/pegen/java/main"
+def genResourcesDir = "$buildDir/generated/resources/pegen"
+def genPackageDir = "$genJavaDir/org/python/pegen"
+
+// The generators (build-tools/python/pegen)
+def pegenTools = rootProject.file('build-tools/python/pegen')
+
+sourceSets {
+    main {
+        java {
+            srcDir genJavaDir
+        }
+        resources {
+            srcDir genResourcesDir
+        }
+    }
+}
+
+
+// A task that runs the CPython we follow (see ~/build.gradle)
+
+class CPythonExec extends Exec {
+
+    CPythonExec() {
+        executable project.cpythonExecutable
+        environment('PYTHONDONTWRITEBYTECODE', '1')
+    }
+}
+
+
+// The parser (GeneratedParser, TokenTypes), from CPython's grammar, and the
+// AST classes (ast/, AstFactory), from Parser/Python.asdl
+
+task generateParser(type: CPythonExec,
+        description: 'Generate the parser and AST classes from CPython') {
+    def tool = new File(pegenTools, 'generate.py')
+    // Clues for the incremental build
+    inputs.files(fileTree(pegenTools) { include '*.py' })
+    inputs.files(
+        new File(cpythonSource, 'Grammar/python.gram'),
+        new File(cpythonSource, 'Grammar/Tokens'),
+        new File(cpythonSource, 'Parser/Python.asdl'),
+        new File(cpythonSource, 'Parser/asdl.py'))
+    inputs.files(fileTree(new File(cpythonSource, 'Tools/peg_generator/pegen')) {
+            include '*.py' })
+    outputs.files(
+        "$genPackageDir/GeneratedParser.java",
+        "$genPackageDir/TokenTypes.java",
+        "$genPackageDir/AstFactory.java")
+    outputs.dir("$genPackageDir/ast")
+    // generate.py writes into ast/ beside the hand-written classes: start clean.
+    doFirst { delete "$genPackageDir/ast" }
+    args tool
+    args '--cpython', cpythonSource
+    args '--output-dir', genPackageDir
+}
+compileJava.dependsOn(generateParser)
+
+
+// The opcode numbers, flags and stack effects (compile/Opcode)
+
+task generateOpcodes(type: CPythonExec,
+        description: 'Generate the opcode tables from CPython') {
+    def tool = new File(pegenTools, 'generate_opcodes.py')
+    // Clues for the incremental build
+    inputs.file(tool)
+    inputs.file(new File(cpythonSource,
+            'Include/internal/pycore_opcode_metadata.h'))
+    inputs.property('cpython', cpythonExecutable)
+    outputs.file("$genPackageDir/compile/Opcode.java")
+    args tool
+    args '--output-dir', "$genPackageDir/compile"
+}
+compileJava.dependsOn(generateOpcodes)
+
+
+// The character tables of the tokenizer (lexer/UnicodeTables), and the
+// character names of \N{...}, from CPython's Unicode database
+
+task generateUnicode(type: CPythonExec,
+        description: 'Generate the Unicode tables from CPython') {
+    def tool = new File(pegenTools, 'generate_unicode.py')
+    // Clues for the incremental build
+    inputs.file(tool)
+    inputs.property('cpython', cpythonExecutable)
+    outputs.file("$genPackageDir/lexer/UnicodeTables.java")
+    outputs.dir(genResourcesDir)
+    args tool
+    args '--output-dir', "$genPackageDir/lexer"
+    args '--names-dir', "$genResourcesDir/org/python/pegen"
+}
+compileJava.dependsOn(generateUnicode)
+processResources.dependsOn(generateUnicode)
+
+
+// Report the version of Python available
+
+task pythonVersion(type: CPythonExec) {
+    args '-V'
+}
+generateParser.dependsOn(pythonVersion)
+generateOpcodes.dependsOn(pythonVersion)
+generateUnicode.dependsOn(pythonVersion)

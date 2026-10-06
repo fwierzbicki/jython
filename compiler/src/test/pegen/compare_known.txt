@@ -1,0 +1,50 @@
+# Expected differences for compare_ast.py, compare_symtable.py and
+# compare_tokens.py --known (run by smoke.sh).
+# MODE SHA1 description; SHA1 is the first 12 hex digits of the file's SHA-1,
+# as compare_ast.py prints it. Remove an entry once it matches.
+
+# compare_tokens.py: dump_tokens.py doesn't set Token.metadata on the '}'
+# closing a debug f-string's or a t-string's replacement field that has a
+# format spec (set_ftstring_expr runs there too, with the spec included).
+# The parser reads the spec's metadata first, so it isn't visible in the AST.
+tokens 0650c2a2bedd Lib/test/test_annotationlib.py: '}' metadata after a format spec
+tokens 073caf5507f8 Lib/test/test_capi/test_long.py: '}' metadata after a format spec
+tokens 5d96af3ea2a9 Lib/test/test_fstring.py: '}' metadata after a format spec
+tokens edd039690701 Lib/test/test_pow.py: '}' metadata after a format spec
+tokens 5be895ba7d5d Lib/test/test_pprint.py: '}' metadata after a format spec
+tokens 547620b6715f Lib/test/test_string/test_templatelib.py: '}' metadata after a format spec
+tokens ba89f0608dff Lib/test/test_tstring.py: '}' metadata after a format spec
+tokens 7fa846adff00 strings/s13734.py: '}' metadata after a format spec
+tokens 2fe206535311 strings/s13831.py: '}' metadata of f'{a=b}' ('=' not last)
+tokens 6df25996dc14 strings/s32453.py: '}' metadata after a format spec
+tokens 554d16360633 strings/s32468.py: '}' metadata after a format spec
+tokens ea3925993faf strings/s32470.py: '}' metadata after a format spec
+
+# A file holding only a BOM: C adds exec input's newline before skipping the
+# BOM, so ENDMARKER is on line 1; tokenize sees empty text (line 0).
+tokens 57218c316b69 strings/s07266.py: BOM-only file, ENDMARKER line
+
+# compare_codegen.py: a str of lone surrogates that pair up ('\ud801\udca0')
+# is a different constant from the character they spell ('\U000104A0') in
+# Python, but the same Java String, so the const cache merges them. (The AST
+# comparison can't see this: both sides write strings as UTF-16 code units.)
+codegen 6def8f3e00a5 Lib/test/datetimetester.py: surrogate pair constant merged
+codegen a3fc5a932daf Lib/test/test_capi/test_unicode.py: surrogate pair constant merged
+codegen 5c9988c173e4 Lib/test/test_codecs.py: surrogate pair constant merged
+codegen e1f57bd325be Lib/test/test_json/test_scanstring.py: surrogate pair constant merged
+codegen 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
+codegen a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged
+# compare_flowgraph.py: the codegen differences above, seen again.
+flowgraph 6def8f3e00a5 Lib/test/datetimetester.py: surrogate pair constant merged
+flowgraph a3fc5a932daf Lib/test/test_capi/test_unicode.py: surrogate pair constant merged
+flowgraph 5c9988c173e4 Lib/test/test_codecs.py: surrogate pair constant merged
+flowgraph e1f57bd325be Lib/test/test_json/test_scanstring.py: surrogate pair constant merged
+flowgraph 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
+flowgraph a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged
+# compare_code.py: the codegen differences above, seen again.
+code 6def8f3e00a5 Lib/test/datetimetester.py: surrogate pair constant merged
+code a3fc5a932daf Lib/test/test_capi/test_unicode.py: surrogate pair constant merged
+code 5c9988c173e4 Lib/test/test_codecs.py: surrogate pair constant merged
+code e1f57bd325be Lib/test/test_json/test_scanstring.py: surrogate pair constant merged
+code 93626babc58f Lib/test/test_tcl.py: surrogate pair constant merged
+code a77e463b2914 Lib/test/test_time.py: surrogate pair constant merged

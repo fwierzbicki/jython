@@ -11,7 +11,7 @@ rootProject.name = 'jython'
 include 'core'          // core API and objects of the interpreter runtime
 //include 'extensions'    // extension modules implemented in Java
 //include 'interpreter'   // interpreter(s) and support for embedding Jython
-//include 'compiler'      // Python compiler(s)
+include 'compiler'      // Python compiler(s)
 //include 'stdlib'        // standard library
 //include 'artefact'      // published Jython artefact (slim jar)
 //include 'command'       // the Jython command (an application)

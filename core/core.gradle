@@ -72,16 +72,8 @@ sourceSets {
 
 // A task that runs Python with the tools library on the path
 
-/*
- * The CPython that compiles the test examples must be the version whose
- * byte code we execute (3.15). Specify it with -Pcpython=<executable>,
- * otherwise we use a sibling CPython build (../cpython) if present, and
- * finally "python" from the path.
- */
-ext.cpythonExecutable = findProperty('cpython') ?: {
-    def sibling = rootProject.file('../cpython/python.exe')
-    sibling.canExecute() ? sibling.path : 'python'
-}()
+// The CPython that compiles the test examples must be the version whose
+// byte code we execute (3.15): cpythonExecutable (see ~/build.gradle).
 
 // The REPL tests compile with CPython (see ReplCompiler)
 test.systemProperty 'jython.cpython', cpythonExecutable
