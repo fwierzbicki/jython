@@ -10,6 +10,9 @@ plugins {
 }
 
 dependencies {
+    // The Python compiler (parser and code generation), for the REPL
+    implementation project(':compiler')
+
     //implementation 'org.ow2.asm:asm:9.+'
 
     // JUnit 5 dependencies
@@ -117,7 +120,8 @@ task generateOpcodes(type: PythonExec,
 compileJava.dependsOn(generateOpcodes)
 
 
-// Run the interactive REPL (compiling with CPython)
+// Run the interactive REPL (compiling with the Java compiler, or with
+// CPython given -Prepl.compiler=cpython)
 // ./gradlew -q --console=plain core:repl
 
 task repl(type: JavaExec, description: 'Run the interactive REPL') {
@@ -125,6 +129,7 @@ task repl(type: JavaExec, description: 'Run the interactive REPL') {
     mainClass = 'org.python.core.Repl'
     standardInput = System.in
     systemProperty 'jython.cpython', cpythonExecutable
+    systemProperty 'jython.repl.compiler', findProperty('repl.compiler') ?: 'java'
 }
 
 

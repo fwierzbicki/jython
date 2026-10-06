@@ -16,8 +16,99 @@ that follows. **Status** says where the work stands and what is next.
   `compiler:test` (48) and `core:test` (1454, 7 skipped) pass; smoke.sh
   passes (exit 0, about 35 minutes) with the old tree's known differences
   less `\N{RS}`, which now matches at every stage.
-- **Next: R1, the REPL on the Java compiler**, to be detailed before work
-  starts.
+- **Done: R1, the REPL on the Java compiler** (steps below),
+  2026-10-05. The REPL compiles in-process by default; CPython stays
+  behind `-Djython.repl.compiler=cpython` (`-Prepl.compiler=cpython` on
+  `core:repl`). `compiler:test` (48) and `core:test` (1532, 7 skipped)
+  pass. ReplTest's 40 inputs give the same result kind and error text
+  from both compilers. All 19 earlier examples run from Java-compiled
+  code with CPython's globals; the new `print_builtin` is an expected
+  failure (rt3's NoneType has no `__repr__`: `print(None)`).
+- **Next: R2, the interpreter**, to be detailed before work starts:
+  first fix NoneType's repr (so `print_builtin` passes), then the
+  opcode groups below, functions and closures first.
+
+## R1, the REPL on the Java compiler: steps
+
+What exists: `ReplCompiler` runs `repl_compiler.py` in a CPython
+subprocess (`codeop.compile_command(src, "<stdin>", "single")`, replies
+`C`+marshal, `I` or `E`+`format_exception_only` text); `Repl.push` uses
+its sealed `Result` (`Code`, `Incomplete`, `Error`); `ReplTest` (10
+tests) shares one subprocess. `CPython315CodeTest` runs 19 examples from
+`core/src/test/pythonExample/` that CPython compiled (`.pyc`), and
+compares the globals with those CPython's run left (`.var`, written by
+`compile_examples.py`). The Java compiler's entry is
+`Parser.fromString` + `runParser`, then `Compile._PyAST_Compile`, then
+`Marshal.dumps`; its errors are `PythonSyntaxError` (with `type`, e.g.
+`IncompleteInputError`, and SyntaxError's location fields), its warnings
+`Parser.ParserWarning`s through a `WarningHandler`.
+
+- [x] **1. Wire `core` to `compiler`:** `implementation project(':compiler')`
+  in core.gradle. Nothing else in `core` changes; both build at
+  `--release 17`.
+- [x] **2. Split `ReplCompiler`:** the `Result` records stay; `ReplCompiler`
+  becomes an interface (`compile(String)`, `close()`, a description for
+  the banner) with two implementations: `CPythonReplCompiler` (today's
+  subprocess, unchanged in behaviour, with `repl_compiler.py`) and
+  `JavaReplCompiler` (step 3). `ReplCompiler.create()` picks one: Java
+  by default; CPython when the system property `jython.repl.compiler` (or
+  env `JYTHON_REPL_COMPILER`) is `cpython`, the oracle switch. The
+  `core:repl` task passes the property through when given
+  (`-Prepl.compiler=cpython`).
+- [x] **3. `JavaReplCompiler`:** a port of `codeop._maybe_compile` and
+  `_compile` (keeping their names in comments): blank/comment-only source
+  becomes `pass`; compile with `PyCF_ALLOW_INCOMPLETE_INPUT |
+  PyCF_DONT_IMPLY_DEDENT` (warnings ignored); on a SyntaxError, retry
+  with `source + "\n"`: an `IncompleteInputError` or success means
+  `Incomplete`, another SyntaxError falls through; then the final compile
+  without those flags gives `Code` or `Error`. Start rule
+  `SINGLE_INPUT`, filename `<stdin>`, on `LargeStack`. The code object
+  goes through `Marshal.dumps` and `marshal.BytesReader` to a
+  `CPython315Code`. Errors: `PythonSyntaxError`s of SyntaxError's family
+  (and ValueError/OverflowError, which compile_command also lets through)
+  become `Error` with `traceback.format_exception_only`'s text (the
+  `File "<stdin>", line N` header, the source line, the caret range from
+  offset to end_offset, `Type: msg`), so the REPL prints what CPython's
+  would. The final compile's warnings go to the error stream as
+  `warnings.showwarning` would (`<stdin>:N: SyntaxWarning: msg`).
+  `Codegen.Unsupported` and `Marshal.MarshalError` become `Error`s
+  saying "internal error", like `Repl.execute`'s.
+- [x] **4. `ReplTest` on both:** the tests run against each compiler
+  (`@ParameterizedTest` or a nested class per compiler), the CPython ones
+  skipped when no 3.15 executable is found. The syntax-error test also
+  checks the message text is the same from both. New cases: blank line
+  and comment-only input, a decorator / `def` header left open
+  (incomplete), unterminated triple-quoted string (incomplete), an
+  IndentationError, a SyntaxWarning (`1 is 1`), a bad literal
+  (`0_`: SyntaxError; `'\N{nope}'`).
+- [x] **5. The run-and-compare oracle:** `JavaCompiledExampleTest` (in
+  `core`): for every example in `pythonExample/`, compile the source with
+  the Java compiler in `exec` mode (`FILE_INPUT`, filename the example's
+  name), load it through marshal, run it in rt3, and compare the globals
+  with CPython's `.var` (the comparison `CPython315CodeTest` already
+  makes) and, when an example prints, stdout with CPython's (a `.out`
+  file `compile_examples.py` also writes). Examples that rt3 can't run
+  yet are listed in the test as expected failures, so that one starting
+  to pass is noticed. (Whether the code objects themselves match is
+  compare_code.py's job, not this test's.)
+- [x] **6. Pass and record:** `compiler:test`, `core:test` and the REPL
+  by hand (`core:repl`, both compilers); update CLAUDE.md (the REPL now
+  compiles in Java; the switch) and this Status.
+
+Done notes: `ReplCompiler` is now the interface (with `create()`, and
+`warnings` on `Code` and `Error`, which `Repl` prints before running or
+reporting); `JavaReplCompiler.compile(source, filename, startRule,
+flags, warnings)` and `toCode` serve the oracle test too. The parser
+names CPython's `_IncompleteInputError` `IncompleteInputError`.
+`compile_examples.py` now also writes `NAME.cpython-315.out` (the
+example's stdout). Known differences in the error text, not ported:
+traceback's keyword suggestions (`_find_keyword_typos`, for "invalid
+syntax" near a misspelt keyword) and caret widths under wide
+characters.
+
+Not in R1: remembering `from __future__` flags across inputs
+(`codeop.CommandCompiler`; `repl_compiler.py` doesn't either), a direct
+`PyCodeObject` to `CPython315Code` conversion, tracebacks.
 
 ## R0, the port: steps
 

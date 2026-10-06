@@ -32,6 +32,12 @@ here, on top of `repl315`. Target: CPython v3.15.0 (../cpython).
 
 ## Layout
 - `core/`: the Jython 3 runtime (interpreter, objects, REPL), from `repl315`.
+  The REPL compiles with the Java compiler (`JavaReplCompiler`: codeop's
+  rules, then `Marshal.dumps` into rt3's `marshal`), or with a CPython
+  subprocess (`CPythonReplCompiler`, the oracle) given
+  `-Djython.repl.compiler=cpython`. `ReplTest` checks the two agree;
+  `JavaCompiledExampleTest` runs `core/src/test/pythonExample/` compiled
+  by Java against CPython's results (`.var` globals, `.out` stdout).
 - `compiler/`: the parser and compiler, one Gradle sub-project, depending
   on nothing in `core`. Sources in `compiler/src/main/java/org/python/pegen/`:
   - `Parser.java`, `Token.java`, `TokenSource.java`, `PythonSyntaxError.java`,
@@ -88,7 +94,7 @@ executable (`-Pcpython=PATH`, default ../cpython/python.exe, then
 
     ./gradlew compiler:test        # generate, build, JUnit tests
     ./gradlew core:test            # the runtime's tests
-    ./gradlew -q --console=plain core:repl
+    ./gradlew -q --console=plain core:repl [-Prepl.compiler=cpython]
 
 ## Compare with CPython
 The scripts build with Gradle first (`--no-build` skips it); run them with

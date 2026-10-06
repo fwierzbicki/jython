@@ -1,7 +1,7 @@
 # Reading compiled Python files
 
 import sys, os.path
-import marshal, py_compile, dis
+import marshal, py_compile, dis, io, contextlib
 
 # Normally you don't get a .pyc file if you just run a program.
 # You do get a .pyc file from compiling a module.
@@ -69,8 +69,8 @@ def copy(srcfile, dstfile):
                 d.write(line)
 
 
-def execute(pycfile, varfile, disfile):
-    "Execute a program and save the local variables"
+def execute(pycfile, varfile, disfile, outfile):
+    "Execute a program and save the local variables and what it prints"
     print(f"  Generate: {os.path.basename(disfile)}")
     co = getcode(pycfile)
     with open(disfile, 'wt', encoding='utf-8') as f:
@@ -78,7 +78,12 @@ def execute(pycfile, varfile, disfile):
         dis.dis(co, file=f)
     print(f"  Generate: {os.path.basename(varfile)}")
     gbl = dict()
-    exec(co, gbl)
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        exec(co, gbl)
+    print(f"  Generate: {os.path.basename(outfile)}")
+    with open(outfile, 'wt', encoding='utf-8', newline='') as f:
+        f.write(out.getvalue())
     # Remove items forced in by exec
     del gbl['__builtins__']
     # try:
@@ -114,6 +119,9 @@ def generate(reldir, name, source, generated):
 
     disfile, distime = filetime([generated, reldir, CACHE],
                   [name, COMPILER, 'dis'])
+
+    outfile, outtime = filetime([generated, reldir, CACHE],
+                  [name, COMPILER, 'out'])
     #print(f"        .dis: {distime:15.3f}")
 
     if dsttime < srctime:
@@ -127,9 +135,9 @@ def generate(reldir, name, source, generated):
         py_compile.compile(dstfile)
         pyctime = os.path.getmtime(pycfile)
 
-    if vartime < pyctime or distime < pyctime:
+    if vartime < pyctime or distime < pyctime or outtime < pyctime:
         # Run and store
-        execute(pycfile, varfile, disfile)
+        execute(pycfile, varfile, disfile, outfile)
 
 
 def ensure_dir(d):

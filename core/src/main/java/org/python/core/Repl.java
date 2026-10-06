@@ -12,9 +12,10 @@ import java.util.List;
 /**
  * An interactive read-eval-print loop for the Jython 3 runtime.
  * <p>
- * Each statement is compiled by CPython (see {@link ReplCompiler})
- * and executed by {@link CPython315Frame} in a {@code globals}
- * dictionary that persists for the session. The value of an expression
+ * Each statement is compiled (see {@link ReplCompiler}: by default the
+ * Java port of CPython's compiler, or a CPython subprocess) and
+ * executed by {@link CPython315Frame} in a {@code globals} dictionary
+ * that persists for the session. The value of an expression
  * statement is printed by the byte code itself (via
  * {@code CALL_INTRINSIC_1 INTRINSIC_PRINT}) to {@code System.out}.
  * <p>
@@ -60,7 +61,8 @@ public class Repl {
     /**
      * Run the loop until end of input.
      *
-     * @throws IOException if reading input or talking to CPython fails
+     * @throws IOException if reading input or talking to the compiler
+     *     fails
      */
     void run() throws IOException {
         String prompt = PS1;
@@ -84,7 +86,7 @@ public class Repl {
      *
      * @param line to add
      * @return {@code true} if more input is needed
-     * @throws IOException if talking to CPython fails
+     * @throws IOException if talking to the compiler fails
      */
     // Compare CPython code.InteractiveConsole.push
     boolean push(String line) throws IOException {
@@ -93,11 +95,23 @@ public class Repl {
         if (result instanceof ReplCompiler.Incomplete) { return true; }
         buffer.clear();
         if (result instanceof ReplCompiler.Code c) {
+            warn(c.warnings());
             execute(c.code());
         } else if (result instanceof ReplCompiler.Error e) {
+            warn(e.warnings());
             err.println(e.message());
         }
         return false;
+    }
+
+    /**
+     * Report the compiler's warnings.
+     *
+     * @param warnings one line each
+     */
+    private void warn(List<String> warnings) {
+        for (String w : warnings) { err.println(w); }
+        err.flush();
     }
 
     /**
@@ -125,13 +139,13 @@ public class Repl {
      * Run an interactive session on the standard streams.
      *
      * @param args ignored
-     * @throws IOException if reading input or talking to CPython fails
+     * @throws IOException if reading input or talking to the compiler
+     *     fails
      */
     public static void main(String[] args) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        try (ReplCompiler compiler = new ReplCompiler()) {
-            System.out.printf("Jython 3 (prototype) using CPython compiler %s%n",
-                    compiler.executable);
+        try (ReplCompiler compiler = ReplCompiler.create()) {
+            System.out.printf("Jython 3 (prototype) using %s%n", compiler.description());
             System.out.println("Ctrl-D to exit.");
             new Repl(in, System.out, System.err, compiler).run();
         }

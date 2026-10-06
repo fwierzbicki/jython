@@ -194,12 +194,12 @@ class CPython315CodeTest extends UnitTestSupport {
      * project Gradle build, and below "test", with any sub-directory
      * structure leading to the Python source files.
      */
-    private static final Path PYTHON_DIR = BUILD //
+    static final Path PYTHON_DIR = BUILD //
             .resolve("generated/sources/pythonExample") //
             .resolve("test");
 
     /** Where compiled files are placed by CPython. */
-    private static final Path PYC_DIR = PYTHON_DIR.resolve("__pycache__");
+    static final Path PYC_DIR = PYTHON_DIR.resolve("__pycache__");
 
     /**
      * The name fragment used by the compiler in the supported version
@@ -299,7 +299,7 @@ class CPython315CodeTest extends UnitTestSupport {
      * @param ref dictionary of reference results
      * @param test dictionary of results to test
      */
-    private static void assertExpectedVariables(Map<Object, Object> ref, Map<Object, Object> test) {
+    static void assertExpectedVariables(Map<Object, Object> ref, Map<Object, Object> test) {
         for (Map.Entry<Object, Object> e : ref.entrySet()) {
             Object k = e.getKey();
             Object x = e.getValue();
